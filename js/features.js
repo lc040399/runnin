@@ -180,6 +180,7 @@ function openPlanner(target) {
       <button class="close" id="featClose" aria-label="Luk">✕</button>
     </div>
     <p class="foto-note" style="margin-top:4px">Opbygningsløb i samme egn, timet baglæns fra ${dateLabel(target)}.</p>
+    ${typeof stravaPlannerLine === "function" ? stravaPlannerLine(target) : ""}
     <div class="feat-list">${rows}</div>`;
   featOverlay.hidden = false;
   document.getElementById("featClose").onclick = () => (featOverlay.hidden = true);

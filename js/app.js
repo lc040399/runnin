@@ -186,8 +186,10 @@ function openDetail(r, fly) {
   document.getElementById("dType").textContent = TYPE_LABEL[r.t];
   document.getElementById("dType").style.color = TYPE_COLOR[r.t];
   document.getElementById("dName").textContent = r.n;
+  const live = typeof isLive === "function" && isLive(r);
   document.getElementById("dMeta").innerHTML =
-    `${r.d} · ${r.c} ${flag(r.cc)}<br>Næste udgave: ${dateLabel(r)}` +
+    `${r.d} · ${r.c} ${flag(r.cc)}<br>` +
+    (live ? `<span class="d-idag">I dag - løbet er i gang</span>` : `Næste udgave: ${dateLabel(r)}`) +
     (r.p ? `<br>Startgebyr: ${priceLabel(r.p)}` : `<br>Pris: se tilmeldingssiden`);
   const note = document.getElementById("dNote");
   note.hidden = !r.note;
@@ -539,6 +541,8 @@ function toggleProfileMenu() {
       <button data-act="alarmer">🔔 Alarmer${alarms.size ? ` <span class="pm-tal">${alarms.size}</span>` : ""}</button>
       <button data-act="radarer">🔭 Mine radarer${radars().length ? ` <span class="pm-tal">${radars().length}</span>` : ""}</button>
       <button data-act="aar">🗺 Mit løbs-år</button>
+      <button data-act="strava">${stravaData() ? `<span class="strava-prik"></span> Strava: forbundet` : `<span class="strava-prik"></span> Forbind med Strava`}</button>
+      <button data-act="ics">📅 Kalender-feed</button>
       <button data-act="rediger">Redigér profil</button>
       <button data-act="logud" class="pm-logud">Log ud</button>
     </div>`;
@@ -551,6 +555,8 @@ function toggleProfileMenu() {
     if (act === "alarmer") visAlarmer();
     if (act === "radarer") visRadarer();
     if (act === "aar") openYearCard();
+    if (act === "strava") openStrava();
+    if (act === "ics") openKalenderFeed();
     if (act === "rediger") openLogin();
     if (act === "logud") { localStorage.removeItem("runnin-user"); updateAuthUI(); if (state.tab === "mine") renderFavs(); }
   });

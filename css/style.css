@@ -215,8 +215,9 @@ body { font-family: var(--sans); color: var(--ink); background: var(--paper); }
 }
 .cta {
   display: flex; justify-content: center; align-items: center; gap: 8px;
+  width: 100%; border: 0; cursor: pointer;
   margin-top: 18px; background: var(--coral); color: #fff; text-decoration: none;
-  font-weight: 700; font-size: 14px; border-radius: 11px; padding: 13px 0;
+  font-family: var(--sans); font-weight: 700; font-size: 14px; border-radius: 11px; padding: 13px 0;
   transition: transform .15s, box-shadow .15s;
 }
 .cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(192,88,0,.35); }
@@ -256,6 +257,18 @@ body { font-family: var(--sans); color: var(--ink); background: var(--paper); }
 .plan-når { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 10px 0 6px; display: flex; justify-content: space-between; }
 .plan-når span { color: var(--faint); letter-spacing: 0; text-transform: none; font-weight: 500; }
 .plan-tom { font-size: 12.5px; color: var(--faint); background: #F3F0E9; border-radius: 12px; padding: 11px 14px; }
+.d-idag { color: #059669; font-weight: 700; }
+.strava-prik { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: #FC4C02; }
+.strava-btn { background: #FC4C02; }
+.strava-btn:hover { box-shadow: 0 8px 20px rgba(252,76,2,.35); }
+.strava-tag { font-size: 10px; font-weight: 800; letter-spacing: .06em; background: #FC4C02; color: #fff; padding: 3px 9px; border-radius: 999px; vertical-align: 3px; margin-left: 8px; }
+.strava-intro { font-size: 13px; color: var(--muted); margin-top: 12px; line-height: 1.65; }
+.pb-væg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+.pb-kort { background: #F3F0E9; border-radius: 12px; text-align: center; padding: 12px 4px; }
+.pb-kort span { display: block; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pb-kort strong { display: block; font-size: 16px; margin-top: 3px; font-variant-numeric: tabular-nums; }
+.form-linje { font-size: 13px; margin-top: 12px; line-height: 1.55; }
+.planner-form { background: #F3F0E9; border-radius: 10px; padding: 10px 13px; margin: 10px 0 2px; }
 @keyframes nudge {
   0%, 100% { transform: none; box-shadow: none; }
   25% { transform: scale(1.03); box-shadow: 0 0 0 5px rgba(192,88,0,.18); }
