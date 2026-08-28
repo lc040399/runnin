@@ -7,7 +7,15 @@ const todayISO = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
-const isLive = r => r.dt === todayISO();
+// Vi kender ingen starttider, så "i gang" = løbsdag OG dagtimer (7-17) på løbsstedet.
+// Lokal klokketime estimeres fra længdegraden (15° ≈ 1 time) - så er US-løb live i
+// vores aften, og et dansk morgenløb står ikke som i gang ved midnat.
+const stedTime = r => {
+  const d = new Date();
+  return (((d.getUTCHours() + d.getUTCMinutes() / 60 + r.lo / 15) % 24) + 24) % 24;
+};
+const erLøbsdag = r => r.dt === todayISO();
+const isLive = r => erLøbsdag(r) && stedTime(r) >= 7 && stedTime(r) < 17;
 
 const LIVE_NAVNE = [
   "Mette N.", "Jonas K.", "Sofie H.", "Rasmus P.", "Camilla J.", "Frederik L.", "Ida S.", "Mikkel T.",

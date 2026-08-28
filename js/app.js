@@ -276,9 +276,13 @@ function openDetail(r, fly) {
   document.getElementById("dType").style.color = TYPE_COLOR[r.t];
   document.getElementById("dName").textContent = r.n;
   const live = typeof isLive === "function" && isLive(r);
+  const løbsdag = typeof erLøbsdag === "function" && erLøbsdag(r);
+  const dagStatus = live ? `<span class="d-idag">I dag - løbet er i gang</span>`
+    : løbsdag && stedTime(r) < 7 ? `<span class="d-idag">I dag - starter senere</span>`
+    : løbsdag ? `Afholdt i dag` : `Næste udgave: ${dateLabel(r)}`;
   document.getElementById("dMeta").innerHTML =
     `${r.d} · ${r.c} ${flag(r.cc)}<br>` +
-    (live ? `<span class="d-idag">I dag - løbet er i gang</span>` : `Næste udgave: ${dateLabel(r)}`) +
+    dagStatus +
     (r.p ? `<br>Startgebyr: ${priceLabel(r.p)}` : `<br>Pris: se tilmeldingssiden`) +
     (r.u.includes("sportstiming.dk") ? `<br><span class="d-kilde">Kalenderdata: Sportstiming</span>`
       : r.u.includes("runsignup.com") ? `<br><span class="d-kilde">Kalenderdata: RunSignup</span>` : "");

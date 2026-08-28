@@ -1,5 +1,7 @@
 // Bygger data/races-st.js ud fra tools/st-raw.tsv (høstet fra sportstiming.dk/events).
 // Geokoder danske bynavne via DAWA (api.dataforsyningen.dk - gratis, offentlig).
+// VIGTIGT: Kør node tools/fix-coords.mjs bagefter - kyst-postnumres visueltcenter
+// kan ligge i havet; fix-coords land-validerer og retter via stednavne2.
 // Kør: node tools/build-st.mjs
 import { readFileSync, writeFileSync } from "fs";
 

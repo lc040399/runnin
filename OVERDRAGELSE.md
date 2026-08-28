@@ -23,7 +23,7 @@ Her er den ærlige tilstand, så du ved præcis, hvad du overtager.
 
 1. **Fork/klon** og opret dit eget Cloudflare Pages-projekt (gratis). `./tools/deploy.sh`
 2. **Erstat logoet** - `assets/mark.png` er et købt design, der ikke følger med (se LICENSE)
-3. **Genkør Sportstiming-høsten** jævnligt (`tools/build-st.mjs` + frisk TSV fra deres offentlige kalender) - respektér robots.txt og crawl skånsomt. Overvej at spørge Sportstiming om lov/samarbejde; de er flinke og dataene er deres
+3. **Genkør Sportstiming-høsten** jævnligt (`tools/build-st.mjs` + frisk TSV fra deres offentlige kalender, efterfulgt af `tools/fix-coords.mjs` som land-validerer koordinaterne) - respektér robots.txt og crawl skånsomt. Overvej at spørge Sportstiming om lov/samarbejde; de er flinke og dataene er deres
 4. **Verificér de kuraterede løbs URLs/priser** (`data/races.js`, `data/races2.js`) - de er efter bedste evne, ikke efterprøvet
 5. **OSRM demo-serveren** (router.project-osrm.org) tåler ikke produktionstrafik - selv-host eller cache ruter, hvis du får brugere
 6. **Eget domæne** anbefales; ret `BASE` i `tools/build-seo.mjs` og canonicals følger med
