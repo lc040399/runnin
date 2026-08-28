@@ -481,7 +481,48 @@ function openLogin() {
 const closeLogin = () => (loginOverlay.hidden = true);
 
 document.getElementById("loginBtn").addEventListener("click", openLogin);
-document.getElementById("userChip").addEventListener("click", openLogin);
+
+/* ---------- profil-dropdown ---------- */
+const profileMenu = document.getElementById("profileMenu");
+
+function toggleProfileMenu() {
+  if (!profileMenu.hidden) { profileMenu.hidden = true; return; }
+  const user = getUser();
+  if (!user) return openLogin();
+  const gemte = RACES.filter(r => favs.has(r.id)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  const next = gemte.find(r => r.dt && new Date(r.dt) >= new Date());
+  const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
+
+  profileMenu.innerHTML = `
+    <div class="pm-head">
+      <span class="user-avatar">${user.navn.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase()}</span>
+      <div>
+        <div class="pm-navn">${user.navn}</div>
+        <div class="pm-sub">${user.bib ? "Startnummer #" + user.bib : "Intet startnummer endnu"}</div>
+      </div>
+    </div>
+    ${next ? `<div class="pm-next"><span class="countdown">${dage} dage</span> til ${next.n}</div>` : ""}
+    <div class="pm-items">
+      <button data-act="mine">♡ Mine løb <span class="pm-tal">${gemte.length}</span></button>
+      ${next ? `<button data-act="fotos">📷 Mine billeder</button>` : ""}
+      <button data-act="rediger">Redigér profil</button>
+      <button data-act="logud" class="pm-logud">Log ud</button>
+    </div>`;
+  profileMenu.hidden = false;
+
+  profileMenu.querySelectorAll("button").forEach(b => b.onclick = () => {
+    profileMenu.hidden = true;
+    const act = b.dataset.act;
+    if (act === "mine") { setTab("mine"); panel.hidden = false; renderFavs(); }
+    if (act === "fotos") openFotos(next, user.bib || null);
+    if (act === "rediger") openLogin();
+    if (act === "logud") { localStorage.removeItem("runnin-user"); updateAuthUI(); if (state.tab === "mine") renderFavs(); }
+  });
+}
+
+document.getElementById("userChip").addEventListener("click", e => { e.stopPropagation(); toggleProfileMenu(); });
+document.addEventListener("click", e => { if (!profileMenu.hidden && !profileMenu.contains(e.target)) profileMenu.hidden = true; });
+document.addEventListener("keydown", e => { if (e.key === "Escape") profileMenu.hidden = true; });
 document.getElementById("loginClose").addEventListener("click", closeLogin);
 loginOverlay.addEventListener("click", e => { if (e.target === loginOverlay) closeLogin(); });
 document.getElementById("loginForm").addEventListener("submit", e => {

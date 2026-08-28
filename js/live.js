@@ -132,7 +132,8 @@ function tick(ts) {
     if (r.prog >= 1) {
       r.prog = 1; r.done = true; changed = true;
       r.tid = fmtTid(sim.simMin / r.fart);
-      sim.feed.unshift({ navn: r.navn, bib: r.bib, tid: r.tid });
+      const plac = sim.runners.filter(x => x.done).length;
+      sim.feed.unshift({ navn: r.navn, bib: r.bib, tid: r.tid, plac, fart: r.fart });
     }
   }
 
@@ -143,18 +144,18 @@ function tick(ts) {
   }));
   map.getSource("live-runners")?.setData({ type: "FeatureCollection", features: feats });
 
-  if (changed || Math.floor(ts / 900) !== Math.floor((ts - dt * 1000) / 900)) renderLivePanel();
+  if (changed || Math.floor(ts / 400) !== Math.floor((ts - dt * 1000) / 400)) updateLivePanel();
   sim.raf = requestAnimationFrame(tick);
 }
 const lederen = () => sim.runners.filter(r => !r.done).sort((a, b) => b.prog - a.prog)[0];
 
-/* ---------- panel ---------- */
+/* ---------- panel: bygges ÉN gang, rækker glider til nye placeringer (FLIP) ---------- */
 const livePanel = document.getElementById("livePanel");
+const ROW_H = 54;
+let rowEls = new Map(), feedCount = 0;
 
-function renderLivePanel() {
-  const top = sim.runners.filter(r => !r.done).sort((a, b) => b.prog - a.prog).slice(0, 5);
-  const iMål = sim.runners.filter(r => r.done).length;
-
+function buildLivePanel() {
+  rowEls = new Map(); feedCount = 0;
   livePanel.innerHTML = `
     <div class="live-head">
       <span class="live-badge"><i></i>LIVE</span>
@@ -162,26 +163,110 @@ function renderLivePanel() {
       <button class="close" id="liveClose" aria-label="Luk">✕</button>
     </div>
     <div class="live-stats">
-      <div><strong>${sim.runners.length - iMål}</strong><span>på ruten</span></div>
-      <div><strong>${iMål}</strong><span>i mål</span></div>
+      <div><strong id="stRuten">${sim.runners.length}</strong><span>på ruten</span></div>
+      <div><strong id="stMaal">0</strong><span>i mål</span></div>
       <div><strong>${sim.distKm} km</strong><span>rute</span></div>
     </div>
     <div class="live-sec">Førende lige nu</div>
-    ${top.map((r, i) => `
-      <div class="live-row">
-        <span class="live-pos">${i + 1}</span>
-        <div class="live-main">
-          <div class="live-navn">${r.navn} <span class="live-bib">#${r.bib}</span></div>
-          <div class="live-bar"><i style="width:${(r.prog * 100).toFixed(1)}%"></i></div>
-        </div>
-        <span class="live-km">${(r.prog * sim.distKm).toFixed(1)} km</span>
-      </div>`).join("")}
+    <div class="lb-list" id="lbList"></div>
     <div class="live-sec">Målstregen</div>
-    <div class="live-feed">
-      ${sim.feed.slice(0, 8).map(f => `<div class="feed-item"><span>🏁</span><div><strong>${f.navn}</strong> <span class="live-bib">#${f.bib}</span> kom i mål</div><span class="feed-tid">${f.tid}</span></div>`).join("") || `<div class="feed-tom">Ingen i mål endnu - følg med her.</div>`}
-    </div>
+    <div class="live-feed" id="liveFeed"><div class="feed-tom">Ingen i mål endnu - følg med her.</div></div>
     <p class="foto-note">Demo: LIVE-status er ægte (løbet afholdes i dag iflg. Sportstiming), men løberne er en simulation, ×24 hastighed.</p>`;
   document.getElementById("liveClose").onclick = closeLive;
+}
+
+function updateLivePanel() {
+  const list = document.getElementById("lbList");
+  if (!list) return;
+  const active = sim.runners.filter(r => !r.done).sort((a, b) => b.prog - a.prog);
+  const top = active.slice(0, 5);
+  document.getElementById("stRuten").textContent = active.length;
+  document.getElementById("stMaal").textContent = sim.runners.length - active.length;
+
+  top.forEach((r, i) => {
+    let el = rowEls.get(r.bib);
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "live-row";
+      el.style.transform = `translateY(${(i + 1.6) * ROW_H}px)`;
+      el.style.opacity = "0";
+      el.innerHTML = `<span class="live-pos"></span>
+        <div class="live-main">
+          <div class="live-navn">${r.navn} <span class="live-bib">#${r.bib}</span></div>
+          <div class="live-bar"><i></i></div>
+        </div>
+        <span class="live-km"></span>`;
+      list.appendChild(el);
+      rowEls.set(r.bib, el);
+      void el.offsetWidth; // force layout så entrance-transition spiller
+    }
+    el.querySelector(".live-pos").textContent = i + 1;
+    el.querySelector(".live-bar i").style.width = (r.prog * 100).toFixed(1) + "%";
+    el.querySelector(".live-km").textContent = (r.prog * sim.distKm).toFixed(1) + " km";
+    el.style.transform = `translateY(${i * ROW_H}px)`;
+    el.style.opacity = "1";
+  });
+
+  // ude af top 5 (eller i mål): glid ud af syne
+  const topBibs = new Set(top.map(r => r.bib));
+  for (const [bib, el] of rowEls) {
+    if (!topBibs.has(bib)) { el.style.transform = `translateY(${5.4 * ROW_H}px)`; el.style.opacity = "0"; }
+  }
+
+  // mål-feed: kun NYE indslag prependes, eksisterende DOM røres ikke
+  if (sim.feed.length !== feedCount) {
+    const feedEl = document.getElementById("liveFeed");
+    if (feedCount === 0 && sim.feed.length) feedEl.innerHTML = "";
+    for (let i = sim.feed.length - feedCount - 1; i >= 0; i--) {
+      const f = sim.feed[i];
+      const d = document.createElement("div");
+      d.className = "feed-item";
+      d.innerHTML = `<span>🏁</span><div><strong>${f.navn}</strong> <span class="live-bib">#${f.bib}</span> kom i mål</div><span class="feed-tid">${f.tid}</span><span class="feed-caret">▾</span>`;
+      d.addEventListener("click", () => toggleFeedDetail(d, f));
+      feedEl.prepend(d);
+      while (feedEl.children.length > 12) feedEl.lastChild.remove();
+    }
+    feedCount = sim.feed.length;
+  }
+}
+
+/* ---------- finisher-detaljer: tempo, placering, splits + link til fotos ---------- */
+const fmtPace = minPerKm => {
+  const m = Math.floor(minPerKm), s = Math.round((minPerKm - m) * 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+};
+
+function toggleFeedDetail(itemEl, f) {
+  const open = itemEl.nextElementSibling?.classList.contains("feed-detail");
+  document.querySelectorAll(".feed-detail").forEach(el => el.remove());
+  document.querySelectorAll(".feed-item.open").forEach(el => el.classList.remove("open"));
+  if (open) return;
+
+  const totalMin = sim.simMin / f.fart;
+  const pace = totalMin / sim.distKm;
+  const h = [...String(f.bib)].reduce((a, c) => (a * 37 + c.charCodeAt(0)) >>> 0, 3);
+  const kmSplits = Math.min(Math.ceil(sim.distKm), 8);
+  const splits = Array.from({ length: kmSplits }, (_, k) => {
+    const wobble = 1 + (((h >> (k * 3)) % 100) - 50) / 100 * 0.07; // ±3,5 % pr. km
+    return `<span class="split"><em>${k + 1} km</em>${fmtPace(pace * wobble)}</span>`;
+  }).join("");
+
+  const det = document.createElement("div");
+  det.className = "feed-detail";
+  det.innerHTML = `
+    <div class="fd-stats">
+      <div><strong>${f.plac}.</strong><span>plads</span></div>
+      <div><strong>${f.tid}</strong><span>sluttid</span></div>
+      <div><strong>${fmtPace(pace)}</strong><span>min/km</span></div>
+    </div>
+    <div class="fd-splits">${splits}</div>
+    <button class="fd-fotos">📷 Se billeder af #${f.bib}</button>`;
+  det.querySelector(".fd-fotos").addEventListener("click", e => {
+    e.stopPropagation();
+    openFotos(sim.race, String(f.bib));
+  });
+  itemEl.classList.add("open");
+  itemEl.after(det);
 }
 
 /* ---------- åbn/luk ---------- */
@@ -199,6 +284,7 @@ async function openLive(race) {
   if (sim.race !== race) return; // lukket imens
   sim.route = resample(route.coords);
   sim.distKm = route.km;
+  sim.simMin = +(sim.distKm * 4.6).toFixed(1); // midterfelt ~4:36 min/km → vinder ~3:55, bagtrop ~5:35
   seedRunners(race);
   ensureLiveLayers();
   map.getSource("live-route").setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: sim.route } });
@@ -208,7 +294,8 @@ async function openLive(race) {
   map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
     { padding: { top: 90, bottom: 60, left: 60, right: innerWidth > 720 ? 440 : 60 }, duration: 1600, essential: true });
 
-  renderLivePanel();
+  buildLivePanel();
+  updateLivePanel();
   sim.raf = requestAnimationFrame(tick);
 }
 function closeLive() {

@@ -25,10 +25,10 @@ function bibSubset(bib) {
   return FOTOS.filter((_, i) => (h >> i) % 4 !== 0); // deterministisk "match" pr. startnummer
 }
 
-function openFotos(race) {
+function openFotos(race, bib) {
   let userBib = null;
   try { userBib = JSON.parse(localStorage.getItem("runnin-user"))?.bib || null; } catch (_) {}
-  fotoRace = race; fotoBib = userBib; lbIndex = null;
+  fotoRace = race; fotoBib = bib ?? userBib; lbIndex = null;
   fotoOverlay.hidden = false;
   renderFotos();
 }
