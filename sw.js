@@ -1,5 +1,6 @@
-/* Runnin service worker: stale-while-revalidate på egne filer, netværk direkte til tiles/APIs. */
-const CACHE = "runnin-v1";
+/* Runnin service worker: HTML altid netværk-først (aldrig forældet side efter deploy),
+   versionerede assets stale-while-revalidate, tiles/APIs udenom. */
+const CACHE = "runnin-v2";
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(["/", "/manifest.webmanifest"])));
@@ -14,6 +15,16 @@ self.addEventListener("activate", e => {
 self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return; // tiles/fonts/APIs går udenom
+  // HTML/navigationer: netværk først - en deploy må ALDRIG give en forældet side m. blandede filversioner
+  if (e.request.mode === "navigate") {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        caches.open(CACHE).then(c => c.put(e.request, res.clone())).catch(() => {});
+        return res.clone();
+      }).catch(() => caches.match(e.request))
+    );
+    return;
+  }
   e.respondWith(
     caches.open(CACHE).then(async cache => {
       const cached = await cache.match(e.request);

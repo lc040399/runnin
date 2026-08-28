@@ -334,19 +334,39 @@ function initLiveUI() {
   let cycle = 0;
   pill.onclick = () => { openLive(liveRaces[cycle % liveRaces.length]); cycle++; };
 
-  // pulserende grøn halo på live-løb på kortet
+  // live-løb klynger som resten af kortet - grønne klynger på lavt zoom, pulserende prikker tæt på
   map.addSource("live-halo", {
-    type: "geojson",
+    type: "geojson", cluster: true, clusterMaxZoom: 8, clusterRadius: 44,
     data: { type: "FeatureCollection", features: liveRaces.map(r => ({ type: "Feature", properties: { id: r.id }, geometry: { type: "Point", coordinates: [r.lo, r.la] } })) },
   });
   map.addLayer({
-    id: "live-halo-pulse", type: "circle", source: "live-halo",
-    paint: { "circle-color": "#10B981", "circle-opacity": .35, "circle-radius": 10 },
-  }, "clusters");
+    id: "live-cluster", type: "circle", source: "live-halo", filter: ["has", "point_count"],
+    paint: {
+      "circle-color": "#10B981",
+      "circle-radius": ["step", ["get", "point_count"], 12, 8, 16, 25, 20],
+      "circle-stroke-width": 5, "circle-stroke-color": "rgba(16,185,129,.25)",
+    },
+  });
   map.addLayer({
-    id: "live-halo-core", type: "circle", source: "live-halo",
+    id: "live-cluster-count", type: "symbol", source: "live-halo", filter: ["has", "point_count"],
+    layout: { "text-field": "{point_count_abbreviated}", "text-font": ["Noto Sans Regular"], "text-size": 11 },
+    paint: { "text-color": "#ffffff" },
+  });
+  map.addLayer({
+    id: "live-halo-pulse", type: "circle", source: "live-halo", filter: ["!", ["has", "point_count"]],
+    paint: { "circle-color": "#10B981", "circle-opacity": .35, "circle-radius": 10 },
+  });
+  map.addLayer({
+    id: "live-halo-core", type: "circle", source: "live-halo", filter: ["!", ["has", "point_count"]],
     paint: { "circle-color": "#10B981", "circle-radius": 5, "circle-stroke-width": 1.5, "circle-stroke-color": "#fff" },
   });
+  map.on("click", "live-cluster", e => {
+    const f = e.features[0];
+    map.getSource("live-halo").getClusterExpansionZoom(f.properties.cluster_id).then(z =>
+      map.easeTo({ center: f.geometry.coordinates, zoom: z + .4, duration: 600 }));
+  });
+  map.on("mouseenter", "live-cluster", () => (map.getCanvas().style.cursor = "pointer"));
+  map.on("mouseleave", "live-cluster", () => (map.getCanvas().style.cursor = ""));
   map.on("click", "live-halo-core", e => {
     const r = RACES[e.features[0].properties.id];
     openDetail(r, true);
