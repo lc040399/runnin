@@ -287,16 +287,40 @@ function rowHtml(r) {
   </div>`;
 }
 
+const calToggle = document.getElementById("calToggle");
+let calView = false;
+calToggle.addEventListener("click", () => {
+  calView = !calView;
+  calToggle.classList.toggle("on", calView);
+  renderList();
+});
+
+const fullMonth = m => { const [y, mm] = m.split("-"); return MONTHS[+mm - 1][0].toUpperCase() + MONTHS[+mm - 1].slice(1) + " " + y; };
+
 function renderList() {
-  panelTitle.textContent = "Løb";
+  panelTitle.textContent = "Kommende løb";
+  calToggle.hidden = false;
   const list = filtered().slice().sort((a, b) => a.m.localeCompare(b.m));
-  panelBody.innerHTML = list.length
-    ? list.map(rowHtml).join("")
-    : `<div class="empty">Ingen løb matcher filtrene.<br><em>Prøv at åbne op for hvor eller hvornår.</em></div>`;
+  if (!list.length) {
+    panelBody.innerHTML = `<div class="empty">Ingen løb matcher filtrene.<br><em>Prøv at åbne op for hvor eller hvornår.</em></div>`;
+    return;
+  }
+  if (!calView) {
+    panelBody.innerHTML = list.map(rowHtml).join("");
+    return;
+  }
+  // Kalendervisning: grupperet pr. måned med sticky headere
+  let html = "", current = "";
+  for (const r of list) {
+    if (r.m !== current) { current = r.m; html += `<div class="month-head">${fullMonth(r.m)}</div>`; }
+    html += rowHtml(r);
+  }
+  panelBody.innerHTML = html;
 }
 
 function renderFavs() {
   panelTitle.textContent = "Mine løb";
+  calToggle.hidden = true;
   const list = RACES.filter(r => favs.has(r.id)).sort((a, b) => a.m.localeCompare(b.m));
   panelBody.innerHTML = list.length
     ? list.map(rowHtml).join("")
