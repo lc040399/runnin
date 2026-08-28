@@ -362,12 +362,13 @@ function initLiveUI() {
   });
   map.on("mouseleave", "live-halo-core", () => { map.getCanvas().style.cursor = ""; hc.hidden = true; });
 
+  // roligt åndedræt: sinus-kurve så glowet fader både ind og ud - intet hårdt loop-hop
   let t0 = performance.now();
   (function pulse(ts) {
-    const p = ((ts - t0) % 1800) / 1800;
+    const p = ((ts - t0) % 2600) / 2600;
     try {
-      map.setPaintProperty("live-halo-pulse", "circle-radius", 6 + p * 16);
-      map.setPaintProperty("live-halo-pulse", "circle-opacity", .4 * (1 - p));
+      map.setPaintProperty("live-halo-pulse", "circle-radius", 7 + p * 10);
+      map.setPaintProperty("live-halo-pulse", "circle-opacity", .28 * Math.sin(p * Math.PI));
     } catch (_) { return; }
     requestAnimationFrame(pulse);
   })(t0);
