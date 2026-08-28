@@ -341,6 +341,7 @@ const panelBody = document.getElementById("panelBody");
 
 document.querySelectorAll(".tab").forEach(tab =>
   tab.addEventListener("click", () => {
+    document.getElementById("profileMenu").hidden = true;
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
     state.tab = tab.dataset.tab;
@@ -610,6 +611,10 @@ function toggleProfileMenu() {
   if (!profileMenu.hidden) { profileMenu.hidden = true; return; }
   const user = getUser();
   if (!user) return openLogin();
+  // profilmenu og paneler udelukker hinanden - luk hvad der ellers er åbent
+  detail.hidden = true;
+  closePanel();
+  setTab("kort");
   const gemte = RACES.filter(r => favs.has(r.id)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   const next = gemte.find(r => r.dt && new Date(r.dt) >= new Date());
   const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
