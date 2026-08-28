@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="css/style.css?v=9" rel="stylesheet">
+<link href="css/style.css?v=11" rel="stylesheet">
 </head>
 <body>
 
@@ -19,12 +19,37 @@
 <!-- Top nav -->
 <header class="nav reveal">
   <div class="brand">RUNNIN</div>
-  <nav class="tabs" role="tablist">
-    <button class="tab active" data-tab="kort">Kort</button>
-    <button class="tab" data-tab="lob">Kommende løb</button>
-    <button class="tab" data-tab="mine">Mine løb <span class="fav-count" id="favCount" hidden></span></button>
-  </nav>
+  <div class="nav-right">
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="kort">Kort</button>
+      <button class="tab" data-tab="lob">Kommende løb</button>
+      <button class="tab" data-tab="mine">Mine løb <span class="fav-count" id="favCount" hidden></span></button>
+    </nav>
+    <button class="login-btn" id="loginBtn">Log ind</button>
+    <button class="user-chip" id="userChip" hidden>
+      <span class="user-avatar" id="userAvatar"></span>
+      <span class="user-name" id="userName"></span>
+    </button>
+  </div>
 </header>
+
+<!-- Login-sheet (demo: gemmes lokalt i browseren) -->
+<div id="loginOverlay" class="login-overlay" hidden>
+  <div class="login-modal">
+    <button class="close" id="loginClose" aria-label="Luk">✕</button>
+    <div class="d-type">Runnin-profil</div>
+    <h2 class="login-title" id="loginTitle">Log ind</h2>
+    <form id="loginForm">
+      <label class="login-label" for="loginName">Navn</label>
+      <input class="login-field" id="loginName" placeholder="Dit fulde navn" autocomplete="name" value="Lasse Christensen">
+      <label class="login-label" for="loginBib">Startnummer (valgfrit)</label>
+      <input class="login-field" id="loginBib" inputmode="numeric" placeholder="Fx 1234">
+      <button class="cta login-cta" type="submit">Fortsæt <span>→</span></button>
+      <button class="save" type="button" id="logoutBtn" hidden>Log ud</button>
+      <p class="foto-note">Demo: gemmes kun lokalt i din browser - ingen konto oprettes.</p>
+    </form>
+  </div>
+</div>
 
 <!-- Hero + filtre -->
 <section class="hero reveal-2">
@@ -96,9 +121,9 @@
 </footer>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="data/races.js?v=9"></script>
-<script src="data/races-st.js?v=9"></script>
-<script src="js/photos.js?v=10"></script>
-<script src="js/app.js?v=9"></script>
+<script src="data/races.js?v=11"></script>
+<script src="data/races-st.js?v=11"></script>
+<script src="js/photos.js?v=11"></script>
+<script src="js/app.js?v=11"></script>
 </body>
 </html>

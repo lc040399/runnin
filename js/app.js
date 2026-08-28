@@ -409,10 +409,18 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !calOverla
 function renderFavs() {
   panelTitle.textContent = "Mine løb";
   calToggle.hidden = true;
-  const list = RACES.filter(r => favs.has(r.id)).sort((a, b) => a.m.localeCompare(b.m));
-  panelBody.innerHTML = list.length
+  const list = RACES.filter(r => favs.has(r.id)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  const user = getUser();
+  let hilsen = "";
+  if (user) {
+    const next = list.find(r => r.dt && new Date(r.dt) >= new Date());
+    const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
+    hilsen = `<div class="mine-hilsen"><strong>Hej ${user.navn.split(" ")[0]}</strong>
+      <span>${list.length} ${list.length === 1 ? "løb" : "løb"} gemt${next ? ` · <span class="countdown">${dage} dage</span> til ${next.n}` : ""}</span></div>`;
+  }
+  panelBody.innerHTML = hilsen + (list.length
     ? list.map(rowHtml).join("")
-    : `<div class="empty">Ingen gemte løb endnu.<br><em>Klik på et løb på kortet og tryk "Gem i Mine løb".</em></div>`;
+    : `<div class="empty">Ingen gemte løb endnu.<br><em>Klik på et løb på kortet og tryk "Gem i Mine løb".</em></div>`);
 }
 
 panelBody.addEventListener("click", e => {
@@ -429,3 +437,54 @@ function updateFavCount() {
   el.textContent = favs.size;
 }
 updateFavCount();
+
+/* ---------- demo-login ---------- */
+const loginOverlay = document.getElementById("loginOverlay");
+const getUser = () => { try { return JSON.parse(localStorage.getItem("runnin-user")); } catch (_) { return null; } };
+
+function updateAuthUI() {
+  const user = getUser();
+  document.getElementById("loginBtn").hidden = !!user;
+  const chip = document.getElementById("userChip");
+  chip.hidden = !user;
+  if (user) {
+    document.getElementById("userAvatar").textContent = user.navn.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    document.getElementById("userName").textContent = user.navn;
+  }
+}
+
+function openLogin() {
+  const user = getUser();
+  document.getElementById("loginTitle").textContent = user ? "Din profil" : "Log ind";
+  document.getElementById("loginName").value = user ? user.navn : "Lasse Christensen";
+  document.getElementById("loginBib").value = user?.bib || "";
+  document.getElementById("logoutBtn").hidden = !user;
+  loginOverlay.hidden = false;
+  // genstart entrance-animationen
+  const modal = loginOverlay.querySelector(".login-modal");
+  modal.style.animation = "none"; void modal.offsetWidth; modal.style.animation = "";
+  setTimeout(() => document.getElementById("loginName").focus(), 250);
+}
+const closeLogin = () => (loginOverlay.hidden = true);
+
+document.getElementById("loginBtn").addEventListener("click", openLogin);
+document.getElementById("userChip").addEventListener("click", openLogin);
+document.getElementById("loginClose").addEventListener("click", closeLogin);
+loginOverlay.addEventListener("click", e => { if (e.target === loginOverlay) closeLogin(); });
+document.getElementById("loginForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const navn = document.getElementById("loginName").value.trim();
+  if (!navn) return;
+  const bib = document.getElementById("loginBib").value.trim();
+  localStorage.setItem("runnin-user", JSON.stringify({ navn, ...(bib ? { bib } : {}) }));
+  closeLogin();
+  updateAuthUI();
+  if (state.tab === "mine") renderFavs();
+});
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("runnin-user");
+  closeLogin();
+  updateAuthUI();
+  if (state.tab === "mine") renderFavs();
+});
+updateAuthUI();

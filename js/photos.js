@@ -26,7 +26,9 @@ function bibSubset(bib) {
 }
 
 function openFotos(race) {
-  fotoRace = race; fotoBib = null; lbIndex = null;
+  let userBib = null;
+  try { userBib = JSON.parse(localStorage.getItem("runnin-user"))?.bib || null; } catch (_) {}
+  fotoRace = race; fotoBib = userBib; lbIndex = null;
   fotoOverlay.hidden = false;
   renderFotos();
 }
