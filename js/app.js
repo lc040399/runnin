@@ -280,7 +280,8 @@ function openDetail(r, fly) {
     `${r.d} · ${r.c} ${flag(r.cc)}<br>` +
     (live ? `<span class="d-idag">I dag - løbet er i gang</span>` : `Næste udgave: ${dateLabel(r)}`) +
     (r.p ? `<br>Startgebyr: ${priceLabel(r.p)}` : `<br>Pris: se tilmeldingssiden`) +
-    (r.u.includes("sportstiming.dk") ? `<br><span class="d-kilde">Kalenderdata: Sportstiming</span>` : "");
+    (r.u.includes("sportstiming.dk") ? `<br><span class="d-kilde">Kalenderdata: Sportstiming</span>`
+      : r.u.includes("runsignup.com") ? `<br><span class="d-kilde">Kalenderdata: RunSignup</span>` : "");
   const note = document.getElementById("dNote");
   note.hidden = !r.note;
   if (r.note) note.textContent = "⚑ Adgang: " + r.note;

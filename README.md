@@ -2,19 +2,20 @@
 
 **Find dit næste løb. Hele verden. Hele året.**
 
-Runnin er hele verdens løb på ét interaktivt kort - 494 kuraterede løb fra Marathon Majors og UTMB til hvert eneste danske motionsløb, med direkte links til den officielle tilmelding. Bygget som statisk site uden backend: hurtig, gratis at drifte, og hele brugerens data bor i deres egen browser.
+Runnin er hele verdens løb på ét interaktivt kort - 5.900+ løb - fra Marathon Majors og UTMB til hvert eneste danske motionsløb og tusindvis af amerikanske via RunSignups åbne API, med direkte links til den officielle tilmelding. Bygget som statisk site uden backend: hurtig, gratis at drifte, og hele brugerens data bor i deres egen browser.
 
 **Live:** https://runnin.pages.dev
 
 ## Features
 
+- 🇺🇸 **Tusindvis af US-løb** - RunSignups åbne API (tools/build-rsu.mjs, GeoNames zip-geokodning)
 - 🗺 **Kortet er produktet** - MapLibre GL med klynger, filtre (hvor/hvornår/distance), søgning og deep links pr. løb
 - 🇩🇰 **Danmark i dybden** - 239 løb høstet fra Sportstimings offentlige kalender med eksakte datoer
 - 🟢 **LIVE** - løb, der afholdes i dag, pulserer på kortet; følg dem med simuleret felt i naturligt tempo på rigtige veje (OSRM)
 - 📷 **Fotos** - find dine billeder med startnummer, lagt ud langs ruten (demo-galleri)
 - 🎟 **Tilmeldt-flow** - markér løb som tilmeldt, nedtælling, kalender-feed (.ics)
 - 🔔 **Alarmer, sæsonplanlægger, Mit løbs-år** (delbart billede), Strava-form (demo), vejr pr. løb (ægte data fra Open-Meteo)
-- 🌙 **Dark mode**, PWA med service worker, iOS-wrapper-app, 494 statiske SEO-sider + sitemap
+- 🌙 **Dark mode**, PWA med service worker, iOS-wrapper-app, statiske SEO-sider for de kuraterede løb + sitemap
 
 ## Kør lokalt
 
