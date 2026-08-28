@@ -18,6 +18,18 @@
   --serif: "Inter Tight", -apple-system, sans-serif; /* display */
   --sans: "Inter Tight", -apple-system, sans-serif;
 }
+/* mørk tilstand: alt med blæk-baggrund skal have papir-tekst, ikke hvid-på-cream */
+html[data-tema="mørk"] .tab.active,
+html[data-tema="mørk"] .pill.on,
+html[data-tema="mørk"] .menu button.sel,
+html[data-tema="mørk"] .close:hover,
+html[data-tema="mørk"] .cal-cell.sel,
+html[data-tema="mørk"] .login-btn:hover,
+html[data-tema="mørk"] .pm-dash:hover,
+html[data-tema="mørk"] .user-avatar,
+html[data-tema="mørk"] .avatar-upload,
+html[data-tema="mørk"] .save.saved { color: var(--paper) !important; }
+
 /* mørk chokolade-tema */
 html[data-tema="mørk"] {
   --paper: #191108;

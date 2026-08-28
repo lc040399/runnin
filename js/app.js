@@ -101,6 +101,7 @@ map.on("move", () => {
 
 // Atlas-palet oven på Positron - lys: varmt papir/blødt vand, mørk: chokolade-nat.
 const erMørk = () => document.documentElement.dataset.tema === "mørk";
+const origPaint = new Map(); // originale label-/vejfarver, så lys tilstand kan gendannes
 function warmify() {
   const patch = erMørk() ? {
     background: ["background-color", "#211609"],
@@ -123,6 +124,27 @@ function warmify() {
   };
   for (const [id, [prop, val]] of Object.entries(patch)) {
     try { map.setPaintProperty(id, prop, val); } catch (_) {}
+  }
+  // labels + veje: hvid tekst/mørk halo i mørk tilstand, originaler gemmes og gendannes i lys
+  for (const layer of map.getStyle().layers) {
+    try {
+      if (layer.type === "symbol" && !layer.id.startsWith("cluster")) {
+        if (!origPaint.has(layer.id)) {
+          origPaint.set(layer.id, {
+            tekst: map.getPaintProperty(layer.id, "text-color"),
+            halo: map.getPaintProperty(layer.id, "text-halo-color"),
+          });
+        }
+        const o = origPaint.get(layer.id);
+        map.setPaintProperty(layer.id, "text-color", erMørk() ? "#FFFFFF" : o.tekst);
+        map.setPaintProperty(layer.id, "text-halo-color", erMørk() ? "#191108" : o.halo);
+      }
+      if (layer.type === "line" && /highway|road|bridge|tunnel|rail|transit/.test(layer.id) && !layer.id.startsWith("live")) {
+        if (!origPaint.has(layer.id)) origPaint.set(layer.id, { linje: map.getPaintProperty(layer.id, "line-color") });
+        const o = origPaint.get(layer.id);
+        map.setPaintProperty(layer.id, "line-color", erMørk() ? "#332A1C" : o.linje);
+      }
+    } catch (_) {}
   }
   // klynger + tekst skal også følge temaet (kun hvis lagene findes endnu)
   if (map.getLayer("clusters")) {
