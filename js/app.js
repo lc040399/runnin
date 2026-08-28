@@ -195,6 +195,7 @@ function openDetail(r, fly) {
   document.getElementById("dCta").href = r.u;
   document.getElementById("dLive").hidden = !(typeof isLive === "function" && isLive(r));
   updateSaveBtn();
+  if (typeof featuresOnDetail === "function") featuresOnDetail(r);
   detail.hidden = false;
   if (fly) map.flyTo({ center: [r.lo, r.la], zoom: Math.max(map.getZoom(), 5.5), duration: 1100, essential: true });
 }
@@ -281,6 +282,7 @@ function applyFilters() {
   if (src) src.setData(toGeojson(list));
   updateCounter(list);
   if (state.tab === "lob") renderList();
+  if (typeof updateRadarBtn === "function") updateRadarBtn();
 }
 
 function updateCounter(list) {
@@ -534,6 +536,9 @@ function toggleProfileMenu() {
     ${next ? `<div class="pm-next"><span class="countdown">${dage} dage</span> til ${next.n}</div>` : ""}
     <div class="pm-items">
       <button data-act="mine">♡ Mine løb <span class="pm-tal">${gemte.length}</span></button>
+      <button data-act="alarmer">🔔 Alarmer${alarms.size ? ` <span class="pm-tal">${alarms.size}</span>` : ""}</button>
+      <button data-act="radarer">🔭 Mine radarer${radars().length ? ` <span class="pm-tal">${radars().length}</span>` : ""}</button>
+      <button data-act="aar">🗺 Mit løbs-år</button>
       <button data-act="rediger">Redigér profil</button>
       <button data-act="logud" class="pm-logud">Log ud</button>
     </div>`;
@@ -543,6 +548,9 @@ function toggleProfileMenu() {
     profileMenu.hidden = true;
     const act = b.dataset.act;
     if (act === "mine") { setTab("mine"); panel.hidden = false; renderFavs(); }
+    if (act === "alarmer") visAlarmer();
+    if (act === "radarer") visRadarer();
+    if (act === "aar") openYearCard();
     if (act === "rediger") openLogin();
     if (act === "logud") { localStorage.removeItem("runnin-user"); updateAuthUI(); if (state.tab === "mine") renderFavs(); }
   });

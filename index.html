@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="css/style.css?v=18" rel="stylesheet">
+<link href="css/style.css?v=19" rel="stylesheet">
 </head>
 <body>
 
@@ -73,6 +73,7 @@
       <button class="pill" data-menu="type">Alle distancer <span class="caret">▾</span></button>
       <div class="menu" data-for="type"></div>
     </div>
+    <button class="pill radar-pill" id="radarBtn" hidden>🔭 Gem som radar</button>
   </div>
   <button class="live-pill" id="livePill" hidden></button>
 </section>
@@ -89,13 +90,22 @@
   <div class="d-type" id="dType"></div>
   <h2 id="dName"></h2>
   <div class="d-meta" id="dMeta"></div>
+  <div class="d-extra" id="dWeather"></div>
+  <div class="d-extra" id="dFriends"></div>
   <div class="d-note" id="dNote" hidden></div>
   <button id="dLive" class="cta d-live" hidden><i class="live-dot"></i> Følg løbet live</button>
   <a id="dCta" class="cta" target="_blank" rel="noopener">Tilmeld på officiel side <span>→</span></a>
   <button id="dEntry" class="save d-entry">🎟 Markér som tilmeldt</button>
   <button id="dSave" class="save">♡ Gem i Mine løb</button>
+  <button id="dAlarm" class="save">🔔 Besked når tilmelding åbner</button>
+  <button id="dPlan" class="save" hidden>🎯 Planlæg sæsonen mod løbet</button>
   <button id="dPhotos" class="save photos-link">📷 Billeder fra løbet</button>
 </aside>
+
+<!-- Feature-modal (alarmer, radarer, planlægger, løbs-år) -->
+<div id="featOverlay" class="cal-overlay" hidden>
+  <div class="cal-modal"></div>
+</div>
 
 <!-- Foto-overlay -->
 <div id="fotoOverlay" class="foto-overlay" hidden></div>
@@ -132,10 +142,11 @@
 </footer>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="data/races.js?v=18"></script>
-<script src="data/races-st.js?v=18"></script>
-<script src="js/photos.js?v=18"></script>
-<script src="js/app.js?v=18"></script>
-<script src="js/live.js?v=18"></script>
+<script src="data/races.js?v=19"></script>
+<script src="data/races-st.js?v=19"></script>
+<script src="js/photos.js?v=19"></script>
+<script src="js/app.js?v=19"></script>
+<script src="js/features.js?v=19"></script>
+<script src="js/live.js?v=19"></script>
 </body>
 </html>

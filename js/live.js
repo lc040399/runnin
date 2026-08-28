@@ -80,9 +80,9 @@ function seedRunners(race) {
   sim.runners = LIVE_NAVNE.map((navn, i) => {
     const h = (h0 * (i + 13) * 2654435761) >>> 0;
     return {
-      navn, bib: 100 + ((h >> 4) % 880),
+      navn, bib: 100 + ((h >>> 4) % 880),
       fart: 0.82 + ((h % 1000) / 1000) * 0.36,   // relativ fart
-      prog: 0.04 + ((h >> 10) % 1000) / 1000 * 0.55, // feltet er spredt ud ved start af visning
+      prog: 0.04 + ((h >>> 10) % 1000) / 1000 * 0.55, // feltet er spredt ud ved start af visning
       done: false, tid: null,
     };
   });
@@ -247,7 +247,7 @@ function toggleFeedDetail(itemEl, f) {
   const h = [...String(f.bib)].reduce((a, c) => (a * 37 + c.charCodeAt(0)) >>> 0, 3);
   const kmSplits = Math.min(Math.ceil(sim.distKm), 8);
   const splits = Array.from({ length: kmSplits }, (_, k) => {
-    const wobble = 1 + (((h >> (k * 3)) % 100) - 50) / 100 * 0.07; // ±3,5 % pr. km
+    const wobble = 1 + (((h >>> (k * 3)) % 100) - 50) / 100 * 0.07; // ±3,5 % pr. km
     return `<span class="split"><em>${k + 1} km</em>${fmtPace(pace * wobble)}</span>`;
   }).join("");
 
