@@ -16,18 +16,33 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 [hidden] { display: none !important; }
-html, body { height: 100%; overflow: hidden; }
-body { font-family: var(--sans); color: var(--ink); background: var(--paper); }
+html, body { height: 100dvh; overflow: hidden; }
+/* body låses fast: iOS Safari ignorerer ellers overflow:hidden og lader siden rubber-bande */
+body {
+  font-family: var(--sans); color: var(--ink); background: var(--paper);
+  position: fixed; inset: 0; width: 100%; overscroll-behavior: none;
+}
 
-#map { position: fixed; inset: 0; }
+#map { position: fixed; inset: 0; height: 100dvh; }
 #map canvas { cursor: default; }
 .maplibregl-ctrl-attrib { font-size: 10px; background: rgba(245,243,238,.75) !important; }
 
-/* ---------- intro ---------- */
+/* ---------- preloader + intro ---------- */
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
-.reveal   { animation: rise .6s cubic-bezier(.22,1,.36,1) both .1s; }
-.reveal-2 { animation: rise .6s cubic-bezier(.22,1,.36,1) both .25s; }
-.reveal-3 { animation: rise .6s cubic-bezier(.22,1,.36,1) both .45s; }
+@keyframes aande { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.1); opacity: 1; } }
+@keyframes preOut { to { opacity: 0; transform: scale(1.04); } }
+#preloader {
+  position: fixed; inset: 0; z-index: 200; background: var(--paper);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+}
+#preloader img { width: 64px; height: 64px; animation: aande 1.5s ease-in-out infinite; }
+#preloader .pre-navn { font-family: var(--serif); font-weight: 800; font-size: 15px; letter-spacing: .3em; color: var(--ink); opacity: .8; }
+#preloader.væk { animation: preOut .55s cubic-bezier(.22,1,.36,1) both; pointer-events: none; }
+/* UI'et afsløres først når kortet er klar (body.klar) */
+.reveal, .reveal-2, .reveal-3 { opacity: 0; }
+body.klar .reveal   { animation: rise .6s cubic-bezier(.22,1,.36,1) both .05s; }
+body.klar .reveal-2 { animation: rise .6s cubic-bezier(.22,1,.36,1) both .2s; }
+body.klar .reveal-3 { animation: rise .6s cubic-bezier(.22,1,.36,1) both .4s; }
 
 /* blød papir-scrim bag hero/nav: usynlig på rolig baggrund, redder læsbarhed over travle områder */
 .hero-scrim {
@@ -680,8 +695,12 @@ body { font-family: var(--sans); color: var(--ink); background: var(--paper); }
 /* ---------- mobil ---------- */
 @media (max-width: 720px) {
   /* transform-animation på headeren gør den til containing block for fixed
-     børn (bottom nav) - drop entrance-animationen på mobil */
-  .nav { padding: 12px 14px; gap: 8px; animation: none; }
+     børn (bottom nav) - ren fade i stedet på mobil */
+  .nav { padding: 12px 14px; gap: 8px; }
+}
+@keyframes navFade { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 720px) {
+  body.klar .nav { animation: navFade .5s ease both; }
   .nav-right { gap: 6px; }
   .login-btn { padding: 9px 14px; font-size: 12px; }
   .user-chip .user-name { display: none; } /* kun avatar på mobil */
@@ -707,6 +726,10 @@ body { font-family: var(--sans); color: var(--ink); background: var(--paper); }
     justify-content: flex-end;
   }
   .legend { display: none; } /* farvekoderne læses via prikkerne selv på mobil */
+  /* pinch-zoom er naturligt på mobil - skjul zoom-knapperne */
+  .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group { display: none; }
+  /* 16px inputs: ellers auto-zoomer iOS ved fokus */
+  .search, .login-field, .bib-input { font-size: 16px; }
   /* modaler: fuld bredde, bundforankret sheet-følelse */
   .cal-overlay, .login-overlay { padding: 0; align-items: flex-end; }
   .cal-modal, .login-modal {

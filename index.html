@@ -2,7 +2,7 @@
 <html lang="da">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Runnin - Find dit næste løb</title>
 <meta name="description" content="Hele verdens løb på ét kort. Find dit næste marathon, halvmarathon, trail eller triathlon - og tilmeld dig på den officielle side.">
 <link rel="icon" type="image/png" href="assets/mark.png?v=28">
@@ -11,9 +11,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="css/style.css?v=28" rel="stylesheet">
+<link href="css/style.css?v=31" rel="stylesheet">
 </head>
 <body>
+
+<!-- Preloader: R-mærket ånder mens kortet loader i baggrunden -->
+<div id="preloader" aria-hidden="true">
+  <img src="assets/mark.png?v=28" alt="">
+  <div class="pre-navn">RUNNIN</div>
+</div>
 
 <div id="map" aria-label="Verdenskort med løb"></div>
 <div class="hero-scrim" aria-hidden="true"></div>
@@ -156,7 +162,7 @@
 <script src="data/races.js?v=28"></script>
 <script src="data/races-st.js?v=28"></script>
 <script src="js/photos.js?v=28"></script>
-<script src="js/app.js?v=29"></script>
+<script src="js/app.js?v=31"></script>
 <script src="js/features.js?v=28"></script>
 <script src="js/connect.js?v=28"></script>
 <script src="js/dashboard.js?v=28"></script>

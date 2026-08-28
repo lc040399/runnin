@@ -155,6 +155,17 @@ map.on("load", () => {
   if (typeof initLiveUI === "function") initLiveUI();
 });
 
+/* preloader: væk når kortet reelt står klar (første idle) - fallback efter 7 s */
+function fjernPreloader() {
+  const pre = document.getElementById("preloader");
+  if (!pre || pre.classList.contains("væk")) return;
+  document.body.classList.add("klar");
+  pre.classList.add("væk");
+  setTimeout(() => pre.remove(), 700);
+}
+map.once("idle", fjernPreloader);
+setTimeout(fjernPreloader, 7000);
+
 /* ---------- hover + klik ---------- */
 const hoverCard = document.getElementById("hoverCard");
 let hoverId = null;
