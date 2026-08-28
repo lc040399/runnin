@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="css/style.css?v=16" rel="stylesheet">
+<link href="css/style.css?v=18" rel="stylesheet">
 </head>
 <body>
 
@@ -47,8 +47,8 @@
         <label class="login-label" for="loginPw">Adgangskode</label>
         <input class="login-field" id="loginPw" type="password" placeholder="••••••••" autocomplete="current-password">
       </div>
-      <label class="login-label" for="loginBib">Startnummer (valgfrit)</label>
-      <input class="login-field" id="loginBib" inputmode="numeric" placeholder="Fx 1234">
+      <label class="login-label" for="loginEmail">E-mail</label>
+      <input class="login-field" id="loginEmail" type="email" placeholder="dig@mail.dk" autocomplete="email">
       <button class="cta login-cta" type="submit">Fortsæt <span>→</span></button>
       <button class="save" type="button" id="logoutBtn" hidden>Log ud</button>
       <p class="foto-note">Demo: gemmes kun lokalt i din browser - ingen konto oprettes.</p>
@@ -92,6 +92,7 @@
   <div class="d-note" id="dNote" hidden></div>
   <button id="dLive" class="cta d-live" hidden><i class="live-dot"></i> Følg løbet live</button>
   <a id="dCta" class="cta" target="_blank" rel="noopener">Tilmeld på officiel side <span>→</span></a>
+  <button id="dEntry" class="save d-entry">🎟 Markér som tilmeldt</button>
   <button id="dSave" class="save">♡ Gem i Mine løb</button>
   <button id="dPhotos" class="save photos-link">📷 Billeder fra løbet</button>
 </aside>
@@ -131,10 +132,10 @@
 </footer>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="data/races.js?v=16"></script>
-<script src="data/races-st.js?v=16"></script>
-<script src="js/photos.js?v=16"></script>
-<script src="js/app.js?v=16"></script>
-<script src="js/live.js?v=16"></script>
+<script src="data/races.js?v=18"></script>
+<script src="data/races-st.js?v=18"></script>
+<script src="js/photos.js?v=18"></script>
+<script src="js/app.js?v=18"></script>
+<script src="js/live.js?v=18"></script>
 </body>
 </html>

@@ -19,6 +19,9 @@ const REGIONS = [
 
 const state = { type: null, month: null, region: null, tab: "kort" };
 const favs = new Set(JSON.parse(localStorage.getItem("runnin-favs") || "[]"));
+// Tilmeldinger markeres manuelt (købet sker på arrangørens side) - nøgle = løbets navn
+const entries = new Set(JSON.parse(localStorage.getItem("runnin-entries") || "[]"));
+const saveEntries = () => localStorage.setItem("runnin-entries", JSON.stringify([...entries]));
 RACES.forEach((r, i) => (r.id = i));
 
 /* ---------- helpers ---------- */
@@ -56,7 +59,7 @@ function toGeojson(list) {
     type: "FeatureCollection",
     features: list.map(r => ({
       type: "Feature", id: r.id,
-      properties: { id: r.id, t: r.t },
+      properties: { id: r.id, t: r.t, e: entries.has(r.n) ? 1 : 0 },
       geometry: { type: "Point", coordinates: [r.lo, r.la] },
     })),
   };
@@ -115,8 +118,8 @@ map.on("load", () => {
     paint: {
       "circle-color": ["match", ["get", "t"], "kort", TYPE_COLOR.kort, "half", TYPE_COLOR.half, "marathon", TYPE_COLOR.marathon, "ultra", TYPE_COLOR.ultra, TYPE_COLOR.tri],
       "circle-radius": ["case", ["boolean", ["feature-state", "hover"], false], 9, 6],
-      "circle-stroke-width": ["case", ["boolean", ["feature-state", "hover"], false], 3, 1.5],
-      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": ["case", ["==", ["get", "e"], 1], 3, ["case", ["boolean", ["feature-state", "hover"], false], 3, 1.5]],
+      "circle-stroke-color": ["case", ["==", ["get", "e"], 1], "#C05800", "#ffffff"],
       "circle-radius-transition": { duration: 150 },
     },
   });
@@ -201,6 +204,10 @@ function updateSaveBtn() {
   const saved = currentRace && favs.has(currentRace.id);
   btn.textContent = saved ? "✓ Gemt i Mine løb" : "♡ Gem i Mine løb";
   btn.classList.toggle("saved", saved);
+  const eBtn = document.getElementById("dEntry");
+  const entered = currentRace && entries.has(currentRace.n);
+  eBtn.textContent = entered ? "🎟 Du er tilmeldt" : "🎟 Markér som tilmeldt";
+  eBtn.classList.toggle("entered", entered);
 }
 
 document.getElementById("dSave").addEventListener("click", () => {
@@ -209,6 +216,28 @@ document.getElementById("dSave").addEventListener("click", () => {
   localStorage.setItem("runnin-favs", JSON.stringify([...favs]));
   updateSaveBtn();
   updateFavCount();
+});
+document.getElementById("dEntry").addEventListener("click", () => {
+  if (!currentRace) return;
+  if (entries.has(currentRace.n)) entries.delete(currentRace.n);
+  else {
+    entries.add(currentRace.n);
+    favs.add(currentRace.id); // tilmeldt ⇒ også i Mine løb
+    localStorage.setItem("runnin-favs", JSON.stringify([...favs]));
+  }
+  saveEntries();
+  updateSaveBtn();
+  updateFavCount();
+  applyFilters(); // opdater caramel-ring på kortet
+});
+// Efter man har klikket ud til tilmeldingen: nudge "Markér som tilmeldt", når man kommer tilbage
+document.getElementById("dCta").addEventListener("click", () => {
+  if (!currentRace || entries.has(currentRace.n)) return;
+  const eBtn = document.getElementById("dEntry");
+  setTimeout(() => {
+    eBtn.classList.add("nudge");
+    eBtn.addEventListener("animationend", () => eBtn.classList.remove("nudge"), { once: true });
+  }, 600);
 });
 document.getElementById("detailClose").addEventListener("click", () => (detail.hidden = true));
 document.getElementById("dPhotos").addEventListener("click", () => currentRace && openFotos(currentRace));
@@ -289,7 +318,7 @@ function rowHtml(r) {
   return `<div class="row" data-id="${r.id}">
     <span class="dot" style="background:${TYPE_COLOR[r.t]}"></span>
     <div class="r-main">
-      <div class="r-name">${r.n}</div>
+      <div class="r-name">${r.n}${entries.has(r.n) ? ` <span class="r-entry">🎟 Tilmeldt</span>` : ""}</div>
       <div class="r-meta">${r.d} · ${r.c} ${flag(r.cc)}</div>
     </div>
     <div class="r-side">
@@ -422,10 +451,11 @@ function renderFavs() {
   const user = getUser();
   let hilsen = "";
   if (user) {
-    const next = list.find(r => r.dt && new Date(r.dt) >= new Date());
+    const kommende = list.filter(r => r.dt && new Date(r.dt) >= new Date());
+    const next = kommende.find(r => entries.has(r.n)) || kommende[0]; // tilmeldte løb først
     const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
     hilsen = `<div class="mine-hilsen"><strong>Hej ${user.navn.split(" ")[0]}</strong>
-      <span>${list.length} ${list.length === 1 ? "løb" : "løb"} gemt${next ? ` · <span class="countdown">${dage} dage</span> til ${next.n}` : ""}</span></div>`;
+      <span>${list.length} løb gemt${next ? ` · <span class="countdown">${dage} dage</span> til ${next.n}${entries.has(next.n) ? " 🎟" : ""}` : ""}</span></div>`;
   }
   panelBody.innerHTML = hilsen + (list.length
     ? list.map(rowHtml).join("")
@@ -466,7 +496,7 @@ function openLogin() {
   const user = getUser();
   document.getElementById("loginTitle").textContent = user ? "Din profil" : "Log ind";
   document.getElementById("loginName").value = user ? user.navn : "Lasse Christensen";
-  document.getElementById("loginBib").value = user?.bib || "";
+  document.getElementById("loginEmail").value = user?.email || "";
   document.getElementById("logoutBtn").hidden = !user;
   // adgangskode kun ved login, ikke ved profil-redigering; gemmes ALDRIG (demo)
   document.getElementById("pwWrap").hidden = !!user;
@@ -498,13 +528,12 @@ function toggleProfileMenu() {
       <span class="user-avatar">${user.navn.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase()}</span>
       <div>
         <div class="pm-navn">${user.navn}</div>
-        <div class="pm-sub">${user.bib ? "Startnummer #" + user.bib : "Intet startnummer endnu"}</div>
+        <div class="pm-sub">${user.email || "Runnin-profil"}</div>
       </div>
     </div>
     ${next ? `<div class="pm-next"><span class="countdown">${dage} dage</span> til ${next.n}</div>` : ""}
     <div class="pm-items">
       <button data-act="mine">♡ Mine løb <span class="pm-tal">${gemte.length}</span></button>
-      ${next ? `<button data-act="fotos">📷 Mine billeder</button>` : ""}
       <button data-act="rediger">Redigér profil</button>
       <button data-act="logud" class="pm-logud">Log ud</button>
     </div>`;
@@ -514,7 +543,6 @@ function toggleProfileMenu() {
     profileMenu.hidden = true;
     const act = b.dataset.act;
     if (act === "mine") { setTab("mine"); panel.hidden = false; renderFavs(); }
-    if (act === "fotos") openFotos(next, user.bib || null);
     if (act === "rediger") openLogin();
     if (act === "logud") { localStorage.removeItem("runnin-user"); updateAuthUI(); if (state.tab === "mine") renderFavs(); }
   });
@@ -529,8 +557,8 @@ document.getElementById("loginForm").addEventListener("submit", e => {
   e.preventDefault();
   const navn = document.getElementById("loginName").value.trim();
   if (!navn) return;
-  const bib = document.getElementById("loginBib").value.trim();
-  localStorage.setItem("runnin-user", JSON.stringify({ navn, ...(bib ? { bib } : {}) }));
+  const email = document.getElementById("loginEmail").value.trim();
+  localStorage.setItem("runnin-user", JSON.stringify({ navn, ...(email ? { email } : {}) }));
   closeLogin();
   updateAuthUI();
   if (state.tab === "mine") renderFavs();

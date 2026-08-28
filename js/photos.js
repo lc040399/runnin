@@ -25,10 +25,16 @@ function bibSubset(bib) {
   return FOTOS.filter((_, i) => (h >> i) % 4 !== 0); // deterministisk "match" pr. startnummer
 }
 
+// Startnummer er pr. LØB - husk det sidst brugte for hvert løb (nøgle = løbets navn)
+const bibHusk = () => { try { return JSON.parse(localStorage.getItem("runnin-bibs")) || {}; } catch (_) { return {}; } };
+const huskBib = (race, bib) => {
+  const m = bibHusk();
+  if (bib) m[race.n] = bib; else delete m[race.n];
+  localStorage.setItem("runnin-bibs", JSON.stringify(m));
+};
+
 function openFotos(race, bib) {
-  let userBib = null;
-  try { userBib = JSON.parse(localStorage.getItem("runnin-user"))?.bib || null; } catch (_) {}
-  fotoRace = race; fotoBib = bib ?? userBib; lbIndex = null;
+  fotoRace = race; fotoBib = bib ?? bibHusk()[race.n] ?? null; lbIndex = null;
   fotoOverlay.hidden = false;
   renderFotos();
 }
@@ -85,6 +91,7 @@ function renderFotos() {
     e.preventDefault();
     const v = document.getElementById("bibInput").value.trim();
     fotoBib = v || null;
+    huskBib(fotoRace, fotoBib);
     renderFotos();
   };
   fotoOverlay.querySelectorAll(".foto-card, .route-dot").forEach(el =>
