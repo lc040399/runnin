@@ -142,12 +142,10 @@ function openPlanner(target) {
 document.getElementById("dPlan").addEventListener("click", () => currentRace && openPlanner(currentRace));
 
 /* ================= MIT LØBS-ÅR (delbart billede) ================= */
-function openYearCard() {
-  const gemte = RACES.filter(r => favs.has(r.id));
+function tegnYearCard(gemte) {
   const c = document.createElement("canvas");
   c.width = 1080; c.height = 1350;
   const g = c.getContext("2d");
-  // baggrund
   g.fillStyle = "#F5F3EE"; g.fillRect(0, 0, 1080, 1350);
   g.fillStyle = "#38240D";
   g.font = "800 40px Inter Tight, sans-serif"; g.textAlign = "left";
@@ -156,23 +154,42 @@ function openYearCard() {
   g.fillText("Mit løbs-år.", 70, 240);
   g.font = "500 34px Inter Tight, sans-serif"; g.fillStyle = "#7E6A50";
   const lande = new Set(gemte.map(r => r.cc)).size;
-  g.fillText(`${gemte.length} løb · ${lande} ${lande === 1 ? "land" : "lande"} · ${new Date().getFullYear()}`, 70, 300);
-  // verdenskort-flade (equirektangulær projektion)
+  const tilmeldt = gemte.filter(r => entries.has(r.n)).length;
+  g.fillText(`${gemte.length} løb · ${lande} ${lande === 1 ? "land" : "lande"}${tilmeldt ? ` · ${tilmeldt} tilmeldt` : ""}`, 70, 300);
+
+  // kortflade zoomet til DINE løb (ikke hele verden) - equirektangulær med margen
   const mx = 70, my = 360, mw = 940, mh = 520;
   g.fillStyle = "#ECE8DF";
   g.beginPath(); g.roundRect(mx, my, mw, mh, 24); g.fill();
-  const px = lo => mx + ((lo + 180) / 360) * mw;
-  const py = la => my + ((90 - la) / 180) * mh * 1.35 - mh * .12; // let nord-vægtet
-  g.fillStyle = "rgba(56,36,13,.12)";
-  for (const r of RACES) { g.beginPath(); g.arc(px(r.lo), Math.min(my + mh - 8, Math.max(my + 8, py(r.la))), 3.5, 0, 7); g.fill(); }
+  let laMin = Math.min(...gemte.map(r => r.la)), laMax = Math.max(...gemte.map(r => r.la));
+  let loMin = Math.min(...gemte.map(r => r.lo)), loMax = Math.max(...gemte.map(r => r.lo));
+  const laPad = Math.max((laMax - laMin) * .3, 2.5), loPad = Math.max((loMax - loMin) * .3, 4);
+  laMin -= laPad; laMax += laPad; loMin -= loPad; loMax += loPad;
+  // hold kortets proportioner: udvid den snævre akse (1° lat ≈ 2° lng ved ~60°N)
+  const målAspekt = (mw / mh) * 2;
+  const span = (loMax - loMin) / (laMax - laMin);
+  if (span < målAspekt) { const e = ((laMax - laMin) * målAspekt - (loMax - loMin)) / 2; loMin -= e; loMax += e; }
+  else { const e = ((loMax - loMin) / målAspekt - (laMax - laMin)) / 2; laMin -= e; laMax += e; }
+  const px = lo => mx + ((lo - loMin) / (loMax - loMin)) * mw;
+  const py = la => my + ((laMax - la) / (laMax - laMin)) * mh;
+  g.save();
+  g.beginPath(); g.roundRect(mx, my, mw, mh, 24); g.clip();
+  g.fillStyle = "rgba(56,36,13,.10)";
+  for (const r of RACES) {
+    if (r.la < laMin || r.la > laMax || r.lo < loMin || r.lo > loMax || favs.has(r.id)) continue;
+    g.beginPath(); g.arc(px(r.lo), py(r.la), 4, 0, 7); g.fill();
+  }
   for (const r of gemte) {
     g.fillStyle = TYPE_COLOR[r.t];
-    g.beginPath(); g.arc(px(r.lo), Math.min(my + mh - 10, Math.max(my + 10, py(r.la))), 11, 0, 7); g.fill();
+    g.beginPath(); g.arc(px(r.lo), py(r.la), 12, 0, 7); g.fill();
     g.lineWidth = 4; g.strokeStyle = "#fff"; g.stroke();
   }
-  // løbsliste
+  g.restore();
+
+  // løbsliste (kommende først)
+  const sorteret = [...gemte].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   g.font = "600 34px Inter Tight, sans-serif"; g.textAlign = "left";
-  gemte.slice(0, 6).forEach((r, i) => {
+  sorteret.slice(0, 6).forEach((r, i) => {
     const y = 960 + i * 58;
     g.fillStyle = TYPE_COLOR[r.t];
     g.beginPath(); g.arc(86, y - 11, 9, 0, 7); g.fill();
@@ -185,15 +202,44 @@ function openYearCard() {
   if (gemte.length > 6) { g.fillStyle = "#AE9C80"; g.font = "500 30px Inter Tight, sans-serif"; g.fillText(`+ ${gemte.length - 6} flere`, 115, 960 + 6 * 58); }
   g.fillStyle = "#C05800"; g.font = "700 30px Inter Tight, sans-serif";
   g.fillText("Find dit næste løb på Runnin", 70, 1290);
+  return c;
+}
 
+function openYearCard() {
+  const gemte = RACES.filter(r => favs.has(r.id));
+  const modal = featOverlay.querySelector(".cal-modal");
+  if (!gemte.length) {
+    modal.innerHTML = `
+      <div class="cal-head"><h2 style="margin:0 auto">Mit løbs-år</h2><button class="close" id="featClose" aria-label="Luk">✕</button></div>
+      <div class="empty" style="margin-top:14px">Dit løbs-år starter med det første gemte løb.<br>Find ét på kortet og tryk på hjertet - så tegner vi kortet her.</div>
+      <button class="cta" id="aarTilKort" style="margin-top:14px">Udforsk kortet <span>→</span></button>`;
+    featOverlay.hidden = false;
+    document.getElementById("featClose").onclick = () => (featOverlay.hidden = true);
+    document.getElementById("aarTilKort").onclick = () => { featOverlay.hidden = true; setTab("kort"); };
+    return;
+  }
+  const c = tegnYearCard(gemte);
   const url = c.toDataURL("image/png");
-  featOverlay.querySelector(".cal-modal").innerHTML = `
+  const kanDele = !!navigator.canShare;
+  modal.innerHTML = `
     <div class="cal-head">
       <h2 style="margin:0 auto">Mit løbs-år</h2>
       <button class="close" id="featClose" aria-label="Luk">✕</button>
     </div>
     <img src="${url}" alt="Mit løbs-år" style="width:100%;border-radius:14px;border:1px solid var(--hairline);margin-top:10px">
-    <a class="cta" style="margin-top:14px" href="${url}" download="mit-loebs-aar.png">Download billedet <span>→</span></a>`;
+    <div class="aar-knapper">
+      ${kanDele ? `<button class="cta" id="aarDel">Del billedet <span>→</span></button>` : ""}
+      <a class="${kanDele ? "save" : "cta"}" href="${url}" download="mit-loebs-aar.png">Download</a>
+    </div>`;
   featOverlay.hidden = false;
   document.getElementById("featClose").onclick = () => (featOverlay.hidden = true);
+  if (kanDele) document.getElementById("aarDel").onclick = () => c.toBlob(async blob => {
+    const fil = new File([blob], "mit-loebs-aar.png", { type: "image/png" });
+    try {
+      if (navigator.canShare({ files: [fil] })) await navigator.share({ files: [fil], title: "Mit løbs-år" });
+      else throw new Error("filer ikke understøttet");
+    } catch (e) {
+      if (e.name !== "AbortError") { const a = document.createElement("a"); a.href = url; a.download = "mit-loebs-aar.png"; a.click(); }
+    }
+  });
 }

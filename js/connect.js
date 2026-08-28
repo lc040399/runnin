@@ -28,28 +28,64 @@ function stravaForm() {
   return { snit, pb: s.pb, maraEst: sekTilTid(riegel(tidTilSek(s.pb["10K"]), 10, 42.195)), halfEst: sekTilTid(riegel(tidTilSek(s.pb["10K"]), 10, 21.0975)) };
 }
 
+// måltid for et konkret løb ud fra 10K-PB (Riegel); null hvor estimat ikke giver mening
+function stravaMåltid(r, s) {
+  const t10 = tidTilSek(s.pb["10K"]);
+  if (r.t === "marathon") return sekTilTid(riegel(t10, 10, 42.195));
+  if (r.t === "half") return sekTilTid(riegel(t10, 10, 21.0975));
+  if (r.t === "kort") {
+    const km = parseFloat(String(r.d).replace(",", "."));
+    if (km && km >= 3 && km <= 15) return sekTilTid(riegel(t10, 10, km));
+  }
+  return null; // ultra/trail/tri: for mange ubekendte til et ærligt estimat
+}
+
 function openStrava() {
   const s = stravaData();
   const modal = featOverlay.querySelector(".cal-modal");
   if (!s) {
     modal.innerHTML = `
       <div class="cal-head"><h2 style="margin:0 auto">Forbind med Strava</h2><button class="close" id="featClose">✕</button></div>
-      <p class="strava-intro">Din form ind i Runnin: PB-væg på profilen, personlig sæsonplanlægger og automatiske resultater efter løbsdagen. Runnin viser kun dine data til dig.</p>
+      <p class="strava-intro">Din form ind i Runnin - så bliver kalenderen personlig:</p>
+      <ul class="strava-punkter">
+        <li>🏅 PB-væg med dine bedste tider</li>
+        <li>📊 Ugentlige kilometer og formkurve</li>
+        <li>🎯 Realistiske måltider på løbene du har gemt</li>
+        <li>🗓 Formen tænkes ind i sæsonplanlæggeren</li>
+      </ul>
       <button class="cta strava-btn" id="stravaConnect">Forbind med Strava</button>
-      <p class="foto-note">Demo-mode: forbinder med eksempeldata. Rigtig Strava-kobling kræver godkendt app - intet sendes nogen steder hen.</p>`;
+      <p class="foto-note">Demo-mode: forbinder med eksempeldata, gemt kun i din browser. Rigtig Strava-kobling kræver godkendt app - intet sendes nogen steder hen.</p>`;
     document.getElementById("stravaConnect").onclick = () => {
       localStorage.setItem("runnin-strava", JSON.stringify(DEMO_ATLET));
       openStrava();
     };
   } else {
     const f = stravaForm();
+    // søjlehøjder skaleret på spændet, så formkurven faktisk kan ses
+    const maxKm = Math.max(...s.ugeKm), minKm = Math.min(...s.ugeKm);
+    const højde = km => maxKm === minKm ? 100 : Math.round(30 + 70 * (km - minKm) / (maxKm - minKm));
+    const graf = s.ugeKm.map((km, i) => `
+      <div class="uge-søjle" style="--h:${højde(km)}%">
+        <span class="uge-km">${km}</span><i></i><span class="uge-lbl">${["-3", "-2", "-1", "nu"][i]}</span>
+      </div>`).join("");
+    // måltider på dine kommende gemte løb - kun hvor et estimat er ærligt (kendt distance)
+    const medMål = RACES.filter(r => favs.has(r.id) && r.dt && r.dt >= todayISO())
+      .sort((a, b) => a.dt.localeCompare(b.dt))
+      .map(r => ({ r, tid: stravaMåltid(r, s) }))
+      .filter(x => x.tid).slice(0, 4);
+    const mål = medMål.map(({ r, tid }) =>
+      `<div class="mål-række"><i style="background:${TYPE_COLOR[r.t]}"></i>
+        <div><strong>${r.n}</strong><span>${dateLabel(r)} · ${r.d}</span></div>
+        <b>~${tid}</b></div>`).join("");
     modal.innerHTML = `
       <div class="cal-head"><h2 style="margin:0 auto">Din form <span class="strava-tag">Strava · demo</span></h2><button class="close" id="featClose">✕</button></div>
       <div class="pb-væg">
         ${Object.entries(s.pb).map(([d, t]) => `<div class="pb-kort"><span>${d}</span><strong>${t}</strong></div>`).join("")}
       </div>
+      <div class="uge-graf">${graf}</div>
       <div class="form-linje">🏃 <strong>${f.snit} km/uge</strong> i snit de seneste 4 uger</div>
       <div class="form-linje">📈 10K-formen svarer til <strong>~${f.halfEst}</strong> på half og <strong>~${f.maraEst}</strong> på marathon <span class="w-src">(Riegel-estimat)</span></div>
+      ${medMål.length ? `<div class="foto-kicker" style="margin-top:18px">Måltider på dine løb</div><div class="mål-liste">${mål}</div>` : ""}
       <button class="save" id="stravaDisconnect" style="margin-top:16px">Afbryd Strava</button>`;
     document.getElementById("stravaDisconnect").onclick = () => { localStorage.removeItem("runnin-strava"); featOverlay.hidden = true; };
   }
@@ -91,19 +127,32 @@ function byggIcs(liste) {
   return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Runnin//Mine loeb//DA\r\nCALSCALE:GREGORIAN\r\nX-WR-CALNAME:Mine løb - Runnin\r\n${events}\r\nEND:VCALENDAR\r\n`;
 }
 
-function openKalenderFeed() {
-  const gemte = RACES.filter(r => favs.has(r.id));
-  const medDato = gemte.filter(r => r.dt);
+function openKalenderFeed(valg) {
+  valg = valg || "alle";
+  const gemte = RACES.filter(r => favs.has(r.id) && r.dt);
+  const tilmeldte = gemte.filter(r => entries.has(r.n));
+  const liste = valg === "tilmeldte" ? tilmeldte : gemte;
+  const udenDato = RACES.filter(r => favs.has(r.id) && !r.dt).length;
   const modal = featOverlay.querySelector(".cal-modal");
-  const ics = medDato.length ? byggIcs(medDato) : null;
+  const ics = liste.length ? byggIcs(liste) : null;
   const url = ics ? URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" })) : null;
   modal.innerHTML = `
     <div class="cal-head"><h2 style="margin:0 auto">📅 Kalender-feed</h2><button class="close" id="featClose">✕</button></div>
-    <p class="strava-intro">Få dine gemte løb ind i Google/Apple/Outlook-kalenderen som heldagsbegivenheder med tilmeldingslink.</p>
-    ${medDato.length
-      ? `<a class="cta" href="${url}" download="runnin-mine-loeb.ics">Hent kalenderfil (${medDato.length} løb) <span>→</span></a>`
-      : `<div class="empty">Ingen gemte løb med fastlagt dato endnu.</div>`}
-    ${gemte.length > medDato.length ? `<p class="foto-note">${gemte.length - medDato.length} gemt${gemte.length - medDato.length === 1 ? " løb" : "e løb"} har kun måned endnu og er udeladt (ingen gætte-datoer).</p>` : ""}`;
+    <p class="strava-intro">Få dine løb ind i kalenderen som heldagsbegivenheder med tilmeldingslink.</p>
+    <div class="tema-valg feed-valg">
+      <button class="tema-chip ${valg === "alle" ? "on" : ""}" data-valg="alle">Alle gemte (${gemte.length})</button>
+      <button class="tema-chip ${valg === "tilmeldte" ? "on" : ""}" data-valg="tilmeldte">Kun tilmeldte (${tilmeldte.length})</button>
+    </div>
+    ${liste.length
+      ? `<a class="cta" href="${url}" download="runnin-mine-loeb.ics" style="margin-top:14px">Hent kalenderfil (${liste.length} løb) <span>→</span></a>
+         <div class="feed-hjælp">
+           <div><strong>Apple Kalender</strong>Åbn filen - den lægger sig direkte ind.</div>
+           <div><strong>Google Kalender</strong>Indstillinger → Importér og eksportér → vælg filen.</div>
+           <div><strong>Outlook</strong>Filer → Åbn og eksportér → Importér iCalendar.</div>
+         </div>`
+      : `<div class="empty" style="margin-top:14px">${valg === "tilmeldte" ? "Ingen tilmeldte løb med dato endnu - markér et løb som tilmeldt, når du har købt billet." : "Ingen gemte løb med fastlagt dato endnu."}</div>`}
+    ${udenDato ? `<p class="foto-note">${udenDato} gemt${udenDato === 1 ? " løb" : "e løb"} har kun måned endnu og er udeladt (ingen gætte-datoer).</p>` : ""}`;
   featOverlay.hidden = false;
   document.getElementById("featClose").onclick = () => (featOverlay.hidden = true);
+  modal.querySelectorAll(".feed-valg .tema-chip").forEach(c => c.onclick = () => openKalenderFeed(c.dataset.valg));
 }

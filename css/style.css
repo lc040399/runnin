@@ -401,6 +401,32 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 .pb-kort strong { display: block; font-size: 16px; margin-top: 3px; font-variant-numeric: tabular-nums; }
 .form-linje { font-size: 13px; margin-top: 12px; line-height: 1.55; }
 .planner-form { background: var(--flade); border-radius: 10px; padding: 10px 13px; margin: 10px 0 2px; }
+.strava-punkter { list-style: none; padding: 0; margin: 12px 0 4px; }
+.strava-punkter li { font-size: 13px; padding: 7px 0; border-bottom: 1px solid var(--hairline); }
+.strava-punkter li:last-child { border-bottom: none; }
+.uge-graf { display: flex; gap: 14px; align-items: end; height: 110px; margin-top: 16px; padding: 0 6px; }
+.uge-søjle { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: end; height: 100%; gap: 4px; }
+.uge-søjle i { display: block; width: 100%; height: var(--h); background: var(--coral); border-radius: 7px 7px 3px 3px; opacity: .35; transform-origin: bottom; animation: søjleOp .55s cubic-bezier(.22,1.4,.36,1) both; }
+.uge-søjle:last-child i { opacity: 1; }
+.uge-søjle:nth-child(2) i { animation-delay: .06s; } .uge-søjle:nth-child(3) i { animation-delay: .12s; } .uge-søjle:nth-child(4) i { animation-delay: .18s; }
+@keyframes søjleOp { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+.uge-km { font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.uge-lbl { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.mål-liste { margin-top: 8px; }
+.mål-række { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--hairline); }
+.mål-række:last-child { border-bottom: none; }
+.mål-række i { width: 9px; height: 9px; border-radius: 99px; flex: none; }
+.mål-række div { flex: 1; min-width: 0; }
+.mål-række strong { display: block; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mål-række span { font-size: 11px; color: var(--muted); }
+.mål-række b { font-size: 14px; font-variant-numeric: tabular-nums; color: var(--coral); }
+.aar-knapper { display: flex; gap: 10px; margin-top: 14px; }
+.aar-knapper .cta { flex: 1; margin: 0; }
+.aar-knapper .save, .aar-knapper a.cta { flex: 1; text-align: center; text-decoration: none; margin: 0; display: inline-flex; align-items: center; justify-content: center; }
+.feed-valg { margin-top: 14px; }
+.feed-hjælp { display: grid; gap: 8px; margin-top: 16px; }
+.feed-hjælp div { font-size: 12px; color: var(--muted); background: var(--flade); border-radius: 10px; padding: 9px 12px; line-height: 1.5; }
+.feed-hjælp strong { display: block; color: var(--ink); font-size: 12px; }
 @keyframes nudge {
   0%, 100% { transform: none; box-shadow: none; }
   25% { transform: scale(1.03); box-shadow: 0 0 0 5px rgba(192,88,0,.18); }
