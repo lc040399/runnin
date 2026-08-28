@@ -29,9 +29,7 @@ function syntheticRoute(lo, la) {
   return { coords: pts, km: 5 };
 }
 
-async function fetchRoute(lo, la) {
-  // 5 waypoints i en lille ring - OSRM trip-service lægger en rundtur på rigtige veje
-  const R = 0.0045;
+async function osrmTrip(lo, la, R) {
   const wps = [0, 1, 2, 3, 4].map(i => {
     const a = (i / 5) * Math.PI * 2 + 0.6;
     return `${(lo + Math.cos(a) * R * 1.6).toFixed(5)},${(la + Math.sin(a) * R).toFixed(5)}`;
@@ -41,6 +39,26 @@ async function fetchRoute(lo, la) {
   const data = await res.json();
   if (data.code !== "Ok" || !data.trips?.length) throw new Error("OSRM: " + data.code);
   return { coords: data.trips[0].geometry.coordinates, km: +(data.trips[0].distance / 1000).toFixed(1) };
+}
+
+// Rundtur på rigtige veje, længde-matchet til løbets officielle distance (empirisk: km ≈ R × 1089)
+async function fetchRoute(lo, la, targetKm) {
+  let R = Math.min(0.03, Math.max(0.0015, targetKm / 1089));
+  let rute = await osrmTrip(lo, la, R);
+  if (Math.abs(rute.km - targetKm) / targetKm > 0.3) {
+    R = Math.min(0.05, Math.max(0.0012, R * targetKm / Math.max(rute.km, 0.5)));
+    try { rute = await osrmTrip(lo, la, R); } catch (_) {}
+  }
+  return rute;
+}
+
+// Løbets distance ud fra datafeltet ("42,2 km", "100 mi", "10 km") - ukendt → 8 km
+function parseKm(r) {
+  const mi = r.d.match(/([\d.,]+)\s*mi/i);
+  if (mi) return parseFloat(mi[1].replace(",", ".")) * 1.609;
+  const km = r.d.match(/([\d.,]+)\s*km/i);
+  if (km) return parseFloat(km[1].replace(",", "."));
+  return 8;
 }
 
 // Resample til jævnt fordelte punkter, så løberne bevæger sig med konstant fart
@@ -82,7 +100,7 @@ function seedRunners(race) {
     return {
       navn, bib: 100 + ((h >>> 4) % 880),
       fart: 0.82 + ((h % 1000) / 1000) * 0.36,   // relativ fart
-      prog: 0.04 + ((h >>> 10) % 1000) / 1000 * 0.55, // feltet er spredt ud ved start af visning
+      prog: 0.03 + ((h >>> 10) % 1000) / 1000 * 0.955, // feltet spredt over hele ruten - de forreste er tæt på mål
       done: false, tid: null,
     };
   });
@@ -123,7 +141,7 @@ function tick(ts) {
   if (!sim.race) return;
   const dt = sim.lastTick ? Math.min((ts - sim.lastTick) / 1000, .1) : 0;
   sim.lastTick = ts;
-  const speedPerSec = 1 / (sim.simMin * 60 / 24); // tidsforkortet ×24
+  const speedPerSec = 1 / (sim.simMin * 60); // naturligt tempo: reel løbefart, ingen time-lapse
   let changed = false;
 
   for (const r of sim.runners) {
@@ -171,7 +189,7 @@ function buildLivePanel() {
     <div class="lb-list" id="lbList"></div>
     <div class="live-sec">Målstregen</div>
     <div class="live-feed" id="liveFeed"><div class="feed-tom">Ingen i mål endnu - følg med her.</div></div>
-    <p class="foto-note">Demo: LIVE-status er ægte (løbet afholdes i dag iflg. Sportstiming), men løberne er en simulation, ×24 hastighed.</p>`;
+    <p class="foto-note">Demo: LIVE-status er ægte (løbet afholdes i dag), og løberne bevæger sig i naturligt løbetempo på rigtige veje, matchet til løbets distance - men den officielle rute og felterne kræver arrangørens data.</p>`;
   document.getElementById("liveClose").onclick = closeLive;
 }
 
@@ -279,7 +297,7 @@ async function openLive(race) {
   livePanel.innerHTML = `<div class="live-head"><span class="live-badge"><i></i>LIVE</span><h2>${race.n}</h2></div><div class="feed-tom" style="padding:16px 0">Henter ruten…</div>`;
 
   let route;
-  try { route = await fetchRoute(race.lo, race.la); }
+  try { route = await fetchRoute(race.lo, race.la, parseKm(race)); }
   catch (_) { route = syntheticRoute(race.lo, race.la); }
   if (sim.race !== race) return; // lukket imens
   sim.route = resample(route.coords);
