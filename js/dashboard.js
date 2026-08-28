@@ -139,13 +139,13 @@ function renderDashboard() {
       </div>
 
       <div class="dash-card dash-in" style="--i:4">
-        <div class="foto-kicker">${f ? `Din form <span class="strava-tag">Strava · demo</span>` : "Din form"}</div>
+        <div class="foto-kicker">${f ? `Din form <span class="strava-tag">Strava · ${f.ægte ? "live" : "demo"}</span>` : "Din form"}</div>
         ${f ? `
           <div class="dash-form">
             <div><strong>${f.snit}</strong><span>km/uge</span></div>
-            <div><strong>${f.pb["10K"]}</strong><span>10K-PB</span></div>
-            <div><strong>~${f.halfEst}</strong><span>half-form</span></div>
-            <div><strong>~${f.maraEst}</strong><span>marathon-form</span></div>
+            <div><strong>${f.pb ? f.pb["10K"] : "-"}</strong><span>${f.ægte ? "10K-form" : "10K-PB"}</span></div>
+            <div><strong>${f.halfEst ? "~" + f.halfEst : "-"}</strong><span>half-form</span></div>
+            <div><strong>${f.maraEst ? "~" + f.maraEst : "-"}</strong><span>marathon-form</span></div>
           </div>`
         : `<div class="dash-sub" style="margin-top:10px">Forbind Strava og få formen ind i planlægningen.</div>
            <button class="cta strava-btn" id="dashStrava" style="margin-top:12px">Forbind med Strava</button>`}

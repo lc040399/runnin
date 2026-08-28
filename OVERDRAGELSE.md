@@ -16,7 +16,8 @@ Her er den ærlige tilstand, så du ved præcis, hvad du overtager.
 - **Login/konti**: gemmes kun i localStorage; adgangskoden valideres ikke mod noget
 - **Alarmer**: gemmes lokalt, men der SENDES ingen beskeder (kræver backend + mail)
 - **Fotos**: samme 9 Pexels-billeder for alle løb
-- **Venner** og **Strava-form**: eksempeldata
+- **Venner**: eksempeldata
+- **Strava**: rigtig OAuth-kobling ER bygget (functions/api/strava-token.js + strava.js), men kræver at DU opretter en API-app på strava.com/settings/api og lægger nøglerne ind: `npx wrangler pages secret put STRAVA_CLIENT_ID` + `STRAVA_CLIENT_SECRET` (projekt: dit Pages-projekt). Uden nøgler falder UI'et pænt tilbage til demo-mode. OBS: nye Strava-apps må kun hente ejerens egne data, indtil appen er godkendt af Strava (deres review-formular)
 - **Live-løbere**: simulerede (LIVE-status er ægte, felterne er ikke)
 
 ## Din drift-tjekliste
@@ -36,7 +37,7 @@ Prioriteret efter effekt:
 2. **Alarm-motoren**: cron, der overvåger tilmeldingsåbninger og sender mails - featuren lover det allerede
 3. **Data-pipeline på cron** i stedet for manuel høst
 4. **Telemetri** (Cloudflare Web Analytics er ét script-tag) - ellers ved du aldrig, om nogen bruger den
-5. Rigtig Strava OAuth, rigtige løbsfotos (kræver aftaler), i18n/engelsk
+5. Rigtige løbsfotos (kræver aftaler), i18n/engelsk - Strava OAuth er allerede bygget, se demo-afsnittet
 6. **Nordiske datakilder**: Sverige = RaceID (raceid.com), Norge = EQ Timing/kondis.no - undersøg API/lov før høst, samme respekt som Sportstiming
 
 ## Arkitektur på 30 sekunder
