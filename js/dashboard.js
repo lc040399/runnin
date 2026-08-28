@@ -23,18 +23,20 @@ function dashShiftMonth(d) {
   let [y, m] = dashMonth.split("-").map(Number);
   m += d; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; }
   dashMonth = `${y}-${String(m).padStart(2, "0")}`;
-  renderDashboard();
+  // kun kalenderkortet opdateres - gridden glider retningsbestemt ind
+  const grid = dashOverlay.querySelector(".dash-cal");
+  const titel = dashOverlay.querySelector(".dash-cal-nav strong");
+  if (!grid) return;
+  titel.textContent = fullMonth(dashMonth);
+  grid.classList.remove("slide-l", "slide-r");
+  void grid.offsetWidth; // genstart animation
+  grid.innerHTML = dashCalCells();
+  grid.classList.add(d > 0 ? "slide-l" : "slide-r");
+  bindCalCells();
 }
 
-function renderDashboard() {
-  const user = getUser();
-  const gemte = RACES.filter(r => favs.has(r.id)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
-  const kommende = gemte.filter(r => r.dt && new Date(r.dt) >= new Date());
-  const next = kommende.find(r => entries.has(r.n)) || kommende[0] || null;
-  const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
-  const f = typeof stravaForm === "function" ? stravaForm() : null;
-
-  /* mini-kalender for dashMonth: prikker = gemte/tilmeldte løb */
+function dashCalCells() {
+  const gemte = RACES.filter(r => favs.has(r.id));
   const [y, m] = dashMonth.split("-").map(Number);
   const dim = new Date(y, m, 0).getDate();
   const fdow = (new Date(y, m - 1, 1).getDay() + 6) % 7;
@@ -51,6 +53,27 @@ function renderDashboard() {
       <span class="cal-dots">${rs.slice(0, 3).map(r => `<i style="background:${TYPE_COLOR[r.t]}"></i>`).join("")}</span>
     </div>`;
   }
+  return celler;
+}
+
+function bindCalCells() {
+  dashOverlay.querySelectorAll(".dash-cal .cal-cell.has").forEach(cell => cell.onclick = () => {
+    const d = dashMonth + "-" + String(cell.dataset.day).padStart(2, "0");
+    const r = RACES.find(x => favs.has(x.id) && x.dt === d);
+    if (r) { closeDashboard(); openDetail(r, true); }
+  });
+}
+
+function renderDashboard() {
+  const user = getUser();
+  const gemte = RACES.filter(r => favs.has(r.id)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  const kommende = gemte.filter(r => r.dt && new Date(r.dt) >= new Date());
+  const next = kommende.find(r => entries.has(r.n)) || kommende[0] || null;
+  const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
+  const f = typeof stravaForm === "function" ? stravaForm() : null;
+
+  /* mini-kalender for dashMonth: prikker = gemte/tilmeldte løb */
+  const celler = dashCalCells();
 
   const kommendeRows = (kommende.length ? kommende : gemte).slice(0, 5).map(rowHtml).join("")
     || `<div class="empty">Ingen gemte løb endnu - find dem på kortet.</div>`;
@@ -163,11 +186,7 @@ function renderDashboard() {
     closeDashboard();
     openDetail(RACES[+row.dataset.id], true);
   });
-  dashOverlay.querySelectorAll(".dash-cal .cal-cell.has").forEach(cell => cell.onclick = () => {
-    const d = dashMonth + "-" + String(cell.dataset.day).padStart(2, "0");
-    const r = RACES.find(x => favs.has(x.id) && x.dt === d);
-    if (r) { closeDashboard(); openDetail(r, true); }
-  });
+  bindCalCells();
 }
 
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !dashOverlay.hidden) closeDashboard(); });
