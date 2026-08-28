@@ -6,13 +6,8 @@ const RACES = [
   {n:"Copenhagen Marathon",c:"København",cc:"DK",co:"EU",la:55.676,lo:12.568,t:"marathon",d:"42,2 km",m:"2027-05",p:95,u:"https://copenhagenmarathon.dk"},
   {n:"Copenhagen Half Marathon",c:"København",cc:"DK",co:"EU",la:55.686,lo:12.553,t:"half",d:"21,1 km",m:"2026-09",p:60,u:"https://cphhalf.dk"},
   {n:"Royal Run København",c:"København",cc:"DK",co:"EU",la:55.665,lo:12.590,t:"kort",d:"10 km",m:"2027-05",p:30,u:"https://www.royalrun.dk"},
-  {n:"Eremitageløbet",c:"Klampenborg",cc:"DK",co:"EU",la:55.771,lo:12.559,t:"kort",d:"13,3 km",m:"2026-10",p:35,u:"https://eremitagelobet.dk"},
   {n:"Aarhus City Halvmarathon",c:"Aarhus",cc:"DK",co:"EU",la:56.157,lo:10.210,t:"half",d:"21,1 km",m:"2027-06",p:50,u:"https://aarhusmotion.dk"},
   {n:"Aarhus Marathon",c:"Aarhus",cc:"DK",co:"EU",la:56.150,lo:10.204,t:"marathon",d:"42,2 km",m:"2027-06",p:70,u:"https://aarhusmotion.dk"},
-  {n:"H.C. Andersen Marathon",c:"Odense",cc:"DK",co:"EU",la:55.396,lo:10.388,t:"marathon",d:"42,2 km",m:"2026-09",p:65,u:"https://hcamarathon.dk"},
-  {n:"Lillebælt Halvmarathon",c:"Middelfart",cc:"DK",co:"EU",la:55.506,lo:9.730,t:"half",d:"21,1 km",m:"2027-05",p:45,u:"https://lillebaelthalvmarathon.dk"},
-  {n:"Etape Bornholm",c:"Rønne",cc:"DK",co:"EU",la:55.100,lo:14.706,t:"kort",d:"5 etaper",m:"2027-07",p:120,u:"https://etapebornholm.dk"},
-  {n:"Hammer Trail",c:"Hammershus",cc:"DK",co:"EU",la:55.267,lo:14.762,t:"ultra",d:"25-100 mi",m:"2027-05",p:80,u:"https://hammertrail.dk"},
   {n:"Ironman Copenhagen",c:"København",cc:"DK",co:"EU",la:55.693,lo:12.600,t:"tri",d:"226 km",m:"2027-08",p:695,u:"https://www.ironman.com/im-copenhagen"},
   {n:"Ironman 70.3 Elsinore",c:"Helsingør",cc:"DK",co:"EU",la:56.036,lo:12.612,t:"tri",d:"113 km",m:"2027-06",p:380,u:"https://www.ironman.com/im703-elsinore"},
 

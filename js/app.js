@@ -24,6 +24,10 @@ RACES.forEach((r, i) => (r.id = i));
 /* ---------- helpers ---------- */
 const flag = cc => cc === "AQ" ? "🇦🇶" : [...cc].map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)).join("");
 const monthLabel = m => { const [y, mm] = m.split("-"); return MONTHS[+mm - 1].slice(0, 3) + ". " + y; };
+// Eksakt dato (fra Sportstiming) når vi har den, ellers måned
+const dateLabel = r => r.dt
+  ? `${+r.dt.slice(8, 10)}. ${MONTHS[+r.dt.slice(5, 7) - 1].slice(0, 3)}. ${r.dt.slice(0, 4)}`
+  : monthLabel(r.m);
 // Priser lagres i EUR; dansk UI viser kr (fast kurs, pæn afrunding - det er "fra"-estimater).
 const EUR_DKK = 7.46;
 const priceLabel = p => {
@@ -133,7 +137,7 @@ function wireMapEvents() {
     const r = RACES[f.properties.id];
     hoverCard.innerHTML =
       `<div class="hc-name">${r.n}</div>
-       <div class="hc-meta">${r.d} · ${r.c} ${flag(r.cc)}<br>${monthLabel(r.m)} · ${priceLabel(r.p)}</div>
+       <div class="hc-meta">${r.d} · ${r.c} ${flag(r.cc)}<br>${dateLabel(r)}${r.p ? " · " + priceLabel(r.p) : ""}</div>
        <div class="hc-hint">Klik for detaljer →</div>`;
     hoverCard.hidden = false;
     positionHover(e.point);
@@ -176,7 +180,8 @@ function openDetail(r, fly) {
   document.getElementById("dType").style.color = TYPE_COLOR[r.t];
   document.getElementById("dName").textContent = r.n;
   document.getElementById("dMeta").innerHTML =
-    `${r.d} · ${r.c} ${flag(r.cc)}<br>Næste udgave: ${monthLabel(r.m)}<br>Startgebyr: ${priceLabel(r.p)}`;
+    `${r.d} · ${r.c} ${flag(r.cc)}<br>Næste udgave: ${dateLabel(r)}` +
+    (r.p ? `<br>Startgebyr: ${priceLabel(r.p)}` : `<br>Pris: se tilmeldingssiden`);
   const note = document.getElementById("dNote");
   note.hidden = !r.note;
   if (r.note) note.textContent = "⚑ Adgang: " + r.note;
@@ -281,8 +286,8 @@ function rowHtml(r) {
       <div class="r-meta">${r.d} · ${r.c} ${flag(r.cc)}</div>
     </div>
     <div class="r-side">
-      <div class="r-price">${priceLabel(r.p)}</div>
-      <div class="r-when">${monthLabel(r.m)}</div>
+      <div class="r-price">${r.p ? priceLabel(r.p) : ""}</div>
+      <div class="r-when">${dateLabel(r)}</div>
     </div>
   </div>`;
 }
