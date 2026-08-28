@@ -67,6 +67,7 @@ for (const [fra, til] of vinduer) {
       +(koord[1] + (((h >>> 7) % 100) - 50) / 4000).toFixed(4),
       t, d, dt,
       r.url.replace("https://runsignup.com", ""),
+      r.race_id,
     ]);
   }
 }
@@ -75,7 +76,7 @@ alle.sort((a, b) => a[6].localeCompare(b[6]));
 const body = alle.map(r => JSON.stringify(r)).join(",\n");
 writeFileSync("data/races-rsu.js",
   `// Autogenereret af tools/build-rsu.mjs - kilde: RunSignups åbne API (${alle.length} løb, USA)\n` +
-  `// Kompakt format: [navn, by, lat, lng, type, distance, dato, url-sti]\n` +
-  `for (const a of [\n${body},\n]) RACES.push({ n: a[0], c: a[1], cc: "US", co: "NA", la: a[2], lo: a[3], t: a[4], d: a[5], m: a[6].slice(0, 7), dt: a[6], p: null, u: "https://runsignup.com" + a[7] });\n` +
+  `// Kompakt format: [navn, by, lat, lng, type, distance, dato, url-sti, race_id]\n` +
+  `for (const a of [\n${body},\n]) RACES.push({ n: a[0], c: a[1], cc: "US", co: "NA", la: a[2], lo: a[3], t: a[4], d: a[5], m: a[6].slice(0, 7), dt: a[6], p: null, u: "https://runsignup.com" + a[7], rsid: a[8] });\n` +
   `RACES.forEach((r, i) => (r.id = i));\n`);
 console.log(`OK: ${alle.length} løb skrevet til data/races-rsu.js`);

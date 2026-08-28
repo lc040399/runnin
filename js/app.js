@@ -69,8 +69,8 @@ function toGeojson(list) {
 const map = new maplibregl.Map({
   container: "map",
   style: "https://tiles.openfreemap.org/styles/positron",
-  center: [10, 32],
-  zoom: 1.7,
+  center: [13, 59.5], // Norden først - verden er ét zoom-ud væk
+  zoom: 4.1,
   minZoom: 1.2,
   renderWorldCopies: false, // én verden - ingen gentagne kontinenter/prikker
   attributionControl: { compact: true },

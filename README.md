@@ -2,7 +2,7 @@
 
 **Find dit næste løb. Hele verden. Hele året.**
 
-Runnin er hele verdens løb på ét interaktivt kort - 5.900+ løb - fra Marathon Majors og UTMB til hvert eneste danske motionsløb og tusindvis af amerikanske via RunSignups åbne API, med direkte links til den officielle tilmelding. Bygget som statisk site uden backend: hurtig, gratis at drifte, og hele brugerens data bor i deres egen browser.
+Runnin er hele verdens løb på ét interaktivt kort - 5.900+ løb - fra Marathon Majors og UTMB til hvert eneste danske motionsløb og tusindvis af amerikanske via RunSignups åbne API, med direkte links til den officielle tilmelding. Bygget som statisk site (plus én serverless funktion til ægte live-resultater): hurtig, gratis at drifte, og hele brugerens data bor i deres egen browser.
 
 **Live:** https://runnin.pages.dev
 

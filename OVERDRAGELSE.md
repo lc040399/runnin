@@ -37,6 +37,7 @@ Prioriteret efter effekt:
 3. **Data-pipeline på cron** i stedet for manuel høst
 4. **Telemetri** (Cloudflare Web Analytics er ét script-tag) - ellers ved du aldrig, om nogen bruger den
 5. Rigtig Strava OAuth, rigtige løbsfotos (kræver aftaler), i18n/engelsk
+6. **Nordiske datakilder**: Sverige = RaceID (raceid.com), Norge = EQ Timing/kondis.no - undersøg API/lov før høst, samme respekt som Sportstiming
 
 ## Arkitektur på 30 sekunder
 

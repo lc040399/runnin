@@ -131,6 +131,15 @@ function clearLiveLayers() {
   for (const id of ["live-runners", "live-route"]) if (map.getSource(id)) map.removeSource(id);
 }
 
+/* ---------- ÆGTE resultater via RunSignup (server-side proxy - de stripper CORS-svar) ---------- */
+async function hentÆgteResultater(race) {
+  if (!race.rsid) return null;
+  try {
+    const d = await (await fetch(`/api/resultater?rsid=${race.rsid}`, { signal: AbortSignal.timeout(8000) })).json();
+    return d.results?.length ? d.results : null;
+  } catch (_) { return null; }
+}
+
 /* ---------- selve simulationen ---------- */
 const fmtTid = min => {
   const s = Math.round(min * 60), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
@@ -162,7 +171,7 @@ function tick(ts) {
   }));
   map.getSource("live-runners")?.setData({ type: "FeatureCollection", features: feats });
 
-  if (changed || Math.floor(ts / 400) !== Math.floor((ts - dt * 1000) / 400)) updateLivePanel();
+  if (!sim.ægte && (changed || Math.floor(ts / 400) !== Math.floor((ts - dt * 1000) / 400))) updateLivePanel();
   sim.raf = requestAnimationFrame(tick);
 }
 const lederen = () => sim.runners.filter(r => !r.done).sort((a, b) => b.prog - a.prog)[0];
@@ -315,6 +324,43 @@ async function openLive(race) {
   buildLivePanel();
   updateLivePanel();
   sim.raf = requestAnimationFrame(tick);
+
+  // RunSignup-løb: hent ÆGTE resultater i baggrunden og afløs simulationen i panelet
+  sim.ægte = null;
+  hentÆgteResultater(race).then(res => {
+    if (sim.race !== race || !res?.length) return;
+    sim.ægte = res;
+    visÆgteResultater(res);
+  });
+}
+
+function visÆgteResultater(res) {
+  const top = res.slice(0, 5);
+  const senest = res.slice(-8).reverse();
+  livePanel.innerHTML = `
+    <div class="live-head">
+      <span class="live-badge"><i></i>LIVE</span>
+      <h2>${sim.race.n}</h2>
+      <button class="close" id="liveClose" aria-label="Luk">✕</button>
+    </div>
+    <div class="live-stats">
+      <div><strong>${res.length}</strong><span>i mål</span></div>
+      <div><strong>${top[0]?.tid || "-"}</strong><span>vindertid</span></div>
+      <div><strong>${sim.distKm} km</strong><span>rute</span></div>
+    </div>
+    <div class="live-sec">Resultater · <span style="color:#059669">ægte data</span></div>
+    ${top.map(r => `
+      <div class="live-row" style="position:static;height:auto;padding:8px 0">
+        <span class="live-pos">${r.plac}</span>
+        <div class="live-main"><div class="live-navn">${r.navn} <span class="live-bib">#${r.bib}</span></div></div>
+        <span class="feed-tid">${r.tid}</span>
+      </div>`).join("")}
+    <div class="live-sec">Senest i mål</div>
+    <div class="live-feed">
+      ${senest.map(r => `<div class="feed-item"><span>🏁</span><div><strong>${r.navn}</strong> <span class="live-bib">#${r.bib}</span></div><span class="feed-tid">${r.tid}</span></div>`).join("")}
+    </div>
+    <p class="foto-note">Resultaterne er ÆGTE - hentet live fra RunSignups åbne API. Prikkerne på ruten er fortsat illustration (tider, ikke GPS).</p>`;
+  document.getElementById("liveClose").onclick = closeLive;
 }
 function closeLive() {
   if (sim.raf) cancelAnimationFrame(sim.raf);
