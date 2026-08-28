@@ -40,7 +40,9 @@ body { font-family: var(--sans); color: var(--ink); background: var(--paper); }
 .brand {
   font-family: var(--serif); font-weight: 800; font-size: 20px;
   letter-spacing: .18em;
+  display: flex; align-items: center; gap: 10px;
 }
+.brand-mark { height: 24px; width: auto; }
 .nav-right { display: flex; align-items: center; gap: 10px; position: relative; }
 @keyframes foldDown {
   0% { opacity: 0; transform: translateY(-8px) scale(.95); }
