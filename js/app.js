@@ -99,10 +99,19 @@ map.on("move", () => {
   }
 });
 
-// Varm atlas-palet oven på Positron - blødt vand, sart grøn natur, papir-land.
+// Atlas-palet oven på Positron - lys: varmt papir/blødt vand, mørk: chokolade-nat.
+const erMørk = () => document.documentElement.dataset.tema === "mørk";
 function warmify() {
-  // Kortet holdes neutralt varmt (IKKE cream) - truffle-paletten lever i UI-laget
-  const patch = {
+  const patch = erMørk() ? {
+    background: ["background-color", "#211609"],
+    water: ["fill-color", "#182229"],
+    waterway: ["line-color", "#182229"],
+    park: ["fill-color", "#26301C"],
+    landcover_wood: ["fill-color", "#222B19"],
+    landuse_residential: ["fill-color", "#2A1D0E"],
+    landcover_ice_shelf: ["fill-color", "#2B2F2B"],
+    landcover_glacier: ["fill-color", "#2B2F2B"],
+  } : {
     background: ["background-color", "#F3EFE6"],
     water: ["fill-color", "#B7CFD8"],
     waterway: ["line-color", "#B7CFD8"],
@@ -115,7 +124,22 @@ function warmify() {
   for (const [id, [prop, val]] of Object.entries(patch)) {
     try { map.setPaintProperty(id, prop, val); } catch (_) {}
   }
+  // klynger + tekst skal også følge temaet (kun hvis lagene findes endnu)
+  if (map.getLayer("clusters")) {
+    map.setPaintProperty("clusters", "circle-color", erMørk() ? "#F2EADC" : "#38240D");
+    map.setPaintProperty("clusters", "circle-stroke-color", erMørk() ? "rgba(242,234,220,.2)" : "rgba(56,36,13,.15)");
+    map.setPaintProperty("cluster-count", "text-color", erMørk() ? "#241809" : "#ffffff");
+  }
 }
+
+function setTema(t) {
+  if (t === "mørk") document.documentElement.dataset.tema = "mørk";
+  else delete document.documentElement.dataset.tema;
+  localStorage.setItem("runnin-tema", t);
+  document.querySelectorAll(".tema-chip").forEach(c => c.classList.toggle("on", c.dataset.tema === t));
+  if (map.isStyleLoaded()) warmify();
+}
+document.querySelectorAll(".tema-chip").forEach(c => c.addEventListener("click", () => setTema(c.dataset.tema)));
 
 map.on("load", () => {
   // attribution er licenskrav (OSM/OpenMapTiles) - men den må gerne starte kollapset til ⓘ
@@ -151,6 +175,7 @@ map.on("load", () => {
   });
 
   wireMapEvents();
+  warmify(); // klynge-lagene findes først nu - giv dem temaets farver
   updateCounter();
   if (typeof initLiveUI === "function") initLiveUI();
 });
@@ -573,20 +598,28 @@ window.addEventListener("hashchange", openFromHash);
 const loginOverlay = document.getElementById("loginOverlay");
 const getUser = () => { try { return JSON.parse(localStorage.getItem("runnin-user")); } catch (_) { return null; } };
 
+const initialer = navn => navn.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+const avatarHtml = user => user.foto ? `<img src="${user.foto}" alt="">` : initialer(user.navn);
+
 function updateAuthUI() {
   const user = getUser();
   document.getElementById("loginBtn").hidden = !!user;
   const chip = document.getElementById("userChip");
   chip.hidden = !user;
   if (user) {
-    document.getElementById("userAvatar").textContent = user.navn.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+    document.getElementById("userAvatar").innerHTML = avatarHtml(user);
     document.getElementById("userName").textContent = user.navn;
   }
 }
 
 function openLogin() {
   const user = getUser();
-  document.getElementById("loginTitle").textContent = user ? "Din profil" : "Log ind";
+  document.getElementById("loginTitle").textContent = user ? "Profil & indstillinger" : "Log ind";
+  document.getElementById("avatarRad").hidden = !user;
+  document.getElementById("dataSektion").hidden = !user;
+  const tema = localStorage.getItem("runnin-tema") || "lys";
+  document.querySelectorAll(".tema-chip").forEach(c => c.classList.toggle("on", c.dataset.tema === tema));
+  if (user) document.getElementById("avatarPreview").innerHTML = avatarHtml(user);
   document.getElementById("loginName").value = user ? user.navn : "Lasse Christensen";
   document.getElementById("loginEmail").value = user?.email || "";
   document.getElementById("logoutBtn").hidden = !user;
@@ -621,7 +654,7 @@ function toggleProfileMenu() {
 
   profileMenu.innerHTML = `
     <div class="pm-head">
-      <span class="user-avatar">${user.navn.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase()}</span>
+      <span class="user-avatar">${avatarHtml(user)}</span>
       <div>
         <div class="pm-navn">${user.navn}</div>
         <div class="pm-sub">${user.email || "Runnin-profil"}</div>
@@ -631,6 +664,7 @@ function toggleProfileMenu() {
     <div class="pm-items">
       <button data-act="dash" class="pm-dash">◈ Dashboard</button>
       <button data-act="mine">♡ Mine løb <span class="pm-tal">${gemte.length}</span></button>
+      <button data-act="rediger">⚙️ Indstillinger</button>
       <button data-act="logud" class="pm-logud">Log ud</button>
     </div>`;
   profileMenu.hidden = false;
@@ -667,3 +701,41 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
   if (state.tab === "mine") renderFavs();
 });
 updateAuthUI();
+
+/* ---------- indstillinger: profilbillede + data ---------- */
+document.getElementById("avatarUpload").addEventListener("click", () => document.getElementById("fotoInput").click());
+document.getElementById("fotoInput").addEventListener("change", e => {
+  const fil = e.target.files?.[0];
+  if (!fil) return;
+  const img = new Image();
+  img.onload = () => {
+    // kvadratisk center-crop, 128 px, gemt lokalt som jpeg
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const s = Math.min(img.width, img.height);
+    c.getContext("2d").drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 128, 128);
+    const user = getUser();
+    if (!user) return;
+    user.foto = c.toDataURL("image/jpeg", 0.82);
+    localStorage.setItem("runnin-user", JSON.stringify(user));
+    document.getElementById("avatarPreview").innerHTML = avatarHtml(user);
+    updateAuthUI();
+    URL.revokeObjectURL(img.src);
+  };
+  img.src = URL.createObjectURL(fil);
+  e.target.value = "";
+});
+
+const RUNNIN_KEYS = ["runnin-user", "runnin-favs", "runnin-entries", "runnin-alarms", "runnin-bibs", "runnin-strava", "runnin-radars", "runnin-tema"];
+document.getElementById("dataExport").addEventListener("click", () => {
+  const data = Object.fromEntries(RUNNIN_KEYS.map(k => [k, JSON.parse(localStorage.getItem(k) || "null")]));
+  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = "runnin-data.json"; a.click();
+  URL.revokeObjectURL(url);
+});
+document.getElementById("dataSlet").addEventListener("click", () => {
+  if (!confirm("Slet alle dine Runnin-data i denne browser? Gemte løb, alarmer, profil - alt fjernes.")) return;
+  RUNNIN_KEYS.forEach(k => localStorage.removeItem(k));
+  location.reload();
+});

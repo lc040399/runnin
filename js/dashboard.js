@@ -160,7 +160,7 @@ function renderDashboard() {
           <button data-act="aar">🗺 Mit løbs-år</button>
           <button data-act="ics">📅 Kalender-feed</button>
           <button data-act="strava">${f ? "🟠 Strava" : "🟠 Forbind Strava"}</button>
-          <button data-act="rediger">👤 Redigér profil</button>
+          <button data-act="rediger">⚙️ Indstillinger</button>
         </div>
       </div>
     </div>`;

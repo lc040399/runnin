@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>try { if (localStorage.getItem("runnin-tema") === "mørk") document.documentElement.dataset.tema = "mørk"; } catch (e) {}</script>
 <title>Runnin - Find dit næste løb</title>
 <meta name="description" content="Hele verdens løb på ét kort. Find dit næste marathon, halvmarathon, trail eller triathlon - og tilmeld dig på den officielle side.">
 <link rel="icon" type="image/png" href="assets/mark.png?v=28">
@@ -11,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="css/style.css?v=31" rel="stylesheet">
+<link href="css/style.css?v=34" rel="stylesheet">
 </head>
 <body>
 
@@ -49,6 +50,14 @@
     <div class="d-type">Runnin-profil</div>
     <h2 class="login-title" id="loginTitle">Log ind</h2>
     <form id="loginForm">
+      <div class="avatar-rad" id="avatarRad" hidden>
+        <button type="button" class="avatar-upload" id="avatarUpload" aria-label="Skift profilbillede">
+          <span id="avatarPreview"></span>
+          <span class="avatar-kamera">📷</span>
+        </button>
+        <div class="avatar-hjælp">Klik for at skifte profilbillede<br><small>Gemmes kun lokalt</small></div>
+        <input type="file" id="fotoInput" accept="image/*" hidden>
+      </div>
       <label class="login-label" for="loginName">Navn</label>
       <input class="login-field" id="loginName" placeholder="Dit fulde navn" autocomplete="name" value="Lasse Christensen">
       <div id="pwWrap">
@@ -59,6 +68,16 @@
       <input class="login-field" id="loginEmail" type="email" placeholder="dig@mail.dk" autocomplete="email">
       <button class="cta login-cta" type="submit">Fortsæt <span>→</span></button>
       <button class="save" type="button" id="logoutBtn" hidden>Log ud</button>
+      <div class="data-sektion" id="dataSektion" hidden>
+        <div class="login-label" style="margin-top:18px">Udseende</div>
+        <div class="tema-valg">
+          <button type="button" class="tema-chip" data-tema="lys">☀️ Lys</button>
+          <button type="button" class="tema-chip" data-tema="mørk">🌙 Mørk</button>
+        </div>
+        <div class="login-label" style="margin-top:18px">Dine data</div>
+        <button class="save" type="button" id="dataExport">⬇️ Download mine data (JSON)</button>
+        <button class="save data-slet" type="button" id="dataSlet">🗑 Slet alle mine data</button>
+      </div>
       <p class="foto-note">Demo: gemmes kun lokalt i din browser - ingen konto oprettes.</p>
     </form>
   </div>
@@ -162,10 +181,10 @@
 <script src="data/races.js?v=28"></script>
 <script src="data/races-st.js?v=28"></script>
 <script src="js/photos.js?v=28"></script>
-<script src="js/app.js?v=32"></script>
+<script src="js/app.js?v=34"></script>
 <script src="js/features.js?v=28"></script>
 <script src="js/connect.js?v=28"></script>
-<script src="js/dashboard.js?v=28"></script>
+<script src="js/dashboard.js?v=33"></script>
 <script src="js/live.js?v=28"></script>
 </body>
 </html>
