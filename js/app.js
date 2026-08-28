@@ -24,7 +24,13 @@ RACES.forEach((r, i) => (r.id = i));
 /* ---------- helpers ---------- */
 const flag = cc => cc === "AQ" ? "🇦🇶" : [...cc].map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)).join("");
 const monthLabel = m => { const [y, mm] = m.split("-"); return MONTHS[+mm - 1].slice(0, 3) + ". " + y; };
-const priceLabel = p => "fra €" + p.toLocaleString("da-DK");
+// Priser lagres i EUR; dansk UI viser kr (fast kurs, pæn afrunding - det er "fra"-estimater).
+const EUR_DKK = 7.46;
+const priceLabel = p => {
+  const kr = p * EUR_DKK;
+  const rounded = kr < 1000 ? Math.round(kr / 10) * 10 : kr < 10000 ? Math.round(kr / 100) * 100 : Math.round(kr / 1000) * 1000;
+  return "fra " + rounded.toLocaleString("da-DK") + " kr";
+};
 const inRegion = r =>
   !state.region ? true :
   state.region === "dk" ? r.cc === "DK" :
