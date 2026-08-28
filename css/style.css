@@ -102,7 +102,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 46; /* over paneler, under modaler */
   display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 32px;
+  padding: calc(20px + env(safe-area-inset-top)) 32px 20px;
   pointer-events: none;
 }
 .nav > * { pointer-events: auto; }
@@ -249,7 +249,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 .mine-hilsen .countdown { color: var(--coral); font-weight: 700; }
 
 /* ---------- hero ---------- */
-.hero { position: fixed; top: 86px; left: 32px; z-index: 20; max-width: 520px; pointer-events: none; }
+.hero { position: fixed; top: calc(86px + env(safe-area-inset-top)); left: 32px; z-index: 20; max-width: 520px; pointer-events: none; }
 .hero > * { pointer-events: auto; }
 .hero h1 { font-family: var(--serif); font-size: clamp(30px, 4vw, 44px); font-weight: 700; letter-spacing: -.02em; line-height: 1.06; }
 .hero .sub { color: var(--muted); font-weight: 500; font-size: 15px; margin-top: 6px; }
@@ -295,7 +295,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 
 /* ---------- detaljepanel ---------- */
 .detail {
-  position: fixed; z-index: 45; right: 24px; top: 96px; width: 320px;
+  position: fixed; z-index: 45; right: 24px; top: calc(96px + env(safe-area-inset-top)); width: 320px;
   background: var(--card); border: 1px solid var(--hairline); border-radius: 18px;
   box-shadow: var(--card-shadow); padding: 24px;
   animation: rise .28s cubic-bezier(.22,1,.36,1) both;
@@ -422,7 +422,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 
 /* ---------- liste-panel ---------- */
 .panel {
-  position: fixed; z-index: 44; right: 24px; top: 96px; bottom: 76px; width: 380px;
+  position: fixed; z-index: 44; right: 24px; top: calc(96px + env(safe-area-inset-top)); bottom: 76px; width: 380px;
   background: var(--card); border: 1px solid var(--hairline); border-radius: 18px;
   box-shadow: var(--card-shadow); display: flex; flex-direction: column;
   animation: rise .28s cubic-bezier(.22,1,.36,1) both;
@@ -598,7 +598,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 .photos-link { margin-top: 8px; }
 .foto-overlay {
   position: fixed; inset: 0; z-index: 70; background: var(--paper);
-  overflow-y: auto; padding: 28px clamp(20px, 5vw, 64px) 40px;
+  overflow-y: auto; padding: calc(28px + env(safe-area-inset-top)) clamp(20px, 5vw, 64px) 40px;
 }
 .foto-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
 .foto-kicker { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--coral); }
@@ -758,7 +758,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 @media (max-width: 720px) {
   /* transform-animation på headeren gør den til containing block for fixed
      børn (bottom nav) - ren fade i stedet på mobil */
-  .nav { padding: 12px 14px; gap: 8px; }
+  .nav { padding: calc(12px + env(safe-area-inset-top)) 14px 12px; gap: 8px; }
 }
 @keyframes navFade { from { opacity: 0; } to { opacity: 1; } }
 @media (max-width: 720px) {
@@ -777,7 +777,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
     animation: springIn .5s cubic-bezier(.22,1.4,.36,1) both .3s;
   }
   .tab { flex: 1; text-align: center; padding: 12px 4px; font-size: 12.5px; }
-  .hero { left: 16px; right: 16px; top: 68px; }
+  .hero { left: 16px; right: 16px; top: calc(68px + env(safe-area-inset-top)); }
   .detail, .panel { left: 16px; right: 16px; width: auto; }
   /* detaljepanel som bottom-sheet på mobil - væk fra hero'en */
   .detail { top: auto; bottom: calc(72px + env(safe-area-inset-bottom)); max-height: 64vh; overflow-y: auto; }
