@@ -213,6 +213,11 @@ function fjernPreloader() {
 map.once("idle", fjernPreloader);
 setTimeout(fjernPreloader, 7000);
 
+// service worker: ægte PWA (offline-cache af egne filer, installérbar på Android)
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
+
 /* ---------- hover + klik ---------- */
 const hoverCard = document.getElementById("hoverCard");
 let hoverId = null;
