@@ -1,4 +1,4 @@
-// Bygger data/races-st.js ud fra /tmp/st-raw.tsv (høstet fra sportstiming.dk/events).
+// Bygger data/races-st.js ud fra tools/st-raw.tsv (høstet fra sportstiming.dk/events).
 // Geokoder danske bynavne via DAWA (api.dataforsyningen.dk - gratis, offentlig).
 // Kør: node tools/build-st.mjs
 import { readFileSync, writeFileSync } from "fs";
@@ -97,7 +97,7 @@ async function geocode(cityRaw) {
   return hit;
 }
 
-const lines = readFileSync("/tmp/st-raw.tsv", "utf8").trim().split("\n");
+const lines = readFileSync("tools/st-raw.tsv", "utf8").trim().split("\n");
 let year = 2026, prevMonth = 8;
 const seen = new Set();
 const out = [], dropped = [];
