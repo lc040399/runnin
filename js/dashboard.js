@@ -10,12 +10,14 @@ function hilsenOrd() {
   return t < 5 ? "Godnat" : t < 10 ? "Godmorgen" : t < 12 ? "Formiddag" : t < 18 ? "Goddag" : "Godaften";
 }
 
-function openDashboard() {
+function openDashboard(fokus) {
   const user = getUser();
   if (!user) return openLogin();
   dashMonth = dashMonth || todayISO().slice(0, 7);
   renderDashboard();
   dashOverlay.hidden = false;
+  if (fokus === "indstillinger") setTimeout(() =>
+    document.getElementById("dashSettings")?.scrollIntoView({ behavior: "smooth", block: "start" }), 350);
 }
 const closeDashboard = () => (dashOverlay.hidden = true);
 
@@ -160,12 +162,76 @@ function renderDashboard() {
           <button data-act="aar">🗺 Mit løbs-år</button>
           <button data-act="ics">📅 Kalender-feed</button>
           <button data-act="strava">${f ? "🟠 Strava" : "🟠 Forbind Strava"}</button>
-          <button data-act="rediger">⚙️ Indstillinger</button>
+        </div>
+      </div>
+
+      <div class="dash-card dash-bred dash-in" style="--i:7" id="dashSettings">
+        <div class="foto-kicker">Profil & indstillinger</div>
+        <div class="dash-settings">
+          <div class="avatar-rad">
+            <button class="avatar-upload" id="dashAvatarBtn" type="button" title="Skift profilbillede">
+              <span id="dashAvatar">${avatarHtml(user)}</span>
+              <span class="avatar-kamera">📷</span>
+            </button>
+            <div class="avatar-hjælp">Klik for at skifte profilbillede.<br><small>Gemmes kun på denne enhed.</small></div>
+          </div>
+          <div class="dash-profil-felter">
+            <div>
+              <label class="login-label" for="setNavn">Navn</label>
+              <input class="login-field" id="setNavn" value="${user.navn.replace(/"/g, "&quot;")}" autocomplete="name">
+            </div>
+            <div>
+              <label class="login-label" for="setEmail">E-mail</label>
+              <input class="login-field" id="setEmail" type="email" value="${(user.email || "").replace(/"/g, "&quot;")}" autocomplete="email">
+            </div>
+            <button class="cta" id="setGem" type="button">Gem</button>
+          </div>
+          <div class="dash-settings-rk">
+            <div>
+              <span class="login-label">Tema</span>
+              <div class="tema-valg">
+                <button class="tema-chip" type="button" data-tema="lys">☀️ Lys</button>
+                <button class="tema-chip" type="button" data-tema="mørk">🌙 Mørk</button>
+              </div>
+            </div>
+            <div>
+              <span class="login-label">Dine data</span>
+              <div class="dash-genveje">
+                <button id="setExport" type="button">⬇️ Download mine data</button>
+                <button id="setSlet" type="button" class="data-slet">🗑 Slet alt</button>
+                <button id="setLogud" type="button">Log ud</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>`;
 
   document.getElementById("dashClose").onclick = closeDashboard;
+
+  /* profil & indstillinger */
+  const tema = localStorage.getItem("runnin-tema") || "lys";
+  dashOverlay.querySelectorAll(".tema-chip").forEach(c => {
+    c.classList.toggle("on", c.dataset.tema === tema);
+    c.onclick = () => setTema(c.dataset.tema);
+  });
+  document.getElementById("dashAvatarBtn").onclick = () => document.getElementById("fotoInput").click();
+  document.getElementById("setGem").onclick = () => {
+    const navn = document.getElementById("setNavn").value.trim();
+    if (!navn) return;
+    const email = document.getElementById("setEmail").value.trim();
+    const u = getUser() || {};
+    u.navn = navn;
+    if (email) u.email = email; else delete u.email;
+    localStorage.setItem("runnin-user", JSON.stringify(u));
+    updateAuthUI();
+    const knap = document.getElementById("setGem");
+    knap.textContent = "Gemt ✓";
+    setTimeout(() => { knap.textContent = "Gem"; }, 1400);
+  };
+  document.getElementById("setExport").onclick = eksportData;
+  document.getElementById("setSlet").onclick = sletAlleData;
+  document.getElementById("setLogud").onclick = () => { closeDashboard(); logUd(); };
   document.getElementById("dashPrev").onclick = () => dashShiftMonth(-1);
   document.getElementById("dashNext").onclick = () => dashShiftMonth(1);
   document.getElementById("dashStrava") && (document.getElementById("dashStrava").onclick = () => { closeDashboard(); openStrava(); });
@@ -193,7 +259,6 @@ function renderDashboard() {
     if (act === "aar") openYearCard();
     if (act === "ics") openKalenderFeed();
     if (act === "strava") openStrava();
-    if (act === "rediger") openLogin();
   });
   dashOverlay.querySelectorAll(".dash-liste .row").forEach(row => row.onclick = () => {
     closeDashboard();

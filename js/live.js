@@ -434,7 +434,7 @@ function initLiveUI() {
     const p = ((ts - t0) % 2600) / 2600;
     try {
       map.setPaintProperty("live-halo-pulse", "circle-radius", 7 + p * 10);
-      map.setPaintProperty("live-halo-pulse", "circle-opacity", .28 * Math.sin(p * Math.PI));
+      map.setPaintProperty("live-halo-pulse", "circle-opacity", Math.max(0, .28 * Math.sin(p * Math.PI)));
     } catch (_) { return; }
     requestAnimationFrame(pulse);
   })(t0);

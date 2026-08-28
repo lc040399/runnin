@@ -651,19 +651,9 @@ function updateAuthUI() {
 }
 
 function openLogin() {
-  const user = getUser();
-  document.getElementById("loginTitle").textContent = user ? "Profil & indstillinger" : "Log ind";
-  document.getElementById("avatarRad").hidden = !user;
-  document.getElementById("dataSektion").hidden = !user;
-  const tema = localStorage.getItem("runnin-tema") || "lys";
-  document.querySelectorAll(".tema-chip").forEach(c => c.classList.toggle("on", c.dataset.tema === tema));
-  if (user) document.getElementById("avatarPreview").innerHTML = avatarHtml(user);
-  document.getElementById("loginName").value = user ? user.navn : "Lasse Christensen";
-  document.getElementById("loginEmail").value = user?.email || "";
-  document.getElementById("logoutBtn").hidden = !user;
-  // adgangskode kun ved login, ikke ved profil-redigering; gemmes ALDRIG (demo)
-  document.getElementById("pwWrap").hidden = !!user;
-  document.getElementById("loginPw").required = !user;
+  document.getElementById("loginName").value = "";
+  document.getElementById("loginEmail").value = "";
+  document.getElementById("loginPw").required = true;
   document.getElementById("loginPw").value = "";
   loginOverlay.hidden = false;
   // genstart entrance-animationen
@@ -712,7 +702,7 @@ function toggleProfileMenu() {
     const act = b.dataset.act;
     if (act === "dash") openDashboard();
     if (act === "mine") { setTab("mine"); panel.hidden = false; renderFavs(); }
-    if (act === "rediger") openLogin();
+    if (act === "rediger") openDashboard("indstillinger");
     if (act === "logud") { localStorage.removeItem("runnin-user"); updateAuthUI(); if (state.tab === "mine") renderFavs(); }
   });
 }
@@ -732,16 +722,14 @@ document.getElementById("loginForm").addEventListener("submit", e => {
   updateAuthUI();
   if (state.tab === "mine") renderFavs();
 });
-document.getElementById("logoutBtn").addEventListener("click", () => {
+function logUd() {
   localStorage.removeItem("runnin-user");
-  closeLogin();
   updateAuthUI();
   if (state.tab === "mine") renderFavs();
-});
+}
 updateAuthUI();
 
 /* ---------- indstillinger: profilbillede + data ---------- */
-document.getElementById("avatarUpload").addEventListener("click", () => document.getElementById("fotoInput").click());
 document.getElementById("fotoInput").addEventListener("change", e => {
   const fil = e.target.files?.[0];
   if (!fil) return;
@@ -756,7 +744,8 @@ document.getElementById("fotoInput").addEventListener("change", e => {
     if (!user) return;
     user.foto = c.toDataURL("image/jpeg", 0.82);
     localStorage.setItem("runnin-user", JSON.stringify(user));
-    document.getElementById("avatarPreview").innerHTML = avatarHtml(user);
+    const dashAv = document.getElementById("dashAvatar");
+    if (dashAv) dashAv.innerHTML = avatarHtml(user);
     updateAuthUI();
     URL.revokeObjectURL(img.src);
   };
@@ -765,15 +754,17 @@ document.getElementById("fotoInput").addEventListener("change", e => {
 });
 
 const RUNNIN_KEYS = ["runnin-user", "runnin-favs", "runnin-entries", "runnin-alarms", "runnin-bibs", "runnin-strava", "runnin-radars", "runnin-tema"];
-document.getElementById("dataExport").addEventListener("click", () => {
-  const data = Object.fromEntries(RUNNIN_KEYS.map(k => [k, JSON.parse(localStorage.getItem(k) || "null")]));
+function eksportData() {
+  // runnin-tema gemmes som rå streng, resten som JSON - tag begge dele med
+  const læs = k => { const v = localStorage.getItem(k); try { return JSON.parse(v ?? "null"); } catch (_) { return v; } };
+  const data = Object.fromEntries(RUNNIN_KEYS.map(k => [k, læs(k)]));
   const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
   const a = document.createElement("a");
   a.href = url; a.download = "runnin-data.json"; a.click();
   URL.revokeObjectURL(url);
-});
-document.getElementById("dataSlet").addEventListener("click", () => {
+}
+function sletAlleData() {
   if (!confirm("Slet alle dine Runnin-data i denne browser? Gemte løb, alarmer, profil - alt fjernes.")) return;
   RUNNIN_KEYS.forEach(k => localStorage.removeItem(k));
   location.reload();
-});
+}
