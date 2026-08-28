@@ -279,7 +279,8 @@ function openDetail(r, fly) {
   document.getElementById("dMeta").innerHTML =
     `${r.d} · ${r.c} ${flag(r.cc)}<br>` +
     (live ? `<span class="d-idag">I dag - løbet er i gang</span>` : `Næste udgave: ${dateLabel(r)}`) +
-    (r.p ? `<br>Startgebyr: ${priceLabel(r.p)}` : `<br>Pris: se tilmeldingssiden`);
+    (r.p ? `<br>Startgebyr: ${priceLabel(r.p)}` : `<br>Pris: se tilmeldingssiden`) +
+    (r.u.includes("sportstiming.dk") ? `<br><span class="d-kilde">Kalenderdata: Sportstiming</span>` : "");
   const note = document.getElementById("dNote");
   note.hidden = !r.note;
   if (r.note) note.textContent = "⚑ Adgang: " + r.note;
@@ -591,7 +592,9 @@ const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 searchInput.addEventListener("input", () => {
   const q = norm(searchInput.value.trim());
   if (q.length < 2) { searchMenu.hidden = true; return; }
-  const hits = RACES.filter(r => norm(r.n).includes(q) || norm(r.c).includes(q)).slice(0, 8);
+  const hits = RACES.filter(r => norm(r.n).includes(q) || norm(r.c).includes(q))
+    .sort((a, b) => sortKey(a).localeCompare(sortKey(b))) // nærmeste dato øverst
+    .slice(0, 8);
   if (!hits.length) { searchMenu.innerHTML = `<div class="search-tom">Ingen løb matcher "${searchInput.value.trim()}"</div>`; searchMenu.hidden = false; return; }
   searchMenu.innerHTML = hits.map(r => `
     <button data-id="${r.id}">
