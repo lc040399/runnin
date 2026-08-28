@@ -152,7 +152,6 @@ async function openStrava() {
         <li>🏅 Formtider beregnet af dine seneste 90 dages løb</li>
         <li>📊 Ugentlige kilometer og formkurve</li>
         <li>🎯 Realistiske måltider på løbene du har gemt</li>
-        <li>🗓 Formen tænkes ind i sæsonplanlæggeren</li>
       </ul>
       ${cfg.configured
         ? `<button class="cta strava-btn" id="stravaConnect">Forbind med Strava</button>
@@ -215,15 +214,6 @@ async function openStrava() {
   }
   featOverlay.hidden = false;
   document.getElementById("featClose").onclick = () => (featOverlay.hidden = true);
-}
-
-/* hook: kaldes fra openPlanner - personlig form-linje øverst */
-function stravaPlannerLine(target) {
-  const f = stravaForm();
-  if (!f || !f.pb) return "";
-  const est = target.t === "half" ? f.halfEst : f.maraEst;
-  const dist = target.t === "half" ? "half" : "marathon";
-  return `<div class="form-linje planner-form">📈 Din form (Strava${f.ægte ? "" : "-demo"}): ${f.snit} km/uge · estimeret ${dist}: <strong>~${est}</strong></div>`;
 }
 
 /* ================= KALENDER-FEED (.ics) ================= */

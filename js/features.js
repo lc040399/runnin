@@ -1,4 +1,4 @@
-/* Runnin gratis-features: alarmer, sæsonplanlægger, Mit løbs-år, venner (demo), vejr.
+/* Runnin gratis-features: alarmer, Mit løbs-år, venner (demo), vejr.
    Vejr = ÆGTE data (Open-Meteo arkiv, samme måned sidste år). Venner = demo, mærket. */
 "use strict";
 
@@ -20,6 +20,8 @@ document.getElementById("dAlarm").addEventListener("click", () => {
 });
 
 /* ================= VEJR (Open-Meteo, ægte data) ================= */
+// Løb afvikles om formiddagen - så vi viser temperaturen i løbsvinduet (kl. 8-11
+// lokal tid, samme måned sidste år) i stedet for det brede nat-til-eftermiddag-spænd.
 const weatherCache = new Map();
 async function visVejr(r) {
   const el = document.getElementById("dWeather");
@@ -29,10 +31,17 @@ async function visVejr(r) {
     try {
       const mm = r.m.split("-")[1];
       const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${r.la}&longitude=${r.lo}` +
-        `&start_date=2025-${mm}-01&end_date=2025-${mm}-28&daily=temperature_2m_max,temperature_2m_min&timezone=UTC`;
+        `&start_date=2025-${mm}-01&end_date=2025-${mm}-28&hourly=temperature_2m&daily=precipitation_sum&timezone=auto`;
       const d = await (await fetch(url, { signal: AbortSignal.timeout(5000) })).json();
-      const avg = a => Math.round(a.reduce((s, v) => s + v, 0) / a.length);
-      weatherCache.set(key, `☀️ Typisk vejr i ${MONTHS[+mm - 1]}: ${avg(d.daily.temperature_2m_min)}-${avg(d.daily.temperature_2m_max)}° <span class="w-src">(${r.c} ${mm}/2025, Open-Meteo)</span>`);
+      const formiddag = d.hourly.temperature_2m.filter((v, i) => {
+        const h = +d.hourly.time[i].slice(11, 13);
+        return h >= 8 && h <= 11 && v != null;
+      });
+      const middel = Math.round(formiddag.reduce((s, v) => s + v, 0) / formiddag.length);
+      const dage = d.daily.precipitation_sum.filter(x => x != null);
+      const regn = dage.filter(x => x >= 1).length;
+      const ikon = regn >= 14 ? "🌧" : regn >= 7 ? "⛅️" : "☀️";
+      weatherCache.set(key, `${ikon} Typisk løbevejr i ${MONTHS[+mm - 1]}: ~${middel}° om formiddagen · regn ${regn} af ${dage.length} dage <span class="w-src">(${r.c}, Open-Meteo ${mm}/2025)</span>`);
     } catch (_) { weatherCache.set(key, null); }
   }
   if (currentRace === r && weatherCache.get(key)) el.innerHTML = weatherCache.get(key);
@@ -53,7 +62,6 @@ function visVenner(r) {
 /* hook: kaldes fra openDetail */
 function featuresOnDetail(r) {
   updateAlarmBtn(r);
-  document.getElementById("dPlan").hidden = !(r.t === "marathon" || r.t === "half" || r.t === "ultra");
   visVenner(r);
   visVejr(r);
 }
@@ -87,59 +95,6 @@ function visAlarmer() {
   });
 }
 
-
-/* ================= SÆSONPLANLÆGGER ================= */
-function midDate(r) { return new Date(r.dt || r.m + "-15"); }
-
-function openPlanner(target) {
-  const targetDate = midDate(target);
-  const nu = new Date();
-  const sammeEgn = r => r.cc === target.cc || (NORDICS.includes(r.cc) && NORDICS.includes(target.cc));
-  const kandidater = RACES.filter(r =>
-    r !== target && sammeEgn(r) && midDate(r) > nu && midDate(r) < new Date(targetDate - 12 * 86400000)
-  );
-  const ugerFør = r => Math.round((targetDate - midDate(r)) / (7 * 86400000));
-  const find = (typer, minU, maxU) =>
-    kandidater.filter(r => typer.includes(r.t) && ugerFør(r) >= minU && ugerFør(r) <= maxU)
-      .sort((a, b) => Math.abs(ugerFør(a) - (minU + maxU) / 2) - Math.abs(ugerFør(b) - (minU + maxU) / 2))[0];
-
-  const slots = target.t === "half"
-    ? [["Formtest", ["kort"], 8, 14], ["Generalprøve", ["kort"], 3, 6]]
-    : [["Grundform", ["kort"], 10, 16], ["Formtest", ["half"], 5, 9], ["Generalprøve", ["kort", "half"], 2, 4]];
-
-  const rows = slots.map(([navn, typer, a, b]) => {
-    const r = find(typer, a, b);
-    return `<div class="plan-slot">
-      <div class="plan-når">${navn}<span>${a}-${b} uger før</span></div>
-      ${r ? `<div class="feat-row" data-n="${r.n.replace(/"/g, "&quot;")}">
-          <span class="dot" style="background:${TYPE_COLOR[r.t]}"></span>
-          <div><strong>${r.n}</strong><br><small>${dateLabel(r)} · ${r.c}</small></div>
-          <button class="feat-x plan-gem">♡ Gem</button>
-        </div>`
-      : `<div class="plan-tom">Intet oplagt løb i vinduet - tjek kortet selv</div>`}
-    </div>`;
-  }).join("");
-
-  featOverlay.querySelector(".cal-modal").innerHTML = `
-    <div class="cal-head">
-      <h2 style="margin:0 auto">Sæsonen mod ${target.n}</h2>
-      <button class="close" id="featClose" aria-label="Luk">✕</button>
-    </div>
-    <p class="foto-note" style="margin-top:4px">Opbygningsløb i samme egn, timet baglæns fra ${dateLabel(target)}.</p>
-    ${typeof stravaPlannerLine === "function" ? stravaPlannerLine(target) : ""}
-    <div class="feat-list">${rows}</div>`;
-  featOverlay.hidden = false;
-  document.getElementById("featClose").onclick = () => (featOverlay.hidden = true);
-  featOverlay.querySelectorAll(".plan-gem").forEach(btn => btn.onclick = () => {
-    const r = RACES.find(x => x.n === btn.closest(".feat-row").dataset.n);
-    if (r) { favs.add(r.id); localStorage.setItem("runnin-favs", JSON.stringify([...favs])); updateFavCount(); btn.textContent = "✓ Gemt"; }
-  });
-  featOverlay.querySelectorAll(".feat-row > div").forEach(d => d.onclick = () => {
-    const r = RACES.find(x => x.n === d.closest(".feat-row").dataset.n);
-    if (r) { featOverlay.hidden = true; openDetail(r, true); }
-  });
-}
-document.getElementById("dPlan").addEventListener("click", () => currentRace && openPlanner(currentRace));
 
 /* ================= MIT LØBS-ÅR (delbart billede) ================= */
 function tegnYearCard(gemte) {
