@@ -2,3 +2,6 @@
 .DS_Store
 dist/
 tools/ios-wrapper/Runnin.app/
+ios/Runnin.xcodeproj/
+ios/build/
+ios/DerivedData/

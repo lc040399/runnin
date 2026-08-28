@@ -1,0 +1,21 @@
+name: Runnin
+options:
+  bundleIdPrefix: dk.runnin
+  deploymentTarget:
+    iOS: "16.0"
+targets:
+  Runnin:
+    type: application
+    platform: iOS
+    sources: [Runnin]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dk.runnin.app
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Runnin
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_STYLE: Automatic
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
