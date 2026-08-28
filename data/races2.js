@@ -22,7 +22,6 @@ RACES.push(...[
   {n:"Broad Street Run",c:"Philadelphia",cc:"US",co:"NA",la:39.997,lo:-75.144,t:"half",d:"16,1 km",m:"2027-05",p:60,u:"https://www.broadstreetrun.com",note:"Lodtrækning"},
   {n:"Bolder Boulder",c:"Boulder",cc:"US",co:"NA",la:40.015,lo:-105.271,t:"kort",d:"10 km",m:"2027-05",p:60,u:"https://bolderboulder.com"},
   {n:"Falmouth Road Race",c:"Falmouth",cc:"US",co:"NA",la:41.552,lo:-70.615,t:"kort",d:"11,3 km",m:"2027-08",p:75,u:"https://falmouthroadrace.com",note:"Lodtrækning"},
-  {n:"Gate River Run",c:"Jacksonville",cc:"US",co:"NA",la:30.324,lo:-81.656,t:"kort",d:"15 km",m:"2027-03",p:50,u:"https://www.gate-riverrun.com"},
   {n:"Lilac Bloomsday Run",c:"Spokane",cc:"US",co:"NA",la:47.658,lo:-117.426,t:"kort",d:"12 km",m:"2027-05",p:40,u:"https://www.bloomsdayrun.org"},
   {n:"Ottawa Marathon",c:"Ottawa",cc:"CA",co:"NA",la:45.421,lo:-75.697,t:"marathon",d:"42,2 km",m:"2027-05",p:145,u:"https://www.runottawa.ca"},
   {n:"Montréal Marathon",c:"Montréal",cc:"CA",co:"NA",la:45.502,lo:-73.567,t:"marathon",d:"42,2 km",m:"2026-09",p:130,u:"https://www.mtlmarathon.com"},
@@ -43,7 +42,7 @@ RACES.push(...[
   {n:"Ultra-Trail Snowdonia",c:"Eryri",cc:"GB",co:"EU",la:53.068,lo:-4.076,t:"ultra",d:"100 km",m:"2027-05",p:200,u:"https://snowdonia.utmb.world"},
 
   // ---------- TYSKLAND/ALPERNE ----------
-  {n:"Düsseldorf Marathon",c:"Düsseldorf",cc:"DE",co:"EU",la:51.228,lo:6.773,t:"marathon",d:"42,2 km",m:"2027-04",p:90,u:"https://www.metro-marathon.de"},
+  {n:"Düsseldorf Marathon",c:"Düsseldorf",cc:"DE",co:"EU",la:51.228,lo:6.773,t:"marathon",d:"42,2 km",m:"2027-04",p:90,u:"https://duesseldorf-marathon.de"},
   {n:"Hannover Marathon",c:"Hannover",cc:"DE",co:"EU",la:52.376,lo:9.741,t:"marathon",d:"42,2 km",m:"2027-04",p:85,u:"https://marathon-hannover.de"},
   {n:"Dresden Marathon",c:"Dresden",cc:"DE",co:"EU",la:51.051,lo:13.738,t:"marathon",d:"42,2 km",m:"2026-10",p:70,u:"https://oberelbe-marathon.de"},
   {n:"Rennsteiglauf",c:"Eisenach",cc:"DE",co:"EU",la:50.976,lo:10.320,t:"ultra",d:"73 km",m:"2027-05",p:80,u:"https://www.rennsteiglauf.de"},
@@ -51,14 +50,13 @@ RACES.push(...[
   {n:"Salzburg Marathon",c:"Salzburg",cc:"AT",co:"EU",la:47.810,lo:13.055,t:"marathon",d:"42,2 km",m:"2027-05",p:85,u:"https://www.salzburg-marathon.at"},
   {n:"Linz Donau Marathon",c:"Linz",cc:"AT",co:"EU",la:48.306,lo:14.286,t:"marathon",d:"42,2 km",m:"2027-04",p:80,u:"https://www.linzmarathon.at"},
   {n:"Zermatt Marathon",c:"Zermatt",cc:"CH",co:"EU",la:46.021,lo:7.749,t:"marathon",d:"42,2 km bjerg",m:"2027-07",p:130,u:"https://www.zermattmarathon.ch"},
-  {n:"Matterhorn Ultraks",c:"Zermatt",cc:"CH",co:"EU",la:46.017,lo:7.745,t:"ultra",d:"49 km",m:"2027-08",p:120,u:"https://zermatt.ultraks.com"},
+  {n:"Matterhorn Ultraks",c:"Zermatt",cc:"CH",co:"EU",la:46.017,lo:7.745,t:"ultra",d:"49 km",m:"2027-08",p:120,u:"https://ultraks.com"},
   {n:"SwissCityMarathon",c:"Luzern",cc:"CH",co:"EU",la:47.050,lo:8.309,t:"marathon",d:"42,2 km",m:"2026-10",p:110,u:"https://www.swisscitymarathon.ch"},
 
   // ---------- FRANKRIG/BENELUX ----------
   {n:"Marseille-Cassis",c:"Marseille",cc:"FR",co:"EU",la:43.263,lo:5.400,t:"half",d:"20 km",m:"2026-10",p:55,u:"https://www.marseille-cassis.com",note:"Lodtrækning"},
   {n:"Run in Lyon",c:"Lyon",cc:"FR",co:"EU",la:45.764,lo:4.836,t:"marathon",d:"42,2 km",m:"2026-10",p:85,u:"https://www.runinlyon.com"},
   {n:"Marathon Nice-Cannes",c:"Nice",cc:"FR",co:"EU",la:43.700,lo:7.262,t:"marathon",d:"42,2 km",m:"2026-11",p:95,u:"https://www.marathon06.com"},
-  {n:"Marathon du Mont Saint-Michel",c:"Mont Saint-Michel",cc:"FR",co:"EU",la:48.617,lo:-1.510,t:"marathon",d:"42,2 km",m:"2027-05",p:85,u:"https://www.marathonmontsaintmichel.com"},
   {n:"SaintéLyon",c:"Saint-Étienne",cc:"FR",co:"EU",la:45.440,lo:4.387,t:"ultra",d:"78 km nat",m:"2026-12",p:110,u:"https://www.saintelyon.com"},
   {n:"EcoTrail Paris",c:"Paris",cc:"FR",co:"EU",la:48.858,lo:2.294,t:"ultra",d:"80 km",m:"2027-03",p:95,u:"https://paris.ecotrail.com"},
   {n:"Grand Trail des Templiers",c:"Millau",cc:"FR",co:"EU",la:44.098,lo:3.078,t:"ultra",d:"80 km",m:"2026-10",p:120,u:"https://www.festivaldestempliers.com"},
@@ -92,8 +90,6 @@ RACES.push(...[
   {n:"Bali Marathon",c:"Gianyar",cc:"ID",co:"AS",la:-8.537,lo:115.263,t:"marathon",d:"42,2 km",m:"2027-08",p:80,u:"https://balimarathon.com"},
   {n:"Ho Chi Minh City Marathon",c:"Ho Chi Minh City",cc:"VN",co:"AS",la:10.776,lo:106.700,t:"marathon",d:"42,2 km",m:"2027-01",p:60,u:"https://hcmcmarathon.com"},
   {n:"Ladakh Marathon",c:"Leh",cc:"IN",co:"AS",la:34.164,lo:77.584,t:"marathon",d:"42,2 km · 3.500 moh.",m:"2026-09",p:70,u:"https://ladakhmarathon.com"},
-  {n:"Riyadh Marathon",c:"Riyadh",cc:"SA",co:"AS",la:24.713,lo:46.675,t:"marathon",d:"42,2 km",m:"2027-02",p:80,u:"https://riyadhmarathon.sa"},
-  {n:"Doha Marathon",c:"Doha",cc:"QA",co:"AS",la:25.286,lo:51.534,t:"marathon",d:"42,2 km",m:"2027-01",p:70,u:"https://ooredoodohamarathon.com"},
   {n:"UTMB Thailand (Doi Inthanon)",c:"Chiang Mai",cc:"TH",co:"AS",la:18.539,lo:98.512,t:"ultra",d:"100 mi",m:"2026-12",p:250,u:"https://thailand.utmb.world"},
 
   // ---------- AFRIKA EKSTRA ----------
@@ -103,8 +99,7 @@ RACES.push(...[
   {n:"Ultra-Trail Cape Town",c:"Cape Town",cc:"ZA",co:"AF",la:-33.957,lo:18.461,t:"ultra",d:"100 km",m:"2026-11",p:160,u:"https://www.ultratrailcapetown.com"},
 
   // ---------- SYD-/MELLEMAMERIKA ----------
-  {n:"São Paulo Marathon",c:"São Paulo",cc:"BR",co:"SA",la:-23.550,lo:-46.633,t:"marathon",d:"42,2 km",m:"2027-04",p:60,u:"https://www.maratonasp.com.br"},
-  {n:"Lima Marathon",c:"Lima",cc:"PE",co:"SA",la:-12.046,lo:-77.043,t:"marathon",d:"42,2 km",m:"2027-05",p:55,u:"https://limamarathon.com"},
+  {n:"São Paulo Marathon",c:"São Paulo",cc:"BR",co:"SA",la:-23.550,lo:-46.633,t:"marathon",d:"42,2 km",m:"2027-04",p:60,u:"https://yescom.com.br"},
   {n:"Media Maratón de Bogotá",c:"Bogotá",cc:"CO",co:"SA",la:4.711,lo:-74.072,t:"half",d:"21,1 km · 2.600 moh.",m:"2027-07",p:45,u:"https://mediamaratonbogota.com"},
   {n:"Marabana",c:"Havana",cc:"CU",co:"NA",la:23.114,lo:-82.367,t:"marathon",d:"42,2 km",m:"2026-11",p:50,u:"https://www.inder.gob.cu"},
 

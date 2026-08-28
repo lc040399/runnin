@@ -7,11 +7,12 @@ const dist = process.argv[2] || "dist";
 
 const RACES = [];
 global.RACES = RACES;
-for (const f of ["data/races.js", "data/races-st.js", "data/races2.js"]) {
+for (const f of ["data/races.js", "data/races-st.js", "data/races2.js", "data/races-nordics.js", "data/races-rid.js", "data/races-kondis.js"]) {
   // races.js definerer const RACES - omskriv til push på vores globale
   const src = readFileSync(f, "utf8").replace("const RACES = [", "RACES.push(...[").replace(/^\];$/m, "]);");
   eval(src);
 }
+// dedupe på slug (fx samme løb fra to kilder) - første forekomst (kurateret) vinder
 
 const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 const slug = s => norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -22,8 +23,11 @@ const datoTekst = r => r.dt
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
 const urls = [];
+const seteSlugs = new Set();
 for (const r of RACES) {
   const sl = slug(r.n);
+  if (!sl || seteSlugs.has(sl)) continue;
+  seteSlugs.add(sl);
   const url = `${BASE}/lob/${sl}/`;
   urls.push(url);
   const titel = `${r.n} - dato, distance og tilmelding | Runnin`;
