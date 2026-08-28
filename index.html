@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="css/style.css?v=11" rel="stylesheet">
+<link href="css/style.css?v=12" rel="stylesheet">
 </head>
 <body>
 
@@ -69,7 +69,11 @@
       <div class="menu" data-for="type"></div>
     </div>
   </div>
+  <button class="live-pill" id="livePill" hidden></button>
 </section>
+
+<!-- LIVE-panel -->
+<aside id="livePanel" class="panel live-panel" hidden></aside>
 
 <!-- Hover-card -->
 <div id="hoverCard" class="hover-card" hidden></div>
@@ -81,6 +85,7 @@
   <h2 id="dName"></h2>
   <div class="d-meta" id="dMeta"></div>
   <div class="d-note" id="dNote" hidden></div>
+  <button id="dLive" class="cta d-live" hidden><i class="live-dot"></i> Følg løbet live</button>
   <a id="dCta" class="cta" target="_blank" rel="noopener">Tilmeld på officiel side <span>→</span></a>
   <button id="dSave" class="save">♡ Gem i Mine løb</button>
   <button id="dPhotos" class="save photos-link">📷 Billeder fra løbet</button>
@@ -121,9 +126,10 @@
 </footer>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="data/races.js?v=11"></script>
-<script src="data/races-st.js?v=11"></script>
-<script src="js/photos.js?v=11"></script>
-<script src="js/app.js?v=11"></script>
+<script src="data/races.js?v=12"></script>
+<script src="data/races-st.js?v=12"></script>
+<script src="js/photos.js?v=12"></script>
+<script src="js/app.js?v=12"></script>
+<script src="js/live.js?v=12"></script>
 </body>
 </html>

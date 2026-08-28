@@ -120,6 +120,7 @@ map.on("load", () => {
 
   wireMapEvents();
   updateCounter();
+  if (typeof initLiveUI === "function") initLiveUI();
 });
 
 /* ---------- hover + klik ---------- */
@@ -186,6 +187,7 @@ function openDetail(r, fly) {
   note.hidden = !r.note;
   if (r.note) note.textContent = "⚑ Adgang: " + r.note;
   document.getElementById("dCta").href = r.u;
+  document.getElementById("dLive").hidden = !(typeof isLive === "function" && isLive(r));
   updateSaveBtn();
   detail.hidden = false;
   if (fly) map.flyTo({ center: [r.lo, r.la], zoom: Math.max(map.getZoom(), 5.5), duration: 1100, essential: true });
@@ -207,6 +209,7 @@ document.getElementById("dSave").addEventListener("click", () => {
 });
 document.getElementById("detailClose").addEventListener("click", () => (detail.hidden = true));
 document.getElementById("dPhotos").addEventListener("click", () => currentRace && openFotos(currentRace));
+document.getElementById("dLive").addEventListener("click", () => currentRace && openLive(currentRace));
 
 /* ---------- filtre ---------- */
 const menus = {
@@ -287,8 +290,9 @@ function rowHtml(r) {
       <div class="r-meta">${r.d} · ${r.c} ${flag(r.cc)}</div>
     </div>
     <div class="r-side">
-      <div class="r-price">${r.p ? priceLabel(r.p) : ""}</div>
-      <div class="r-when">${dateLabel(r)}</div>
+      ${typeof isLive === "function" && isLive(r)
+        ? `<span class="row-live"><i class="live-dot"></i>LIVE</span>`
+        : `<div class="r-price">${r.p ? priceLabel(r.p) : ""}</div><div class="r-when">${dateLabel(r)}</div>`}
     </div>
   </div>`;
 }
@@ -383,9 +387,11 @@ function renderCalendar() {
 
   calOverlay.querySelector(".cal-modal").innerHTML = `
     <div class="cal-head">
-      <button class="icon-btn" id="calPrev" aria-label="Forrige måned">‹</button>
-      <h2>${fullMonth(cal.month)}</h2>
-      <button class="icon-btn" id="calNext" aria-label="Næste måned">›</button>
+      <div class="cal-nav">
+        <button class="icon-btn" id="calPrev" aria-label="Forrige måned">‹</button>
+        <h2>${fullMonth(cal.month)}</h2>
+        <button class="icon-btn" id="calNext" aria-label="Næste måned">›</button>
+      </div>
       <button class="close" id="calClose" aria-label="Luk">✕</button>
     </div>
     <div class="cal-chips">${chips}</div>
