@@ -118,6 +118,9 @@ function warmify() {
 }
 
 map.on("load", () => {
+  // attribution er licenskrav (OSM/OpenMapTiles) - men den må gerne starte kollapset til ⓘ
+  const attrib = document.querySelector(".maplibregl-ctrl-attrib");
+  if (attrib) { attrib.classList.remove("maplibregl-compact-show"); attrib.removeAttribute("open"); }
   warmify();
 
   map.addSource("races", { type: "geojson", data: toGeojson(filtered()), cluster: true, clusterMaxZoom: 8, clusterRadius: 42 });
