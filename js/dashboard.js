@@ -19,20 +19,31 @@ function openDashboard() {
 }
 const closeDashboard = () => (dashOverlay.hidden = true);
 
+let calAnimToken = 0;
 function dashShiftMonth(d) {
   let [y, m] = dashMonth.split("-").map(Number);
   m += d; if (m < 1) { m = 12; y--; } if (m > 12) { m = 1; y++; }
   dashMonth = `${y}-${String(m).padStart(2, "0")}`;
-  // kun kalenderkortet opdateres - gridden glider retningsbestemt ind
+  // to-faset: gammel måned glider ud, ny glider ind fra modsat side - kun kalenderkortet røres
   const grid = dashOverlay.querySelector(".dash-cal");
   const titel = dashOverlay.querySelector(".dash-cal-nav strong");
   if (!grid) return;
-  titel.textContent = fullMonth(dashMonth);
-  grid.classList.remove("slide-l", "slide-r");
-  void grid.offsetWidth; // genstart animation
-  grid.innerHTML = dashCalCells();
-  grid.classList.add(d > 0 ? "slide-l" : "slide-r");
-  bindCalCells();
+  const dir = d > 0 ? "l" : "r";
+  const token = ++calAnimToken;
+  grid.classList.remove("slide-l", "slide-r", "out-l", "out-r");
+  void grid.offsetWidth;
+  grid.classList.add("out-" + dir);
+  titel.classList.add("titel-skift");
+  setTimeout(() => {
+    if (token !== calAnimToken) return; // nyere klik har overtaget
+    titel.textContent = fullMonth(dashMonth);
+    titel.classList.remove("titel-skift");
+    grid.innerHTML = dashCalCells();
+    grid.classList.remove("out-" + dir);
+    void grid.offsetWidth;
+    grid.classList.add("slide-" + dir);
+    bindCalCells();
+  }, 150);
 }
 
 function dashCalCells() {
@@ -53,6 +64,8 @@ function dashCalCells() {
       <span class="cal-dots">${rs.slice(0, 3).map(r => `<i style="background:${TYPE_COLOR[r.t]}"></i>`).join("")}</span>
     </div>`;
   }
+  // pad altid til 6 rækker (42 celler), så kortet aldrig hopper i højden
+  for (let i = fdow + dim; i < 42; i++) celler += `<div class="cal-cell empty"></div>`;
   return celler;
 }
 

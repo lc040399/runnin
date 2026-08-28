@@ -72,9 +72,32 @@ const map = new maplibregl.Map({
   center: [10, 32],
   zoom: 1.7,
   minZoom: 1.2,
+  renderWorldCopies: false, // én verden - ingen gentagne kontinenter/prikker
   attributionControl: { compact: true },
 });
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+
+// minZoom så verden altid mindst fylder skærmbredden (ellers klemmer maxBounds kameraet skævt)
+function clampMinZoom() {
+  const w = map.getContainer().clientWidth;
+  map.setMinZoom(Math.max(1.1, Math.log2(w / 512) + 0.05));
+}
+map.on("load", clampMinZoom);
+window.addEventListener("resize", clampMinZoom);
+
+// blødt pan-cap: centrum holdes inden for verden (fuld-verdens maxBounds er ustabilt i MapLibre)
+let clamper = false;
+map.on("move", () => {
+  if (clamper) return;
+  const c = map.getCenter();
+  const lat = Math.min(74, Math.max(-52, c.lat));
+  const lng = Math.min(178, Math.max(-178, c.lng));
+  if (lat !== c.lat || lng !== c.lng) {
+    clamper = true;
+    map.setCenter([lng, lat]);
+    clamper = false;
+  }
+});
 
 // Varm atlas-palet oven på Positron - blødt vand, sart grøn natur, papir-land.
 function warmify() {

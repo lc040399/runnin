@@ -29,6 +29,17 @@ body { font-family: var(--sans); color: var(--ink); background: var(--paper); }
 .reveal-2 { animation: rise .6s cubic-bezier(.22,1,.36,1) both .25s; }
 .reveal-3 { animation: rise .6s cubic-bezier(.22,1,.36,1) both .45s; }
 
+/* blød papir-scrim bag hero/nav: usynlig på rolig baggrund, redder læsbarhed over travle områder */
+.hero-scrim {
+  position: fixed; top: 0; left: 0; z-index: 19; pointer-events: none;
+  width: min(720px, 88vw); height: 480px;
+  background: radial-gradient(ellipse 110% 100% at 8% 0%,
+    rgba(245,243,238,.94) 0%,
+    rgba(245,243,238,.72) 42%,
+    rgba(245,243,238,.32) 62%,
+    rgba(245,243,238,0) 78%);
+}
+
 /* ---------- nav ---------- */
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 46; /* over paneler, under modaler */
@@ -616,10 +627,16 @@ body { font-family: var(--sans); color: var(--ink); background: var(--paper); }
 .dash-cal-head { display: flex; align-items: center; justify-content: space-between; }
 .dash-cal-nav { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .dash-cal { margin-top: 10px; }
-@keyframes calSlideL { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
-@keyframes calSlideR { from { opacity: 0; transform: translateX(-18px); } to { opacity: 1; transform: none; } }
-.dash-cal.slide-l { animation: calSlideL .3s cubic-bezier(.22,1,.36,1) both; }
-.dash-cal.slide-r { animation: calSlideR .3s cubic-bezier(.22,1,.36,1) both; }
+@keyframes calSlideL { 0% { opacity: 0; transform: translateX(26px); } 65% { opacity: 1; transform: translateX(-3px); } 100% { opacity: 1; transform: none; } }
+@keyframes calSlideR { 0% { opacity: 0; transform: translateX(-26px); } 65% { opacity: 1; transform: translateX(3px); } 100% { opacity: 1; transform: none; } }
+@keyframes calOutL { to { opacity: 0; transform: translateX(-16px); } }
+@keyframes calOutR { to { opacity: 0; transform: translateX(16px); } }
+.dash-cal.slide-l { animation: calSlideL .38s cubic-bezier(.22,1,.36,1) both; }
+.dash-cal.slide-r { animation: calSlideR .38s cubic-bezier(.22,1,.36,1) both; }
+.dash-cal.out-l { animation: calOutL .15s ease-in both; }
+.dash-cal.out-r { animation: calOutR .15s ease-in both; }
+.dash-cal-nav strong { transition: opacity .15s, transform .15s; display: inline-block; min-width: 128px; text-align: center; }
+.dash-cal-nav strong.titel-skift { opacity: 0; transform: translateY(-3px); }
 .dash-cal .cal-cell { min-height: 34px; font-size: 11px; padding: 3px 5px; }
 .dash-cal .cal-cell.idag { border-color: var(--coral); border-width: 2px; }
 .dash-form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
