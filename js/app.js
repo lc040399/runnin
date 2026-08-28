@@ -206,6 +206,7 @@ document.getElementById("dSave").addEventListener("click", () => {
   updateFavCount();
 });
 document.getElementById("detailClose").addEventListener("click", () => (detail.hidden = true));
+document.getElementById("dPhotos").addEventListener("click", () => currentRace && openFotos(currentRace));
 
 /* ---------- filtre ---------- */
 const menus = {
