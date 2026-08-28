@@ -777,7 +777,18 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
     animation: springIn .5s cubic-bezier(.22,1.4,.36,1) both .3s;
   }
   .tab { flex: 1; text-align: center; padding: 12px 4px; font-size: 12.5px; }
-  .hero { left: 16px; right: 16px; top: calc(68px + env(safe-area-inset-top)); }
+  .hero { left: 16px; right: 16px; top: calc(64px + env(safe-area-inset-top)); }
+  .hero h1 { font-size: 27px; }
+  .search-wrap { margin-top: 12px; }
+  /* filtre som én vandret swipe-række i stedet for at stable */
+  .pills {
+    flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; margin-top: 10px;
+    margin-right: -16px; padding-right: 16px;
+  }
+  .pills::-webkit-scrollbar { display: none; }
+  .pill { flex: none; white-space: nowrap; padding: 8px 13px; font-size: 12.5px; }
+  .live-pill { margin-top: 8px; padding: 8px 13px; font-size: 12.5px; }
   .detail, .panel { left: 16px; right: 16px; width: auto; }
   /* detaljepanel som bottom-sheet på mobil - væk fra hero'en */
   .detail { top: auto; bottom: calc(72px + env(safe-area-inset-bottom)); max-height: 64vh; overflow-y: auto; }

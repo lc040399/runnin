@@ -351,6 +351,13 @@ document.querySelectorAll(".pill-wrap").forEach(wrap => {
   pill.addEventListener("click", e => {
     e.stopPropagation();
     document.querySelectorAll(".menu.open").forEach(m => m !== menu && m.classList.remove("open"));
+    // mobil: swipe-rækken clipper absolut-positionerede menuer - åbn fixed under pillen i stedet
+    if (innerWidth <= 720) {
+      const r = pill.getBoundingClientRect();
+      Object.assign(menu.style, { position: "fixed", left: "16px", right: "16px", top: r.bottom + 8 + "px", minWidth: "0" });
+    } else {
+      menu.removeAttribute("style");
+    }
     menu.classList.toggle("open");
   });
   menu.addEventListener("click", e => {
