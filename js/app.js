@@ -67,20 +67,20 @@ const map = new maplibregl.Map({
 });
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
 
-// Varm palet oven på Positron - papir-land, dæmpet vand, ingen støj.
+// Varm atlas-palet oven på Positron - blødt vand, sart grøn natur, papir-land.
 function warmify() {
-  const patch = [
-    [/^background$/, "background-color", "#F5F3EE"],
-    [/water/i, "fill-color", "#DFE3DC"],
-    [/landcover|landuse|park|grass|wood/i, "fill-color", "#EDEAE0"],
-    [/^land$/, "background-color", "#F5F3EE"],
-  ];
-  for (const layer of map.getStyle().layers) {
-    for (const [re, prop, val] of patch) {
-      if (re.test(layer.id)) {
-        try { map.setPaintProperty(layer.id, prop, val); } catch (_) {}
-      }
-    }
+  const patch = {
+    background: ["background-color", "#F3EFE6"],
+    water: ["fill-color", "#B7CFD8"],
+    waterway: ["line-color", "#B7CFD8"],
+    park: ["fill-color", "#D8E3C6"],
+    landcover_wood: ["fill-color", "#D3E0C3"],
+    landuse_residential: ["fill-color", "#ECE8DC"],
+    landcover_ice_shelf: ["fill-color", "#F2F5F2"],
+    landcover_glacier: ["fill-color", "#F2F5F2"],
+  };
+  for (const [id, [prop, val]] of Object.entries(patch)) {
+    try { map.setPaintProperty(id, prop, val); } catch (_) {}
   }
 }
 
