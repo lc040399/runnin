@@ -1,0 +1,14 @@
+{
+  "name": "Runnin",
+  "short_name": "Runnin",
+  "description": "Find dit næste løb. Hele verden. Hele året.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F3EE",
+  "theme_color": "#F5F3EE",
+  "lang": "da",
+  "icons": [
+    { "src": "assets/mark.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/apple-touch.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

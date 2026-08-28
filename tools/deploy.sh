@@ -3,5 +3,5 @@
 set -e
 cd "$(dirname "$0")/.."
 rm -rf dist && mkdir dist
-cp index.html dist/ && cp -r css js data assets dist/
+cp index.html manifest.webmanifest dist/ && cp -r css js data assets dist/
 npx wrangler pages deploy dist --project-name=runnin --branch=main
