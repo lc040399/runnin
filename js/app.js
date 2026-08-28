@@ -75,15 +75,16 @@ map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom
 
 // Varm atlas-palet oven på Positron - blødt vand, sart grøn natur, papir-land.
 function warmify() {
+  // Kortet holdes neutralt varmt (IKKE cream) - truffle-paletten lever i UI-laget
   const patch = {
-    background: ["background-color", "#FAF6DE"],
-    water: ["fill-color", "#BCCFCB"],
-    waterway: ["line-color", "#BCCFCB"],
-    park: ["fill-color", "#E3E3BC"],
-    landcover_wood: ["fill-color", "#DCDFB4"],
-    landuse_residential: ["fill-color", "#F3EDD2"],
-    landcover_ice_shelf: ["fill-color", "#F7F6E8"],
-    landcover_glacier: ["fill-color", "#F7F6E8"],
+    background: ["background-color", "#F3EFE6"],
+    water: ["fill-color", "#B7CFD8"],
+    waterway: ["line-color", "#B7CFD8"],
+    park: ["fill-color", "#D8E3C6"],
+    landcover_wood: ["fill-color", "#D3E0C3"],
+    landuse_residential: ["fill-color", "#ECE8DC"],
+    landcover_ice_shelf: ["fill-color", "#F2F5F2"],
+    landcover_glacier: ["fill-color", "#F2F5F2"],
   };
   for (const [id, [prop, val]] of Object.entries(patch)) {
     try { map.setPaintProperty(id, prop, val); } catch (_) {}
