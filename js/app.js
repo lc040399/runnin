@@ -293,28 +293,20 @@ function rowHtml(r) {
 }
 
 const calToggle = document.getElementById("calToggle");
-let calView = false;
-calToggle.addEventListener("click", () => {
-  calView = !calView;
-  calToggle.classList.toggle("on", calView);
-  renderList();
-});
+calToggle.addEventListener("click", () => openCalendar());
 
 const fullMonth = m => { const [y, mm] = m.split("-"); return MONTHS[+mm - 1][0].toUpperCase() + MONTHS[+mm - 1].slice(1) + " " + y; };
+const sortKey = r => r.dt || r.m + "-99";
 
 function renderList() {
   panelTitle.textContent = "Kommende løb";
   calToggle.hidden = false;
-  const list = filtered().slice().sort((a, b) => a.m.localeCompare(b.m));
+  const list = filtered().slice().sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   if (!list.length) {
     panelBody.innerHTML = `<div class="empty">Ingen løb matcher filtrene.<br><em>Prøv at åbne op for hvor eller hvornår.</em></div>`;
     return;
   }
-  if (!calView) {
-    panelBody.innerHTML = list.map(rowHtml).join("");
-    return;
-  }
-  // Kalendervisning: grupperet pr. måned med sticky headere
+  // Grupperet pr. måned med sticky headere (standard)
   let html = "", current = "";
   for (const r of list) {
     if (r.m !== current) { current = r.m; html += `<div class="month-head">${fullMonth(r.m)}</div>`; }
@@ -322,6 +314,96 @@ function renderList() {
   }
   panelBody.innerHTML = html;
 }
+
+/* ---------- kalender-modal ---------- */
+const cal = { month: "2026-08", type: null, day: null };
+const CAL_MIN = "2026-08", CAL_MAX = "2027-09";
+const calOverlay = document.getElementById("calOverlay");
+
+function calRaces() {
+  return RACES.filter(r =>
+    r.m === cal.month &&
+    (!cal.type || r.t === cal.type) &&
+    inRegion(r)
+  );
+}
+
+function openCalendar() {
+  cal.type = state.type;
+  cal.day = null;
+  // start i første måned med løb ud fra nuværende filter, ellers nu
+  const list = filtered().slice().sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  cal.month = state.month
+    ? (list.find(r => +r.m.split("-")[1] === state.month)?.m || cal.month)
+    : (list[0]?.m || "2026-08");
+  calOverlay.hidden = false;
+  renderCalendar();
+}
+function closeCalendar() { calOverlay.hidden = true; }
+
+function shiftMonth(delta) {
+  let [y, m] = cal.month.split("-").map(Number);
+  m += delta;
+  if (m < 1) { m = 12; y--; }
+  if (m > 12) { m = 1; y++; }
+  const key = `${y}-${String(m).padStart(2, "0")}`;
+  if (key < CAL_MIN || key > CAL_MAX) return;
+  cal.month = key;
+  cal.day = null;
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const [y, m] = cal.month.split("-").map(Number);
+  const daysInMonth = new Date(y, m, 0).getDate();
+  const firstDow = (new Date(y, m - 1, 1).getDay() + 6) % 7; // mandag = 0
+  const races = calRaces();
+  const byDay = {};
+  const noDate = [];
+  for (const r of races) (r.dt ? (byDay[+r.dt.slice(8, 10)] ??= []).push(r) : noDate.push(r));
+
+  let cells = `<div class="cal-dow">ma</div><div class="cal-dow">ti</div><div class="cal-dow">on</div><div class="cal-dow">to</div><div class="cal-dow">fr</div><div class="cal-dow">lø</div><div class="cal-dow">sø</div>`;
+  for (let i = 0; i < firstDow; i++) cells += `<div class="cal-cell empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dayRaces = byDay[d] || [];
+    const dots = dayRaces.slice(0, 4).map(r => `<i style="background:${TYPE_COLOR[r.t]}"></i>`).join("");
+    cells += `<div class="cal-cell${dayRaces.length ? " has" : ""}${cal.day === d ? " sel" : ""}" data-day="${d}">
+      <span class="cal-daynum">${d}</span><span class="cal-dots">${dots}</span>${dayRaces.length > 4 ? `<span class="cal-more">+${dayRaces.length - 4}</span>` : ""}
+    </div>`;
+  }
+
+  const chips = [{ v: null, l: "Alle" }, ...Object.keys(TYPE_LABEL).map(t => ({ v: t, l: TYPE_LABEL[t] }))]
+    .map(c => `<button class="cal-chip${cal.type === c.v ? " on" : ""}" data-type="${c.v ?? ""}">${c.l}</button>`).join("");
+
+  const shown = cal.day ? (byDay[cal.day] || []) : races.filter(r => r.dt).sort((a, b) => a.dt.localeCompare(b.dt));
+  const listHtml =
+    (shown.length ? shown.map(rowHtml).join("") : `<div class="empty">Ingen løb${cal.day ? " den dag" : " i denne måned"} med de filtre.</div>`) +
+    (!cal.day && noDate.length ? `<div class="month-head">Dato ikke fastlagt endnu</div>` + noDate.map(rowHtml).join("") : "");
+
+  calOverlay.querySelector(".cal-modal").innerHTML = `
+    <div class="cal-head">
+      <button class="icon-btn" id="calPrev" aria-label="Forrige måned">‹</button>
+      <h2>${fullMonth(cal.month)}</h2>
+      <button class="icon-btn" id="calNext" aria-label="Næste måned">›</button>
+      <button class="close" id="calClose" aria-label="Luk">✕</button>
+    </div>
+    <div class="cal-chips">${chips}</div>
+    <div class="cal-grid">${cells}</div>
+    <div class="cal-list">${listHtml}</div>`;
+
+  document.getElementById("calPrev").onclick = () => shiftMonth(-1);
+  document.getElementById("calNext").onclick = () => shiftMonth(1);
+  document.getElementById("calClose").onclick = closeCalendar;
+  calOverlay.querySelectorAll(".cal-chip").forEach(b => b.onclick = () => { cal.type = b.dataset.type || null; cal.day = null; renderCalendar(); });
+  calOverlay.querySelectorAll(".cal-cell.has").forEach(c => c.onclick = () => { cal.day = cal.day === +c.dataset.day ? null : +c.dataset.day; renderCalendar(); });
+  calOverlay.querySelectorAll(".cal-list .row").forEach(row => row.onclick = () => {
+    closeCalendar(); closePanel(); setTab("kort");
+    openDetail(RACES[+row.dataset.id], true);
+  });
+}
+
+calOverlay.addEventListener("click", e => { if (e.target === calOverlay) closeCalendar(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !calOverlay.hidden) closeCalendar(); });
 
 function renderFavs() {
   panelTitle.textContent = "Mine løb";
