@@ -1,4 +1,4 @@
-/* Runnin gratis-features: alarmer, race-radar, sæsonplanlægger, Mit løbs-år, venner (demo), vejr.
+/* Runnin gratis-features: alarmer, sæsonplanlægger, Mit løbs-år, venner (demo), vejr.
    Vejr = ÆGTE data (Open-Meteo arkiv, samme måned sidste år). Venner = demo, mærket. */
 "use strict";
 
@@ -9,8 +9,8 @@ const saveAlarms = () => localStorage.setItem("runnin-alarms", JSON.stringify([.
 function updateAlarmBtn(r) {
   const btn = document.getElementById("dAlarm");
   const on = alarms.has(r.n);
-  btn.textContent = on ? "🔔 Alarm sat - vi siger til" : "🔔 Besked når tilmelding åbner";
-  btn.classList.toggle("entered", on);
+  btn.querySelector("span").textContent = on ? "Alarm til" : "Alarm";
+  btn.classList.toggle("on", on);
 }
 document.getElementById("dAlarm").addEventListener("click", () => {
   if (!currentRace) return;
@@ -58,46 +58,7 @@ function featuresOnDetail(r) {
   visVejr(r);
 }
 
-/* ================= RACE-RADAR (gem søgning) ================= */
-const radars = () => { try { return JSON.parse(localStorage.getItem("runnin-radars")) || []; } catch (_) { return []; } };
-const saveRadars = list => localStorage.setItem("runnin-radars", JSON.stringify(list));
-
-function radarLabel(s) {
-  const dele = [];
-  if (s.type) dele.push(TYPE_LABEL[s.type]);
-  if (s.region) dele.push(REGIONS.find(x => x.key === s.region)?.label || s.region);
-  if (s.month) dele.push(MONTHS[s.month - 1]);
-  return dele.join(" · ") || "Alle løb";
-}
-
-function updateRadarBtn() {
-  const aktiv = state.type || state.month || state.region;
-  document.getElementById("radarBtn").hidden = !aktiv;
-}
-document.getElementById("radarBtn").addEventListener("click", () => {
-  const s = { type: state.type, month: state.month, region: state.region };
-  const list = radars();
-  if (!list.some(x => JSON.stringify(x) === JSON.stringify(s))) { list.push(s); saveRadars(list); }
-  const btn = document.getElementById("radarBtn");
-  btn.textContent = "✓ Radar gemt";
-  setTimeout(() => { btn.innerHTML = "🔭 Gem som radar"; }, 1600);
-});
-
-function applyRadar(s) {
-  state.type = s.type; state.month = s.month; state.region = s.region;
-  for (const key of ["region", "month", "type"]) {
-    const val = s[key];
-    const i = menus[key].findIndex(o => o.v === val);
-    const opt = menus[key][i < 0 ? 0 : i];
-    const pill = document.querySelector(`.pill[data-menu="${key}"]`);
-    pill.innerHTML = `${opt.label} <span class="caret">▾</span>`;
-    pill.classList.toggle("on", opt.v !== null);
-  }
-  applyFilters();
-  updateRadarBtn();
-}
-
-/* ================= LISTE-MODAL (alarmer + radarer) ================= */
+/* ================= LISTE-MODAL (alarmer m.m.) ================= */
 const featOverlay = document.getElementById("featOverlay");
 function listModal(titel, rows, tomTekst) {
   featOverlay.querySelector(".cal-modal").innerHTML = `
@@ -126,21 +87,6 @@ function visAlarmer() {
   });
 }
 
-function visRadarer() {
-  const list = radars();
-  const rows = list.map((s, i) => `
-    <div class="feat-row" data-i="${i}">
-      <span>🔭</span><div>${radarLabel(s)}</div><button class="feat-x">Fjern</button>
-    </div>`).join("");
-  listModal("Mine radarer", rows, "Ingen radarer endnu.<br><em>Sæt filtre og tryk \"Gem som radar\".</em>");
-  featOverlay.querySelectorAll(".feat-row").forEach(row => {
-    row.querySelector(".feat-x").onclick = e => {
-      e.stopPropagation();
-      const l = radars(); l.splice(+row.dataset.i, 1); saveRadars(l); visRadarer();
-    };
-    row.querySelector("div").onclick = () => { featOverlay.hidden = true; applyRadar(radars()[+row.dataset.i]); };
-  });
-}
 
 /* ================= SÆSONPLANLÆGGER ================= */
 function midDate(r) { return new Date(r.dt || r.m + "-15"); }

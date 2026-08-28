@@ -198,6 +198,7 @@ function openDetail(r, fly) {
   document.getElementById("dLive").hidden = !(typeof isLive === "function" && isLive(r));
   updateSaveBtn();
   if (typeof featuresOnDetail === "function") featuresOnDetail(r);
+  history.replaceState(null, "", "#" + slug(r.n));
   detail.hidden = false;
   if (fly) map.flyTo({ center: [r.lo, r.la], zoom: Math.max(map.getZoom(), 5.5), duration: 1100, essential: true });
 }
@@ -205,8 +206,9 @@ function openDetail(r, fly) {
 function updateSaveBtn() {
   const btn = document.getElementById("dSave");
   const saved = currentRace && favs.has(currentRace.id);
-  btn.textContent = saved ? "✓ Gemt i Mine løb" : "♡ Gem i Mine løb";
-  btn.classList.toggle("saved", saved);
+  btn.querySelector("i").textContent = saved ? "✓" : "♡";
+  btn.querySelector("span").textContent = saved ? "Gemt" : "Gem";
+  btn.classList.toggle("on", saved);
   const eBtn = document.getElementById("dEntry");
   const entered = currentRace && entries.has(currentRace.n);
   eBtn.textContent = entered ? "🎟 Du er tilmeldt" : "🎟 Markér som tilmeldt";
@@ -242,7 +244,10 @@ document.getElementById("dCta").addEventListener("click", () => {
     eBtn.addEventListener("animationend", () => eBtn.classList.remove("nudge"), { once: true });
   }, 600);
 });
-document.getElementById("detailClose").addEventListener("click", () => (detail.hidden = true));
+document.getElementById("detailClose").addEventListener("click", () => {
+  detail.hidden = true;
+  history.replaceState(null, "", location.pathname + location.search);
+});
 document.getElementById("dPhotos").addEventListener("click", () => currentRace && openFotos(currentRace));
 document.getElementById("dLive").addEventListener("click", () => currentRace && openLive(currentRace));
 
@@ -481,6 +486,51 @@ function updateFavCount() {
 }
 updateFavCount();
 
+/* ---------- søgning ---------- */
+const searchInput = document.getElementById("search");
+const searchMenu = document.getElementById("searchMenu");
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+searchInput.addEventListener("input", () => {
+  const q = norm(searchInput.value.trim());
+  if (q.length < 2) { searchMenu.hidden = true; return; }
+  const hits = RACES.filter(r => norm(r.n).includes(q) || norm(r.c).includes(q)).slice(0, 8);
+  if (!hits.length) { searchMenu.innerHTML = `<div class="search-tom">Ingen løb matcher "${searchInput.value.trim()}"</div>`; searchMenu.hidden = false; return; }
+  searchMenu.innerHTML = hits.map(r => `
+    <button data-id="${r.id}">
+      <span class="dot" style="background:${TYPE_COLOR[r.t]}"></span>
+      <span class="s-navn">${r.n}</span>
+      <span class="s-meta">${r.c} · ${dateLabel(r)}</span>
+    </button>`).join("");
+  searchMenu.hidden = false;
+  searchMenu.querySelectorAll("button").forEach(b => b.onclick = () => {
+    searchMenu.hidden = true;
+    searchInput.value = "";
+    openDetail(RACES[+b.dataset.id], true);
+  });
+});
+searchInput.addEventListener("keydown", e => { if (e.key === "Escape") { searchMenu.hidden = true; searchInput.blur(); } });
+document.addEventListener("click", e => { if (!searchMenu.hidden && !e.target.closest(".search-wrap")) searchMenu.hidden = true; });
+
+/* ---------- nær mig ---------- */
+document.getElementById("nearBtn").addEventListener("click", () => {
+  navigator.geolocation?.getCurrentPosition(
+    pos => map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 7.5, duration: 1400 }),
+    () => map.flyTo({ center: [11.5, 56.0], zoom: 6.2, duration: 1400 }) // afvist → Danmark
+  );
+});
+
+/* ---------- deep links (#løbets-navn) ---------- */
+const slug = s => norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+function openFromHash() {
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (!h) return;
+  const r = RACES.find(x => slug(x.n) === h);
+  if (r && r !== currentRace) setTimeout(() => openDetail(r, true), 300);
+}
+map.on("load", openFromHash);
+window.addEventListener("hashchange", openFromHash);
+
 /* ---------- demo-login ---------- */
 const loginOverlay = document.getElementById("loginOverlay");
 const getUser = () => { try { return JSON.parse(localStorage.getItem("runnin-user")); } catch (_) { return null; } };
@@ -537,13 +587,8 @@ function toggleProfileMenu() {
     </div>
     ${next ? `<div class="pm-next"><span class="countdown">${dage} dage</span> til ${next.n}</div>` : ""}
     <div class="pm-items">
+      <button data-act="dash" class="pm-dash">◈ Dashboard</button>
       <button data-act="mine">♡ Mine løb <span class="pm-tal">${gemte.length}</span></button>
-      <button data-act="alarmer">🔔 Alarmer${alarms.size ? ` <span class="pm-tal">${alarms.size}</span>` : ""}</button>
-      <button data-act="radarer">🔭 Mine radarer${radars().length ? ` <span class="pm-tal">${radars().length}</span>` : ""}</button>
-      <button data-act="aar">🗺 Mit løbs-år</button>
-      <button data-act="strava">${stravaData() ? `<span class="strava-prik"></span> Strava: forbundet` : `<span class="strava-prik"></span> Forbind med Strava`}</button>
-      <button data-act="ics">📅 Kalender-feed</button>
-      <button data-act="rediger">Redigér profil</button>
       <button data-act="logud" class="pm-logud">Log ud</button>
     </div>`;
   profileMenu.hidden = false;
@@ -551,12 +596,8 @@ function toggleProfileMenu() {
   profileMenu.querySelectorAll("button").forEach(b => b.onclick = () => {
     profileMenu.hidden = true;
     const act = b.dataset.act;
+    if (act === "dash") openDashboard();
     if (act === "mine") { setTab("mine"); panel.hidden = false; renderFavs(); }
-    if (act === "alarmer") visAlarmer();
-    if (act === "radarer") visRadarer();
-    if (act === "aar") openYearCard();
-    if (act === "strava") openStrava();
-    if (act === "ics") openKalenderFeed();
     if (act === "rediger") openLogin();
     if (act === "logud") { localStorage.removeItem("runnin-user"); updateAuthUI(); if (state.tab === "mine") renderFavs(); }
   });

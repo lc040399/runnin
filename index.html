@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="css/style.css?v=20" rel="stylesheet">
+<link href="css/style.css?v=22" rel="stylesheet">
 </head>
 <body>
 
@@ -60,6 +60,10 @@
 <section class="hero reveal-2">
   <h1>Find dit næste løb.</h1>
   <p class="sub">Hele verden. Hele året.</p>
+  <div class="search-wrap">
+    <input class="search" id="search" placeholder="🔎 Søg løb eller by…" autocomplete="off">
+    <div class="search-menu" id="searchMenu" hidden></div>
+  </div>
   <div class="pills" id="pills">
     <div class="pill-wrap">
       <button class="pill" data-menu="region">Hvor som helst <span class="caret">▾</span></button>
@@ -73,7 +77,7 @@
       <button class="pill" data-menu="type">Alle distancer <span class="caret">▾</span></button>
       <div class="menu" data-for="type"></div>
     </div>
-    <button class="pill radar-pill" id="radarBtn" hidden>🔭 Gem som radar</button>
+    <button class="pill" id="nearBtn">📍 Nær mig</button>
   </div>
   <button class="live-pill" id="livePill" hidden></button>
 </section>
@@ -96,10 +100,12 @@
   <button id="dLive" class="cta d-live" hidden><i class="live-dot"></i> Følg løbet live</button>
   <a id="dCta" class="cta" target="_blank" rel="noopener">Tilmeld på officiel side <span>→</span></a>
   <button id="dEntry" class="save d-entry">🎟 Markér som tilmeldt</button>
-  <button id="dSave" class="save">♡ Gem i Mine løb</button>
-  <button id="dAlarm" class="save">🔔 Besked når tilmelding åbner</button>
-  <button id="dPlan" class="save" hidden>🎯 Planlæg sæsonen mod løbet</button>
-  <button id="dPhotos" class="save photos-link">📷 Billeder fra løbet</button>
+  <div class="d-actions">
+    <button id="dSave"><i>♡</i><span>Gem</span></button>
+    <button id="dAlarm"><i>🔔</i><span>Alarm</span></button>
+    <button id="dPlan"><i>🎯</i><span>Sæson</span></button>
+    <button id="dPhotos"><i>📷</i><span>Fotos</span></button>
+  </div>
 </aside>
 
 <!-- Feature-modal (alarmer, radarer, planlægger, løbs-år) -->
@@ -109,6 +115,9 @@
 
 <!-- Foto-overlay -->
 <div id="fotoOverlay" class="foto-overlay" hidden></div>
+
+<!-- Dashboard -->
+<div id="dashOverlay" class="foto-overlay dash-overlay" hidden></div>
 
 <!-- Liste-panel (Løb / Mine løb) -->
 <aside id="panel" class="panel" hidden>
@@ -142,12 +151,13 @@
 </footer>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="data/races.js?v=20"></script>
-<script src="data/races-st.js?v=20"></script>
-<script src="js/photos.js?v=20"></script>
-<script src="js/app.js?v=20"></script>
-<script src="js/features.js?v=20"></script>
-<script src="js/connect.js?v=20"></script>
-<script src="js/live.js?v=20"></script>
+<script src="data/races.js?v=22"></script>
+<script src="data/races-st.js?v=22"></script>
+<script src="js/photos.js?v=22"></script>
+<script src="js/app.js?v=22"></script>
+<script src="js/features.js?v=22"></script>
+<script src="js/connect.js?v=22"></script>
+<script src="js/dashboard.js?v=22"></script>
+<script src="js/live.js?v=22"></script>
 </body>
 </html>
