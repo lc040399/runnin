@@ -1,7 +1,7 @@
 /* Runnin - kortet er produktet. */
 "use strict";
 
-const TYPE_COLOR = { kort: "#2563EB", half: "#16A34A", marathon: "#FF5A5F", ultra: "#7C3AED", tri: "#111827" };
+const TYPE_COLOR = { kort: "#2563EB", half: "#16A34A", marathon: "#C05800", ultra: "#7C3AED", tri: "#38240D" };
 const TYPE_LABEL = { kort: "Kort (5-15 km)", half: "Halvmarathon", marathon: "Marathon", ultra: "Ultra & trail", tri: "Triathlon" };
 const MONTHS = ["januar","februar","marts","april","maj","juni","juli","august","september","oktober","november","december"];
 const NORDICS = ["DK","SE","NO","FI","IS","GL","FO"];
@@ -50,6 +50,8 @@ function filtered() {
 }
 
 function toGeojson(list) {
+  // live-løb tegnes i deres eget grønne lag (live.js) - hold dem ude af klyngerne
+  if (typeof isLive === "function") list = list.filter(r => !isLive(r));
   return {
     type: "FeatureCollection",
     features: list.map(r => ({
@@ -74,14 +76,14 @@ map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom
 // Varm atlas-palet oven på Positron - blødt vand, sart grøn natur, papir-land.
 function warmify() {
   const patch = {
-    background: ["background-color", "#F3EFE6"],
-    water: ["fill-color", "#B7CFD8"],
-    waterway: ["line-color", "#B7CFD8"],
-    park: ["fill-color", "#D8E3C6"],
-    landcover_wood: ["fill-color", "#D3E0C3"],
-    landuse_residential: ["fill-color", "#ECE8DC"],
-    landcover_ice_shelf: ["fill-color", "#F2F5F2"],
-    landcover_glacier: ["fill-color", "#F2F5F2"],
+    background: ["background-color", "#FAF6DE"],
+    water: ["fill-color", "#BCCFCB"],
+    waterway: ["line-color", "#BCCFCB"],
+    park: ["fill-color", "#E3E3BC"],
+    landcover_wood: ["fill-color", "#DCDFB4"],
+    landuse_residential: ["fill-color", "#F3EDD2"],
+    landcover_ice_shelf: ["fill-color", "#F7F6E8"],
+    landcover_glacier: ["fill-color", "#F7F6E8"],
   };
   for (const [id, [prop, val]] of Object.entries(patch)) {
     try { map.setPaintProperty(id, prop, val); } catch (_) {}
@@ -465,6 +467,10 @@ function openLogin() {
   document.getElementById("loginName").value = user ? user.navn : "Lasse Christensen";
   document.getElementById("loginBib").value = user?.bib || "";
   document.getElementById("logoutBtn").hidden = !user;
+  // adgangskode kun ved login, ikke ved profil-redigering; gemmes ALDRIG (demo)
+  document.getElementById("pwWrap").hidden = !!user;
+  document.getElementById("loginPw").required = !user;
+  document.getElementById("loginPw").value = "";
   loginOverlay.hidden = false;
   // genstart entrance-animationen
   const modal = loginOverlay.querySelector(".login-modal");

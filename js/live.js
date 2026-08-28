@@ -17,16 +17,54 @@ const LIVE_NAVNE = [
   "Cecilie A.", "Magnus V.", "Thea W.", "Elias G.", "Astrid F.", "Villads E.", "Agnes C.", "Malthe B.",
 ];
 
-/* ---------- rute-generator: blød lukket sløjfe omkring løbets by ---------- */
-function makeRoute(lo, la) {
+/* ---------- rute: rigtige veje via OSRM (snapper til vejnettet - aldrig gennem vand) ---------- */
+function syntheticRoute(lo, la) {
   const pts = [];
-  const N = 160, baseR = 0.016; // ~1,5-2 km radius
+  const N = 160, baseR = 0.009;
   for (let i = 0; i <= N; i++) {
     const a = (i / N) * Math.PI * 2;
-    const wobble = 1 + 0.28 * Math.sin(a * 3 + 1.3) + 0.14 * Math.sin(a * 7 + 0.5);
+    const wobble = 1 + 0.22 * Math.sin(a * 3 + 1.3);
     pts.push([lo + Math.cos(a) * baseR * wobble * 1.6, la + Math.sin(a) * baseR * wobble]);
   }
-  return pts;
+  return { coords: pts, km: 5 };
+}
+
+async function fetchRoute(lo, la) {
+  // 5 waypoints i en lille ring - OSRM trip-service lægger en rundtur på rigtige veje
+  const R = 0.0045;
+  const wps = [0, 1, 2, 3, 4].map(i => {
+    const a = (i / 5) * Math.PI * 2 + 0.6;
+    return `${(lo + Math.cos(a) * R * 1.6).toFixed(5)},${(la + Math.sin(a) * R).toFixed(5)}`;
+  }).join(";");
+  const url = `https://router.project-osrm.org/trip/v1/driving/${wps}?roundtrip=true&source=first&geometries=geojson&overview=full`;
+  const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+  const data = await res.json();
+  if (data.code !== "Ok" || !data.trips?.length) throw new Error("OSRM: " + data.code);
+  return { coords: data.trips[0].geometry.coordinates, km: +(data.trips[0].distance / 1000).toFixed(1) };
+}
+
+// Resample til jævnt fordelte punkter, så løberne bevæger sig med konstant fart
+function resample(coords, n = 240) {
+  const dists = [0];
+  for (let i = 1; i < coords.length; i++) {
+    const dx = (coords[i][0] - coords[i - 1][0]) * Math.cos(coords[i][1] * Math.PI / 180);
+    const dy = coords[i][1] - coords[i - 1][1];
+    dists.push(dists[i - 1] + Math.hypot(dx, dy));
+  }
+  const total = dists[dists.length - 1];
+  const out = [];
+  let j = 0;
+  for (let k = 0; k <= n; k++) {
+    const target = (k / n) * total;
+    while (j < dists.length - 2 && dists[j + 1] < target) j++;
+    const seg = dists[j + 1] - dists[j] || 1e-12;
+    const f = (target - dists[j]) / seg;
+    out.push([
+      coords[j][0] + (coords[j + 1][0] - coords[j][0]) * f,
+      coords[j][1] + (coords[j + 1][1] - coords[j][1]) * f,
+    ]);
+  }
+  return out;
 }
 const alongRoute = (route, t) => {
   const f = t * (route.length - 1), i = Math.floor(f), frac = f - i;
@@ -58,15 +96,15 @@ function ensureLiveLayers() {
   map.addSource("live-runners", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
   map.addLayer({
     id: "live-route-line", type: "line", source: "live-route",
-    paint: { "line-color": "#FF5A5F", "line-width": 3.5, "line-opacity": .8 },
+    paint: { "line-color": "#C05800", "line-width": 3.5, "line-opacity": .8 },
     layout: { "line-cap": "round", "line-join": "round" },
   });
   map.addLayer({
     id: "live-runner-dots", type: "circle", source: "live-runners",
     paint: {
-      "circle-color": ["case", ["get", "leader"], "#FF5A5F", "#10B981"],
-      "circle-radius": ["case", ["get", "leader"], 6.5, 4.5],
-      "circle-stroke-width": 1.5, "circle-stroke-color": "#ffffff",
+      "circle-color": ["case", ["get", "leader"], "#C05800", "#10B981"],
+      "circle-radius": ["case", ["get", "leader"], 8, 6],
+      "circle-stroke-width": 2, "circle-stroke-color": "#ffffff",
     },
   });
 }
@@ -147,17 +185,29 @@ function renderLivePanel() {
 }
 
 /* ---------- åbn/luk ---------- */
-function openLive(race) {
+async function openLive(race) {
   closeLive();
   sim.race = race;
-  sim.route = makeRoute(race.lo, race.la);
   sim.lastTick = 0;
+  detail.hidden = true; closePanel(); setTab("kort");
+  livePanel.hidden = false;
+  livePanel.innerHTML = `<div class="live-head"><span class="live-badge"><i></i>LIVE</span><h2>${race.n}</h2></div><div class="feed-tom" style="padding:16px 0">Henter ruten…</div>`;
+
+  let route;
+  try { route = await fetchRoute(race.lo, race.la); }
+  catch (_) { route = syntheticRoute(race.lo, race.la); }
+  if (sim.race !== race) return; // lukket imens
+  sim.route = resample(route.coords);
+  sim.distKm = route.km;
   seedRunners(race);
   ensureLiveLayers();
   map.getSource("live-route").setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: sim.route } });
-  detail.hidden = true; closePanel(); setTab("kort");
-  map.flyTo({ center: [race.lo, race.la], zoom: 12.3, duration: 1600, essential: true });
-  livePanel.hidden = false;
+
+  // zoom så hele ruten er i billedet, med plads til panelet i højre side
+  const lons = sim.route.map(p => p[0]), lats = sim.route.map(p => p[1]);
+  map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+    { padding: { top: 90, bottom: 60, left: 60, right: innerWidth > 720 ? 440 : 60 }, duration: 1600, essential: true });
+
   renderLivePanel();
   sim.raf = requestAnimationFrame(tick);
 }
@@ -196,8 +246,16 @@ function initLiveUI() {
     const r = RACES[e.features[0].properties.id];
     openDetail(r, true);
   });
-  map.on("mouseenter", "live-halo-core", () => (map.getCanvas().style.cursor = "pointer"));
-  map.on("mouseleave", "live-halo-core", () => (map.getCanvas().style.cursor = ""));
+  const hc = document.getElementById("hoverCard");
+  map.on("mousemove", "live-halo-core", e => {
+    const r = RACES[e.features[0].properties.id];
+    map.getCanvas().style.cursor = "pointer";
+    hc.innerHTML = `<div class="hc-name">${r.n}</div>
+      <div class="hc-meta">${r.d} · ${r.c}<br><span style="color:#059669;font-weight:700">● LIVE lige nu</span></div>
+      <div class="hc-hint">Klik og følg løbet →</div>`;
+    hc.hidden = false;
+  });
+  map.on("mouseleave", "live-halo-core", () => { map.getCanvas().style.cursor = ""; hc.hidden = true; });
 
   let t0 = performance.now();
   (function pulse(ts) {
