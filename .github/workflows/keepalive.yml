@@ -1,0 +1,16 @@
+# Holder Runnins gratis Supabase-projekt vågent - gratis-tier pauser efter ~1 uges
+# inaktivitet, og så ville login pludselig være nede. Ét dagligt REST-kald er nok.
+name: Supabase keep-alive
+on:
+  schedule:
+    - cron: "43 5 * * *" # dagligt 05:43 UTC
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        run: |
+          curl -sf "https://qdqvyvidafslzvxgkvof.supabase.co/rest/v1/user_races?select=race_n&limit=1" \
+            -H "apikey: sb_publishable_UfiDozoliZR44TAJ9SX-ng_1f3q_Mk3" \
+            -o /dev/null -w "status: %{http_code}\n"
