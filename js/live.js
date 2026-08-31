@@ -381,12 +381,20 @@ function closeLive() {
 function initLiveUI() {
   const liveRaces = RACES.filter(isLive);
   const pill = document.getElementById("livePill");
-  if (!liveRaces.length) { pill.hidden = true; return; }
+  if (liveRaces.length) {
+    pill.hidden = false;
+    pill.innerHTML = `<i class="live-dot"></i> <strong>${liveRaces.length} løb</strong>&nbsp;i gang lige nu <span class="live-cta">Følg live →</span>`;
+    let cycle = 0;
+    pill.onclick = () => { openLive(liveRaces[cycle % liveRaces.length]); cycle++; };
+  } else pill.hidden = true;
 
-  pill.hidden = false;
-  pill.innerHTML = `<i class="live-dot"></i> <strong>${liveRaces.length} løb</strong>&nbsp;i gang lige nu <span class="live-cta">Følg live →</span>`;
-  let cycle = 0;
-  pill.onclick = () => { openLive(liveRaces[cycle % liveRaces.length]); cycle++; };
+  // idempotent: ved genkald (fx når USA-kataloget lander) opdateres kildedata blot
+  const eksisterende = map.getSource("live-halo");
+  if (eksisterende) {
+    eksisterende.setData({ type: "FeatureCollection", features: liveRaces.map(r => ({ type: "Feature", properties: { id: r.id }, geometry: { type: "Point", coordinates: [r.lo, r.la] } })) });
+    return;
+  }
+  if (!liveRaces.length) return; // ingen lag før der er noget at vise
 
   // live-løb klynger som resten af kortet - grønne klynger på lavt zoom, pulserende prikker tæt på
   map.addSource("live-halo", {

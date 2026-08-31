@@ -18,7 +18,13 @@ const REGIONS = [
 ];
 
 const state = { type: null, month: null, region: null, tab: "kort" };
-const favs = new Set(JSON.parse(localStorage.getItem("runnin-favs") || "[]"));
+// favoritter gemmes på løbets NAVN - id er et indeks, der forskydes ved hver dataopdatering.
+// Gamle numeriske favoritter migreres efter bedste evne.
+const favs = new Set(
+  JSON.parse(localStorage.getItem("runnin-favs") || "[]")
+    .map(v => (typeof v === "number" ? RACES[v]?.n : v))
+    .filter(Boolean)
+);
 // Tilmeldinger markeres manuelt (købet sker på arrangørens side) - nøgle = løbets navn
 const entries = new Set(JSON.parse(localStorage.getItem("runnin-entries") || "[]"));
 const saveEntries = () => localStorage.setItem("runnin-entries", JSON.stringify([...entries]));
@@ -202,7 +208,8 @@ map.on("load", () => {
   if (typeof initLiveUI === "function") initLiveUI();
 });
 
-/* preloader: væk når kortet reelt står klar (første idle) - fallback efter 7 s */
+/* preloader: væk når kortet reelt står klar - OBS: "idle" kan ikke bruges,
+   live-pulsens paint-animation holder kortet permanent u-idle. */
 function fjernPreloader() {
   const pre = document.getElementById("preloader");
   if (!pre || pre.classList.contains("væk")) return;
@@ -210,7 +217,7 @@ function fjernPreloader() {
   pre.classList.add("væk");
   setTimeout(() => pre.remove(), 700);
 }
-map.once("idle", fjernPreloader);
+map.once("load", () => setTimeout(fjernPreloader, 350));
 setTimeout(fjernPreloader, 7000);
 
 // service worker: ægte PWA (offline-cache af egne filer, installérbar på Android)
@@ -300,7 +307,7 @@ function openDetail(r, fly) {
 
 function updateSaveBtn() {
   const btn = document.getElementById("dSave");
-  const saved = currentRace && favs.has(currentRace.id);
+  const saved = currentRace && favs.has(currentRace.n);
   btn.querySelector("i").textContent = saved ? "✓" : "♡";
   btn.querySelector("span").textContent = saved ? "Gemt" : "Gem";
   btn.classList.toggle("on", saved);
@@ -312,7 +319,7 @@ function updateSaveBtn() {
 
 document.getElementById("dSave").addEventListener("click", () => {
   if (!currentRace) return;
-  favs.has(currentRace.id) ? favs.delete(currentRace.id) : favs.add(currentRace.id);
+  favs.has(currentRace.n) ? favs.delete(currentRace.n) : favs.add(currentRace.n);
   localStorage.setItem("runnin-favs", JSON.stringify([...favs]));
   updateSaveBtn();
   updateFavCount();
@@ -322,7 +329,7 @@ document.getElementById("dEntry").addEventListener("click", () => {
   if (entries.has(currentRace.n)) entries.delete(currentRace.n);
   else {
     entries.add(currentRace.n);
-    favs.add(currentRace.id); // tilmeldt ⇒ også i Mine løb
+    favs.add(currentRace.n); // tilmeldt ⇒ også i Mine løb
     localStorage.setItem("runnin-favs", JSON.stringify([...favs]));
   }
   saveEntries();
@@ -559,7 +566,7 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !calOverla
 function renderFavs() {
   panelTitle.textContent = "Mine løb";
   calToggle.hidden = true;
-  const list = RACES.filter(r => favs.has(r.id)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  const list = RACES.filter(r => favs.has(r.n)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   const user = getUser();
   let hilsen = "";
   if (user) {
@@ -636,6 +643,24 @@ function openFromHash() {
 map.on("load", openFromHash);
 window.addEventListener("hashchange", openFromHash);
 
+/* ---------- USA-kataloget hentes dovent (¾ af datamængden) ----------
+   Norden-først: kortet står med det samme, RunSignup-løbene flettes ind
+   når kortet har haft sit første rolige øjeblik. */
+map.once("load", () => setTimeout(() => {
+  const s = document.createElement("script");
+  s.src = "data/races-rsu.js?v=51";
+  s.onload = () => {
+    // filen pusher sine løb og gen-id'er hele RACES selv
+    const src = map.getSource("races");
+    if (src) src.setData(toGeojson(filtered()));
+    updateCounter();
+    if (typeof initLiveUI === "function") initLiveUI();
+    if (!panel.hidden) setTab(state.tab); // genopfrisk åben liste
+    if (!currentRace) openFromHash();     // deep-link til et USA-løb kan nu løses
+  };
+  document.head.appendChild(s);
+}, 1200));
+
 /* ---------- demo-login ---------- */
 const loginOverlay = document.getElementById("loginOverlay");
 const getUser = () => { try { return JSON.parse(localStorage.getItem("runnin-user")); } catch (_) { return null; } };
@@ -680,7 +705,7 @@ function toggleProfileMenu() {
   detail.hidden = true;
   closePanel();
   setTab("kort");
-  const gemte = RACES.filter(r => favs.has(r.id)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  const gemte = RACES.filter(r => favs.has(r.n)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   const next = gemte.find(r => r.dt && new Date(r.dt) >= new Date());
   const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
 

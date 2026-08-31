@@ -131,7 +131,7 @@ function tegnYearCard(gemte) {
   g.beginPath(); g.roundRect(mx, my, mw, mh, 24); g.clip();
   g.fillStyle = "rgba(56,36,13,.10)";
   for (const r of RACES) {
-    if (r.la < laMin || r.la > laMax || r.lo < loMin || r.lo > loMax || favs.has(r.id)) continue;
+    if (r.la < laMin || r.la > laMax || r.lo < loMin || r.lo > loMax || favs.has(r.n)) continue;
     g.beginPath(); g.arc(px(r.lo), py(r.la), 4, 0, 7); g.fill();
   }
   for (const r of gemte) {
@@ -161,7 +161,7 @@ function tegnYearCard(gemte) {
 }
 
 function openYearCard() {
-  const gemte = RACES.filter(r => favs.has(r.id));
+  const gemte = RACES.filter(r => favs.has(r.n));
   const modal = featOverlay.querySelector(".cal-modal");
   if (!gemte.length) {
     modal.innerHTML = `

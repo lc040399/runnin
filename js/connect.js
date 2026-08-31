@@ -177,7 +177,7 @@ async function openStrava() {
         <span class="uge-km">${km}</span><i></i><span class="uge-lbl">${["-3", "-2", "-1", "nu"][i]}</span>
       </div>`).join("");
     // måltider på dine kommende gemte løb - kun hvor et estimat er ærligt (kendt distance)
-    const medMål = s.pb ? RACES.filter(r => favs.has(r.id) && r.dt && r.dt >= todayISO())
+    const medMål = s.pb ? RACES.filter(r => favs.has(r.n) && r.dt && r.dt >= todayISO())
       .sort((a, b) => a.dt.localeCompare(b.dt))
       .map(r => ({ r, tid: stravaMåltid(r, s) }))
       .filter(x => x.tid).slice(0, 4) : [];
@@ -243,10 +243,10 @@ function byggIcs(liste) {
 
 function openKalenderFeed(valg) {
   valg = valg || "alle";
-  const gemte = RACES.filter(r => favs.has(r.id) && r.dt);
+  const gemte = RACES.filter(r => favs.has(r.n) && r.dt);
   const tilmeldte = gemte.filter(r => entries.has(r.n));
   const liste = valg === "tilmeldte" ? tilmeldte : gemte;
-  const udenDato = RACES.filter(r => favs.has(r.id) && !r.dt).length;
+  const udenDato = RACES.filter(r => favs.has(r.n) && !r.dt).length;
   const modal = featOverlay.querySelector(".cal-modal");
   const ics = liste.length ? byggIcs(liste) : null;
   const url = ics ? URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" })) : null;

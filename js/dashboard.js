@@ -49,7 +49,7 @@ function dashShiftMonth(d) {
 }
 
 function dashCalCells() {
-  const gemte = RACES.filter(r => favs.has(r.id));
+  const gemte = RACES.filter(r => favs.has(r.n));
   const [y, m] = dashMonth.split("-").map(Number);
   const dim = new Date(y, m, 0).getDate();
   const fdow = (new Date(y, m - 1, 1).getDay() + 6) % 7;
@@ -74,14 +74,14 @@ function dashCalCells() {
 function bindCalCells() {
   dashOverlay.querySelectorAll(".dash-cal .cal-cell.has").forEach(cell => cell.onclick = () => {
     const d = dashMonth + "-" + String(cell.dataset.day).padStart(2, "0");
-    const r = RACES.find(x => favs.has(x.id) && x.dt === d);
+    const r = RACES.find(x => favs.has(x.n) && x.dt === d);
     if (r) { closeDashboard(); openDetail(r, true); }
   });
 }
 
 function renderDashboard() {
   const user = getUser();
-  const gemte = RACES.filter(r => favs.has(r.id)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  const gemte = RACES.filter(r => favs.has(r.n)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   const kommende = gemte.filter(r => r.dt && new Date(r.dt) >= new Date());
   const next = kommende.find(r => entries.has(r.n)) || kommende[0] || null;
   const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
