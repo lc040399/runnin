@@ -189,6 +189,7 @@ function renderDashboard() {
         <div class="foto-kicker">Genveje</div>
         <div class="dash-genveje">
           <button data-act="aar">🗺 Mit løbs-år</button>
+          <button data-act="alarmer">🔔 Påmindelser</button>
           <button data-act="ics">📅 Kalender-feed</button>
           <button data-act="strava">${f ? "🟠 Strava" : "🟠 Forbind Strava"}</button>
         </div>

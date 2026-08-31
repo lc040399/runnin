@@ -9,15 +9,89 @@ const saveAlarms = () => localStorage.setItem("runnin-alarms", JSON.stringify([.
 function updateAlarmBtn(r) {
   const btn = document.getElementById("dAlarm");
   const on = alarms.has(r.n);
-  btn.querySelector("span").textContent = on ? "Alarm til" : "Alarm";
+  btn.querySelector("span").textContent = on ? "Påmindelse til" : "Påmind";
   btn.classList.toggle("on", on);
 }
+
+/* tilmeldings-påmindelse: vi kender ikke løbenes billetsalgs-datoer, så vi minder
+   om at TJEKKE tilmeldingen i god tid - i appen ved åbning, og i brugerens egen
+   kalender via .ics med indbygget alarm (kalenderen leverer notifikationen). */
+function påmindelsesIcs(r) {
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+  const dt = new Date(r.dt || r.m + "-15");
+  const events = [];
+  const punkt = (dageFør, titel) => {
+    const d = new Date(dt.getTime() - dageFør * 86400000);
+    if (d < new Date()) return; // passerede påmindelser udelades
+    const dagen = d.toISOString().slice(0, 10).replace(/-/g, "");
+    events.push([
+      "BEGIN:VEVENT",
+      `UID:paamind-${dageFør}-${r.n.replace(/\W/g, "-").toLowerCase()}@runnin`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${dagen}`,
+      `DTEND;VALUE=DATE:${dagen}`,
+      `SUMMARY:🔔 ${titel}: ${r.n}`,
+      `DESCRIPTION:Tilmelding: ${r.u} - påmindelse fra Runnin`,
+      `URL:${r.u}`,
+      "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${titel}: ${r.n}`, "TRIGGER:PT9H", "END:VALARM",
+      "END:VEVENT",
+    ].join("\r\n"));
+  };
+  punkt(56, "Tjek tilmeldingen");
+  punkt(14, "Sidste chance for tilmelding");
+  if (!events.length) return null;
+  return `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Runnin//Paamindelser//DA\r\nCALSCALE:GREGORIAN\r\n${events.join("\r\n")}\r\nEND:VCALENDAR\r\n`;
+}
+
+let toastTimer = null;
+function visToast(html, handlinger) {
+  document.querySelector(".toast")?.remove();
+  clearTimeout(toastTimer);
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.innerHTML = `<div class="toast-tekst">${html}</div><div class="toast-knapper">${handlinger || ""}</div>`;
+  document.body.appendChild(t);
+  toastTimer = setTimeout(() => t.remove(), 9000);
+  return t;
+}
+
 document.getElementById("dAlarm").addEventListener("click", () => {
   if (!currentRace) return;
-  alarms.has(currentRace.n) ? alarms.delete(currentRace.n) : alarms.add(currentRace.n);
-  saveAlarms();
-  updateAlarmBtn(currentRace);
+  const r = currentRace;
+  if (alarms.has(r.n)) {
+    alarms.delete(r.n); saveAlarms(); updateAlarmBtn(r);
+    return;
+  }
+  alarms.add(r.n); saveAlarms(); updateAlarmBtn(r);
+  const ics = påmindelsesIcs(r);
+  const t = visToast(
+    `🔔 Vi minder dig om tilmeldingen til <strong>${r.n}</strong>, når du åbner Runnin.`,
+    ics ? `<button class="toast-cta" id="toastIcs">Læg også påmindelse i kalenderen</button>` : ""
+  );
+  if (ics) t.querySelector("#toastIcs").onclick = () => {
+    const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = "runnin-paamindelse.ics"; a.click();
+    URL.revokeObjectURL(url);
+    t.remove();
+  };
 });
+
+/* ved app-åbning: nærmeste påmindede løb inden for 45 dage, som du ikke er tilmeldt */
+setTimeout(() => {
+  const iDag = todayISO();
+  const kandidat = RACES
+    .filter(r => alarms.has(r.n) && !entries.has(r.n) && r.dt && r.dt >= iDag)
+    .map(r => ({ r, dage: Math.round((new Date(r.dt) - new Date()) / 86400000) }))
+    .filter(x => x.dage <= 45)
+    .sort((a, b) => a.dage - b.dage)[0];
+  if (!kandidat) return;
+  const t = visToast(
+    `🔔 <strong>${kandidat.r.n}</strong> er om ${kandidat.dage === 0 ? "i dag" : kandidat.dage + " dage"} - har du styr på billetten?`,
+    `<button class="toast-cta" id="toastÅbn">Åbn løbet</button>`
+  );
+  t.querySelector("#toastÅbn").onclick = () => { t.remove(); openDetail(kandidat.r, true); };
+}, 3500);
 
 /* ================= VEJR (Open-Meteo, ægte data) ================= */
 // Løb afvikles om formiddagen - så vi viser temperaturen i løbsvinduet (kl. 8-11
@@ -85,7 +159,7 @@ function visAlarmer() {
     <div class="feat-row" data-n="${n.replace(/"/g, "&quot;")}">
       <span>🔔</span><div>${n}</div><button class="feat-x">Fjern</button>
     </div>`).join("");
-  listModal("Alarmer", rows, "Ingen alarmer endnu.<br><em>Sæt en fra et løbs detaljer.</em>");
+  listModal("Påmindelser", rows, "Ingen påmindelser endnu.<br><em>Sæt en fra et løbs detaljer - så minder vi dig om tilmeldingen.</em>");
   featOverlay.querySelectorAll(".feat-row").forEach(row => {
     row.querySelector(".feat-x").onclick = () => { alarms.delete(row.dataset.n); saveAlarms(); visAlarmer(); };
     row.querySelector("div").onclick = () => {
