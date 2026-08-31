@@ -50,8 +50,17 @@ const inRegion = r =>
   state.region === "norden" ? NORDICS.includes(r.cc) :
   r.co === state.region;
 
+const iDagISO = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+// afholdte løb arkiveres: væk fra kortet og Kommende løb (men bliver i Mine løb/statistik).
+// Løb der er i gang i DAG skal selvfølgelig stadig vises.
+const erKommende = r => r.dt ? r.dt >= iDagISO() : r.m >= iDagISO().slice(0, 7);
+
 function filtered() {
   return RACES.filter(r =>
+    erKommende(r) &&
     (!state.type || r.t === state.type) &&
     (state.month === null || +r.m.split("-")[1] === state.month) &&
     inRegion(r)
@@ -263,8 +272,33 @@ function wireMapEvents() {
       map.easeTo({ center: f.geometry.coordinates, zoom: z + .4, duration: 600 })
     );
   });
-  map.on("mouseenter", "clusters", () => (map.getCanvas().style.cursor = "pointer"));
-  map.on("mouseleave", "clusters", () => (map.getCanvas().style.cursor = ""));
+  // hover på klynge: forsmag på løbene indeni, før man zoomer
+  let hoverClusterId = null;
+  map.on("mousemove", "clusters", async e => {
+    const f = e.features[0];
+    map.getCanvas().style.cursor = "pointer";
+    const id = f.properties.cluster_id;
+    if (hoverClusterId === id && !hoverCard.hidden) { positionHover(e.point); return; }
+    hoverClusterId = id;
+    const leaves = await map.getSource("races").getClusterLeaves(id, 7, 0);
+    if (hoverClusterId !== id) return; // musen er videre
+    const races = leaves.map(l => RACES[l.properties.id]).filter(Boolean)
+      .sort((a, b) => (a.dt || a.m + "-99").localeCompare(b.dt || b.m + "-99"));
+    const rest = f.properties.point_count - races.length;
+    hoverCard.innerHTML =
+      `<div class="hc-name">${f.properties.point_count} løb her</div>
+       <div class="hc-liste">${races.map(r =>
+         `<div><i style="background:${TYPE_COLOR[r.t]}"></i><span class="hc-l-navn">${r.n}</span><span class="hc-l-dato">${dateLabel(r)}</span></div>`).join("")}</div>
+       ${rest > 0 ? `<div class="hc-meta">+ ${rest} flere</div>` : ""}
+       <div class="hc-hint">Klik for at zoome ind →</div>`;
+    hoverCard.hidden = false;
+    positionHover(e.point);
+  });
+  map.on("mouseleave", "clusters", () => {
+    hoverClusterId = null;
+    hoverCard.hidden = true;
+    map.getCanvas().style.cursor = "";
+  });
 }
 
 function positionHover(pt) {
@@ -290,7 +324,8 @@ function openDetail(r, fly) {
   const løbsdag = typeof erLøbsdag === "function" && erLøbsdag(r);
   const dagStatus = live ? `<span class="d-idag">I dag - løbet er i gang</span>`
     : løbsdag && stedTime(r) < 7 ? `<span class="d-idag">I dag - starter senere</span>`
-    : løbsdag ? `Afholdt i dag` : `Næste udgave: ${dateLabel(r)}`;
+    : løbsdag ? `Afholdt i dag`
+    : r.dt && r.dt < iDagISO() ? `Afholdt ${dateLabel(r)}` : `Næste udgave: ${dateLabel(r)}`;
   document.getElementById("dMeta").innerHTML =
     `${r.d} · ${r.c} ${flag(r.cc)}<br>` +
     dagStatus +
@@ -459,7 +494,9 @@ function rowHtml(r) {
     <div class="r-side">
       ${typeof isLive === "function" && isLive(r)
         ? `<span class="row-live"><i class="live-dot"></i>LIVE</span>`
-        : `<div class="r-price">${r.p ? priceLabel(r.p) : ""}</div><div class="r-when">${dateLabel(r)}</div>`}
+        : r.dt && r.dt < iDagISO()
+          ? `<div class="r-when r-afholdt">✓ Afholdt<br>${dateLabel(r)}</div>`
+          : `<div class="r-price">${r.p ? priceLabel(r.p) : ""}</div><div class="r-when">${dateLabel(r)}</div>`}
     </div>
   </div>`;
 }
@@ -582,7 +619,10 @@ document.addEventListener("keydown", e => { if (e.key === "Escape" && !calOverla
 function renderFavs() {
   panelTitle.textContent = "Mine løb";
   calToggle.hidden = true;
-  const list = RACES.filter(r => favs.has(r.n)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+  const list = RACES.filter(r => favs.has(r.n))
+    .sort((a, b) => (erKommende(a) === erKommende(b))
+      ? sortKey(a).localeCompare(sortKey(b))
+      : (erKommende(a) ? -1 : 1)); // afholdte nederst
   const user = getUser();
   let hilsen = "";
   if (user) {

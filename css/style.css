@@ -899,3 +899,10 @@ html.tema-glid, html.tema-glid *, html.tema-glid *::before, html.tema-glid *::af
   background: var(--card); color: var(--ink); font-size: 15px; font-weight: 700; cursor: pointer;
 }
 .mål-justering button:hover { border-color: var(--ink); }
+.r-afholdt { color: var(--faint); font-weight: 600; line-height: 1.5; }
+/* klynge-hover: liste over løbene i klyngen */
+.hc-liste { margin-top: 8px; }
+.hc-liste div { display: flex; align-items: center; gap: 7px; padding: 3.5px 0; font-size: 12px; }
+.hc-liste i { width: 7px; height: 7px; border-radius: 99px; flex: none; }
+.hc-l-navn { font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.hc-l-dato { color: var(--muted); font-size: 11px; flex: none; }
