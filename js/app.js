@@ -799,11 +799,21 @@ const closeLogin = () => (loginOverlay.hidden = true);
 
 document.getElementById("loginBtn").addEventListener("click", openLogin);
 
-/* logoet er vejen hjem: luk alt og flyv tilbage til udgangspunktet */
+/* logoet er vejen hjem: luk alt, nulstil filtre + søgning, flyv til udgangspunktet */
 document.getElementById("brandHjem").addEventListener("click", () => {
   closePanel(); detail.hidden = true; profileMenu.hidden = true;
   featOverlay.hidden = true; dashOverlay.hidden = true;
   setTab("kort");
+  state.type = state.month = state.region = null;
+  document.querySelectorAll(".pill-wrap").forEach(wrap => {
+    const pill = wrap.querySelector(".pill");
+    pill.innerHTML = `${menus[pill.dataset.menu][0].label} <span class="caret">▾</span>`;
+    pill.classList.remove("on");
+    wrap.querySelectorAll(".menu button").forEach((b, i) => b.classList.toggle("sel", i === 0));
+  });
+  searchInput.value = "";
+  searchMenu.hidden = true;
+  applyFilters();
   history.replaceState(null, "", location.pathname);
   map.flyTo({ center: [13, 59.5], zoom: 4.1, duration: 1200, essential: true });
 });
