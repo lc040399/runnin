@@ -151,12 +151,41 @@ function renderDashboard() {
            <button class="cta strava-btn" id="dashStrava" style="margin-top:12px">Forbind med Strava</button>`}
       </div>
 
-      <div class="dash-card dash-bred dash-in" style="--i:5">
+      <div class="dash-card dash-in" style="--i:5">
+        <div class="foto-kicker">Årets mål</div>
+        ${(() => {
+          const år = todayISO().slice(0, 4);
+          const mål = Math.max(1, +localStorage.getItem("runnin-maal") || 4);
+          const gjort = RACES.filter(r => entries.has(r.n) && r.dt && r.dt.slice(0, 4) === år && r.dt <= todayISO()).length;
+          const p = Math.min(gjort / mål, 1);
+          const R = 34, OMKR = 2 * Math.PI * R;
+          return `
+          <div class="mål-flade">
+            <svg class="mål-ring" viewBox="0 0 84 84" width="84" height="84">
+              <circle cx="42" cy="42" r="${R}" fill="none" stroke="var(--flade)" stroke-width="9"/>
+              <circle cx="42" cy="42" r="${R}" fill="none" stroke="${p >= 1 ? "#10B981" : "var(--coral)"}" stroke-width="9"
+                stroke-linecap="round" stroke-dasharray="${OMKR}" stroke-dashoffset="${OMKR * (1 - p)}"
+                transform="rotate(-90 42 42)" class="mål-bue"/>
+              <text x="42" y="47" text-anchor="middle" class="mål-tal">${gjort}/${mål}</text>
+            </svg>
+            <div class="mål-tekst">
+              <strong>${p >= 1 ? `Målet er nået! 🎉` : `${mål - gjort} løb fra målet`}</strong>
+              <span>gennemførte løb i ${år}</span>
+              <div class="mål-justering">
+                <button id="målNed" aria-label="Lavere mål">−</button>
+                <button id="målOp" aria-label="Højere mål">+</button>
+              </div>
+            </div>
+          </div>`;
+        })()}
+      </div>
+
+      <div class="dash-card dash-bred dash-in" style="--i:6">
         <div class="foto-kicker">Kommende løb</div>
         <div class="dash-liste">${kommendeRows}</div>
       </div>
 
-      <div class="dash-card dash-bred dash-in" style="--i:6">
+      <div class="dash-card dash-bred dash-in" style="--i:7">
         <div class="foto-kicker">Genveje</div>
         <div class="dash-genveje">
           <button data-act="aar">🗺 Mit løbs-år</button>
@@ -165,7 +194,7 @@ function renderDashboard() {
         </div>
       </div>
 
-      <div class="dash-card dash-bred dash-in" style="--i:7" id="dashSettings">
+      <div class="dash-card dash-bred dash-in" style="--i:8" id="dashSettings">
         <div class="foto-kicker">Profil & indstillinger</div>
         <div class="dash-settings">
           <div class="avatar-rad">
@@ -208,6 +237,13 @@ function renderDashboard() {
     </div>`;
 
   document.getElementById("dashClose").onclick = closeDashboard;
+  const målJustér = d => {
+    const nu = Math.max(1, Math.min(52, (+localStorage.getItem("runnin-maal") || 4) + d));
+    localStorage.setItem("runnin-maal", nu);
+    renderDashboard();
+  };
+  document.getElementById("målNed") && (document.getElementById("målNed").onclick = () => målJustér(-1));
+  document.getElementById("målOp") && (document.getElementById("målOp").onclick = () => målJustér(1));
 
   /* profil & indstillinger */
   const tema = localStorage.getItem("runnin-tema") || "lys";

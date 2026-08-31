@@ -885,3 +885,16 @@ html.tema-glid, html.tema-glid *, html.tema-glid *::before, html.tema-glid *::af
 .live-menu button:hover { background: var(--flade); }
 .live-menu .lm-navn { font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .live-menu .lm-sted { font-size: 11.5px; color: var(--muted); flex: none; }
+/* årets mål: deltagelses-ring (gennemførte løb i år) */
+.mål-flade { display: flex; align-items: center; gap: 16px; margin-top: 12px; }
+.mål-ring .mål-tal { font: 700 15px var(--sans); fill: var(--ink); font-variant-numeric: tabular-nums; }
+.mål-bue { transition: stroke-dashoffset .9s cubic-bezier(.22,1,.36,1); }
+.mål-tekst { flex: 1; min-width: 0; }
+.mål-tekst strong { display: block; font-size: 14px; }
+.mål-tekst span { font-size: 12px; color: var(--muted); }
+.mål-justering { display: flex; gap: 6px; margin-top: 8px; }
+.mål-justering button {
+  width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--hairline);
+  background: var(--card); color: var(--ink); font-size: 15px; font-weight: 700; cursor: pointer;
+}
+.mål-justering button:hover { border-color: var(--ink); }

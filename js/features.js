@@ -101,7 +101,7 @@ function visAlarmer() {
 let landGeo = null;
 async function hentLand() {
   if (landGeo) return landGeo;
-  try { landGeo = await (await fetch("data/land.json")).json(); } catch (_) { landGeo = { features: [] }; }
+  try { landGeo = await (await fetch("data/land.json?v=53")).json(); } catch (_) { landGeo = { features: [] }; }
   return landGeo;
 }
 
@@ -127,8 +127,23 @@ async function tegnYearCard(gemte) {
   g.beginPath(); g.roundRect(mx, my, mw, mh, 24); g.fill();
   let laMin = Math.min(...gemte.map(r => r.la)), laMax = Math.max(...gemte.map(r => r.la));
   let loMin = Math.min(...gemte.map(r => r.lo)), loMax = Math.max(...gemte.map(r => r.lo));
-  const laPad = Math.max((laMax - laMin) * .3, 2.5), loPad = Math.max((loMax - loMin) * .3, 4);
+  const laPad = Math.max((laMax - laMin) * .3, 1), loPad = Math.max((loMax - loMin) * .3, 2);
   laMin -= laPad; laMax += laPad; loMin -= loPad; loMax += loPad;
+  // minimum "hele landet": er alle løb i samme kendte land, udvides rammen til landet
+  const LANDRAMMER = {
+    DK: [54.4, 58.1, 7.5, 15.6], SE: [55.0, 69.2, 10.5, 24.5], NO: [57.7, 71.4, 4.3, 31.3],
+    FI: [59.6, 70.2, 20.0, 31.9], IS: [63.2, 66.7, -24.6, -13.3], DE: [47.2, 55.2, 5.8, 15.2],
+    GB: [49.9, 58.8, -8.2, 1.8], US: [24.5, 49.5, -125, -66.5], FR: [42.2, 51.2, -5, 8.4],
+  };
+  const ccSet = new Set(gemte.map(r => r.cc));
+  const ramme = ccSet.size === 1 ? LANDRAMMER[[...ccSet][0]] : null;
+  if (ramme) {
+    laMin = Math.min(laMin, ramme[0]); laMax = Math.max(laMax, ramme[1]);
+    loMin = Math.min(loMin, ramme[2]); loMax = Math.max(loMax, ramme[3]);
+  }
+  // og aldrig tættere på end lande-skala - grov kystdata skal ikke ses i mikroskop
+  if (laMax - laMin < 5) { const e = (5 - (laMax - laMin)) / 2; laMin -= e; laMax += e; }
+  if (loMax - loMin < 9) { const e = (9 - (loMax - loMin)) / 2; loMin -= e; loMax += e; }
   // hold kortets proportioner: udvid den snævre akse (1° lat ≈ 2° lng ved ~60°N)
   const målAspekt = (mw / mh) * 2;
   const span = (loMax - loMin) / (laMax - laMin);
@@ -156,11 +171,6 @@ async function tegnYearCard(gemte) {
       }
       if (indenfor) { g.fill(); g.stroke(); }
     }
-  }
-  g.fillStyle = "rgba(56,36,13,.10)";
-  for (const r of RACES) {
-    if (r.la < laMin || r.la > laMax || r.lo < loMin || r.lo > loMax || favs.has(r.n)) continue;
-    g.beginPath(); g.arc(px(r.lo), py(r.la), 4, 0, 7); g.fill();
   }
   for (const r of gemte) {
     g.fillStyle = TYPE_COLOR[r.t];
