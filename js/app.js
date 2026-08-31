@@ -347,6 +347,7 @@ function openDetail(r, fly) {
   document.getElementById("dLive").hidden = !(typeof isLive === "function" && isLive(r));
   updateSaveBtn();
   if (typeof featuresOnDetail === "function") featuresOnDetail(r);
+  visDetailRute(r);
   history.replaceState(null, "", "#" + slug(r.n));
   detail.hidden = false;
   if (fly) map.flyTo({ center: [r.lo, r.la], zoom: Math.max(map.getZoom(), 5.5), duration: 1100, essential: true });
@@ -730,6 +731,37 @@ document.getElementById("nearBtn").addEventListener("click", () => {
     () => map.flyTo({ center: [11.5, 56.0], zoom: 6.2, duration: 1400 }) // afvist → Danmark
   );
 });
+
+/* ---------- officiel rute på detaljen (når vi har den i data/ruter/) ---------- */
+const ruteCache = new Map(); // slug → rute-objekt eller null
+async function visDetailRute(r) {
+  fjernDetailRute();
+  const sl = slug(r.n);
+  if (!ruteCache.has(sl)) {
+    try {
+      const res = await fetch(`data/ruter/${sl}.json`, { signal: AbortSignal.timeout(4000) });
+      ruteCache.set(sl, res.ok ? await res.json() : null);
+    } catch (_) { ruteCache.set(sl, null); }
+  }
+  const rute = ruteCache.get(sl);
+  if (!rute || currentRace !== r || detail.hidden) return;
+  map.addSource("detail-rute", { type: "geojson", data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: rute.punkter } } });
+  map.addLayer({
+    id: "detail-rute-linje", type: "line", source: "detail-rute",
+    paint: { "line-color": "#C05800", "line-width": 3.5, "line-opacity": .85 },
+    layout: { "line-cap": "round", "line-join": "round" },
+  }, map.getLayer("clusters") ? "clusters" : undefined);
+  // vis hele ruten, med plads til detaljepanelet
+  const lons = rute.punkter.map(p => p[0]), lats = rute.punkter.map(p => p[1]);
+  map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
+    { padding: { top: 110, bottom: 60, left: 60, right: innerWidth > 720 ? 400 : 60 }, duration: 1200, essential: true });
+}
+function fjernDetailRute() {
+  if (map.getLayer("detail-rute-linje")) map.removeLayer("detail-rute-linje");
+  if (map.getSource("detail-rute")) map.removeSource("detail-rute");
+}
+new MutationObserver(() => { if (detail.hidden) fjernDetailRute(); })
+  .observe(detail, { attributes: true, attributeFilter: ["hidden"] });
 
 /* ---------- deep links (#løbets-navn) ---------- */
 const slug = s => norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");

@@ -252,13 +252,15 @@ function buildLivePanel() {
     <div class="live-stats">
       <div><strong id="stRuten">${sim.runners.length}</strong><span>på ruten</span></div>
       <div><strong id="stMaal">0</strong><span>i mål</span></div>
-      <div><strong>${sim.distKm} km</strong><span>illustrativ rute</span></div>
+      <div><strong>${sim.distKm} km</strong><span>${sim.officiel ? "officiel rute" : "illustrativ rute"}</span></div>
     </div>
     <div class="live-sec">Førende lige nu</div>
     <div class="lb-list" id="lbList"></div>
     <div class="live-sec">Målstregen</div>
     <div class="live-feed" id="liveFeed"><div class="feed-tom">Ingen i mål endnu - følg med her.</div></div>
-    <p class="foto-note">⚠️ Den stiplede rute er en ILLUSTRATION (rigtige veje, matchet til distancen) - ikke arrangørens officielle rute. Skal du finde løbere eller forberede dig, så brug arrangørens rutekort. LIVE-status er ægte; felterne er simulerede.</p>`;
+    <p class="foto-note">${sim.officiel
+      ? `✅ Officiel rute. Kilde: ${sim.officiel.kilde}. LIVE-status er ægte; felterne er simulerede.`
+      : `⚠️ Den stiplede rute er en ILLUSTRATION (rigtige veje, matchet til distancen) - ikke arrangørens officielle rute. Skal du finde løbere eller forberede dig, så brug arrangørens rutekort. LIVE-status er ægte; felterne er simulerede.`}</p>`;
   document.getElementById("liveClose").onclick = closeLive;
 }
 
@@ -366,8 +368,19 @@ async function openLive(race) {
   livePanel.innerHTML = `<div class="live-head"><span class="live-badge"><i></i>LIVE</span><h2>${race.n}</h2></div><div class="feed-tom" style="padding:16px 0">Henter ruten…</div>`;
 
   let route;
-  try { route = await fetchRoute(race.lo, race.la, parseKm(race)); }
-  catch (_) { route = syntheticRoute(race.lo, race.la); }
+  sim.officiel = null;
+  try {
+    const r = await fetch(`data/ruter/${slug(race.n)}.json`, { signal: AbortSignal.timeout(4000) });
+    if (r.ok) {
+      const officiel = await r.json();
+      sim.officiel = officiel;
+      route = { coords: officiel.punkter, km: officiel.km };
+    }
+  } catch (_) {}
+  if (!route) {
+    try { route = await fetchRoute(race.lo, race.la, parseKm(race)); }
+    catch (_) { route = syntheticRoute(race.lo, race.la); }
+  }
   if (sim.race !== race) return; // lukket imens
   sim.route = resample(route.coords);
   sim.distKm = route.km;
@@ -376,6 +389,9 @@ async function openLive(race) {
   ensureLiveLayers();
   tilføjDigLag();
   map.getSource("live-route").setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: sim.route } });
+  map.setPaintProperty("live-route-line", "line-dasharray", sim.officiel ? [1, 0] : [2.4, 1.8]);
+  map.setPaintProperty("live-route-line", "line-opacity", sim.officiel ? .85 : .65);
+  map.setPaintProperty("live-route-line", "line-width", sim.officiel ? 3.5 : 3);
 
   // zoom så hele ruten er i billedet, med plads til panelet i højre side
   const lons = sim.route.map(p => p[0]), lats = sim.route.map(p => p[1]);
@@ -407,7 +423,7 @@ function visÆgteResultater(res) {
     <div class="live-stats">
       <div><strong>${res.length}</strong><span>i mål</span></div>
       <div><strong>${top[0]?.tid || "-"}</strong><span>vindertid</span></div>
-      <div><strong>${sim.distKm} km</strong><span>illustrativ rute</span></div>
+      <div><strong>${sim.distKm} km</strong><span>${sim.officiel ? "officiel rute" : "illustrativ rute"}</span></div>
     </div>
     <div class="live-sec">Resultater · <span style="color:#059669">ægte data</span></div>
     ${top.map(r => `

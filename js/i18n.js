@@ -27,7 +27,7 @@ function sætSprog(l) {
     "Sydamerika": "South America", "Asien": "Asia", "Afrika": "Africa", "Oceanien": "Oceania",
     "Kort (5-15 km)": "Short (5-15 km)", "Halvmarathon": "Half marathon", "Half": "Half",
     "Marathon": "Marathon", "Ultra & trail": "Ultra & trail", "Triathlon": "Triathlon",
-    "på kortet": "on the map", "på ruten": "on course", "i mål": "finished", "illustrativ rute": "illustrative route", "Førende lige nu": "Leading right now", "Målstregen": "The finish line", "Ingen i mål endnu - følg med her.": "No finishers yet - follow along here.", "i gang lige nu": "live right now", "Følg live →": "Follow live →",
+    "på kortet": "on the map", "på ruten": "on course", "i mål": "finished", "illustrativ rute": "illustrative route", "officiel rute": "official route", "Førende lige nu": "Leading right now", "Målstregen": "The finish line", "Ingen i mål endnu - følg med her.": "No finishers yet - follow along here.", "i gang lige nu": "live right now", "Følg live →": "Follow live →",
     // detalje
     "Tilmeld på officiel side": "Register on official site", "Se løbet hos Kondis": "View race at Kondis",
     "🎟 Markér som tilmeldt": "🎟 Mark as registered", "🎟 Du er tilmeldt": "🎟 You're registered",

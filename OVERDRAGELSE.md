@@ -29,6 +29,14 @@ Her er den ærlige tilstand, så du ved præcis, hvad du overtager.
 5. **OSRM demo-serveren** (router.project-osrm.org) tåler ikke produktionstrafik - selv-host eller cache ruter, hvis du får brugere
 6. **Eget domæne** anbefales; ret `BASE` i `tools/build-seo.mjs` og canonicals følger med
 
+## Officielle ruter
+
+`data/ruter/<slug>.json` viser en ÆGTE rute (fuldt optrukket) på detalje- og live-visning;
+alle andre løb får en stiplet OSRM-illustration, tydeligt mærket. Tilføj en rute med
+`node tools/gpx2rute.mjs <gpx-eller-overpass-fil> "<Løbets navn>" "<kilde>"`.
+Kun legitime kilder: arrangørens egen GPX eller OSM-relationer for permanente stier (ODbL).
+Seed: Laugavegur Ultra (OSM-relation, ét kort stræk interpoleret over datahul).
+
 ## Roadmap, hvis du vil gøre den rigtig
 
 Prioriteret efter effekt:
