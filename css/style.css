@@ -934,3 +934,12 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 /* profilmenu: ensartede streg-ikoner i dæmpet blæk */
 .pm-items svg { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--muted); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .pm-items button:hover svg { stroke: var(--ink); }
+/* legend er et filter: klik toggler typen */
+.legend button {
+  border: 0; background: none; font-family: var(--sans); font-size: inherit; color: var(--ink);
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 3px 6px;
+  border-radius: 8px; transition: background .15s, opacity .2s;
+}
+.legend button:hover { background: var(--flade); }
+.legend button.on { background: var(--flade); font-weight: 700; }
+.legend button.dæmpet { opacity: .38; }

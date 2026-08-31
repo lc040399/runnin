@@ -431,7 +431,23 @@ document.querySelectorAll(".pill-wrap").forEach(wrap => {
 });
 document.addEventListener("click", () => document.querySelectorAll(".menu.open").forEach(m => m.classList.remove("open")));
 
+/* legend = klikbart filter: klik på en type filtrerer kortet, klik igen nulstiller */
+document.querySelectorAll("#legend button").forEach(b => b.addEventListener("click", () => {
+  const t = b.dataset.t;
+  const typeMenu = document.querySelector('.menu[data-for="type"]');
+  const i = state.type === t ? 0 : menus.type.findIndex(o => o.v === t); // 0 = Alle distancer
+  typeMenu.querySelector(`button[data-i="${i}"]`).click();
+}));
+
+function opdaterLegend() {
+  document.querySelectorAll("#legend button").forEach(b => {
+    b.classList.toggle("on", state.type === b.dataset.t);
+    b.classList.toggle("dæmpet", !!state.type && state.type !== b.dataset.t);
+  });
+}
+
 function applyFilters() {
+  opdaterLegend();
   const list = filtered();
   const src = map.getSource("races");
   if (src) src.setData(toGeojson(list));
@@ -818,7 +834,6 @@ function toggleProfileMenu() {
     ${next ? `<div class="pm-next"><span class="countdown">${dage === 0 ? "I DAG" : dage + " dage"}</span> ${dage === 0 ? "-" : "til"} ${next.n}</div>` : ""}
     <div class="pm-items">
       <button data-act="dash" class="pm-dash"><svg viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.6"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.6"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.6"/></svg>Dashboard</button>
-      <button data-act="mine"><svg viewBox="0 0 24 24"><path d="M12 20.5C7 16.5 3.5 13.2 3.5 9.6 3.5 7 5.5 5 8 5c1.6 0 3.1.8 4 2.1C12.9 5.8 14.4 5 16 5c2.5 0 4.5 2 4.5 4.6 0 3.6-3.5 6.9-8.5 10.9z"/></svg>Mine løb <span class="pm-tal">${gemte.length}</span></button>
       <button data-act="rediger"><svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.4"/><line x1="4" y1="15" x2="20" y2="15"/><circle cx="15" cy="15" r="2.4"/></svg>Indstillinger</button>
       <button data-act="logud" class="pm-logud"><svg viewBox="0 0 24 24"><path d="M14 7V5.5A1.5 1.5 0 0 0 12.5 4h-6A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20h6a1.5 1.5 0 0 0 1.5-1.5V17"/><line x1="9.5" y1="12" x2="20" y2="12"/><path d="M17 9l3 3-3 3"/></svg>Log ud</button>
     </div>`;

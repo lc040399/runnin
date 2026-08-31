@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="css/style.css?v=63" rel="stylesheet">
+<link href="css/style.css?v=64" rel="stylesheet">
 </head>
 <body>
 
@@ -159,12 +159,12 @@
 
 <!-- Legend + tæller -->
 <footer class="footbar reveal-3">
-  <div class="legend">
-    <span><i style="background:#2563EB"></i>Kort (5-15 km)</span>
-    <span><i style="background:#16A34A"></i>Half</span>
-    <span><i style="background:#C05800"></i>Marathon</span>
-    <span><i style="background:#7C3AED"></i>Ultra &amp; trail</span>
-    <span><i style="background:#38240D"></i>Triathlon</span>
+  <div class="legend" id="legend">
+    <button data-t="kort"><i style="background:#2563EB"></i>Kort (5-15 km)</button>
+    <button data-t="half"><i style="background:#16A34A"></i>Half</button>
+    <button data-t="marathon"><i style="background:#C05800"></i>Marathon</button>
+    <button data-t="ultra"><i style="background:#7C3AED"></i>Ultra &amp; trail</button>
+    <button data-t="tri"><i style="background:#38240D"></i>Triathlon</button>
   </div>
   <div class="counter" id="counter"></div>
 </footer>
@@ -177,7 +177,7 @@
 <script src="data/races-rid.js?v=57"></script>
 <script src="data/races-kondis.js?v=57"></script>
 <script src="js/photos.js?v=36"></script>
-<script src="js/app.js?v=63"></script>
+<script src="js/app.js?v=64"></script>
 <script src="js/features.js?v=58"></script>
 <script src="js/connect.js?v=51"></script>
 <script src="js/dashboard.js?v=61"></script>
