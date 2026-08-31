@@ -172,6 +172,7 @@ function renderDashboard() {
               <strong>${p >= 1 ? `Målet er nået! 🎉` : `${mål - gjort} løb fra målet`}</strong>
               <span>gennemførte løb i ${år}</span>
               <div class="mål-justering">
+                <span>Justér mål (${mål} løb):</span>
                 <button id="målNed" aria-label="Lavere mål">−</button>
                 <button id="målOp" aria-label="Højere mål">+</button>
               </div>
