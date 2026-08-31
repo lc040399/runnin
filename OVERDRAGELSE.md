@@ -13,7 +13,7 @@ Her er den ærlige tilstand, så du ved præcis, hvad du overtager.
 
 ## Hvad der er DEMO (tydeligt mærket i UI'et)
 
-- **Login/konti**: gemmes kun i localStorage; adgangskoden valideres ikke mod noget
+- **Login/konti**: RIGTIGE (Supabase-auth, egen gratis org) - favoritter/tilmeldinger synkes på tværs af enheder via public.user_races (RLS). Gæster kører stadig rent lokalt. OBS: e-mail-bekræftelse kræver egen SMTP (Resend + domæne); indtil da bør "Confirm email" være slået fra i Supabase-dashboardet. Gratis-projektet holdes vågent af .github/workflows/keepalive.yml
 - **Alarmer**: gemmes lokalt, men der SENDES ingen beskeder (kræver backend + mail)
 - **Fotos**: samme 9 Pexels-billeder for alle løb
 - **Venner**: eksempeldata
