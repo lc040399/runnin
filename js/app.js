@@ -783,6 +783,15 @@ const closeLogin = () => (loginOverlay.hidden = true);
 
 document.getElementById("loginBtn").addEventListener("click", openLogin);
 
+/* logoet er vejen hjem: luk alt og flyv tilbage til udgangspunktet */
+document.getElementById("brandHjem").addEventListener("click", () => {
+  closePanel(); detail.hidden = true; profileMenu.hidden = true;
+  featOverlay.hidden = true; dashOverlay.hidden = true;
+  setTab("kort");
+  history.replaceState(null, "", location.pathname);
+  map.flyTo({ center: [13, 59.5], zoom: 4.1, duration: 1200, essential: true });
+});
+
 /* ---------- profil-dropdown ---------- */
 const profileMenu = document.getElementById("profileMenu");
 

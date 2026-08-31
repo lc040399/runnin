@@ -927,3 +927,7 @@ html.tema-glid, html.tema-glid *, html.tema-glid *::before, html.tema-glid *::af
 @media (max-width: 720px) { .toast { bottom: calc(84px + env(safe-area-inset-bottom)); } }
 .mål-justering { align-items: center; }
 .mål-justering span { font-size: 11px; color: var(--faint); margin-right: 2px; }
+/* brand er nu en knap - behold udseendet, tilføj kun affordance */
+button.brand { border: 0; background: none; cursor: pointer; padding: 0; color: var(--ink); }
+button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
+.brand-mark { transition: transform .25s cubic-bezier(.22,1.4,.36,1); }
