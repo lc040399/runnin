@@ -445,6 +445,7 @@ function initLiveUI() {
   map.on("mouseleave", "live-halo-core", () => { map.getCanvas().style.cursor = ""; hc.hidden = true; });
 
   // roligt åndedræt: sinus-kurve så glowet fader både ind og ud - intet hårdt loop-hop
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; // statiske prikker er nok
   let t0 = performance.now();
   (function pulse(ts) {
     const p = ((ts - t0) % 2600) / 2600;

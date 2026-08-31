@@ -160,7 +160,11 @@ function warmify() {
   }
 }
 
+let temaTimer = null;
 function setTema(t) {
+  document.documentElement.classList.add("tema-glid");
+  clearTimeout(temaTimer);
+  temaTimer = setTimeout(() => document.documentElement.classList.remove("tema-glid"), 450);
   if (t === "mørk") document.documentElement.dataset.tema = "mørk";
   else delete document.documentElement.dataset.tema;
   localStorage.setItem("runnin-tema", t);
@@ -401,9 +405,21 @@ function applyFilters() {
   if (typeof updateRadarBtn === "function") updateRadarBtn();
 }
 
+let counterVist = 0;
 function updateCounter(list) {
   const n = (list || filtered()).length;
-  document.getElementById("counter").innerHTML = `<strong>${n} løb</strong> på kortet`;
+  const el = document.getElementById("counter");
+  // tæl op/ned til det nye tal - store spring (USA-fletningen) føles levende, små er øjeblikkelige
+  const fra = counterVist, dur = Math.abs(n - fra) > 400 ? 900 : 0;
+  counterVist = n;
+  if (!dur) { el.innerHTML = `<strong>${n.toLocaleString("da-DK")} løb</strong> på kortet`; return; }
+  const t0 = performance.now();
+  (function tik(ts) {
+    const p = Math.min((ts - t0) / dur, 1);
+    const v = Math.round(fra + (n - fra) * (1 - Math.pow(1 - p, 3)));
+    el.innerHTML = `<strong>${v.toLocaleString("da-DK")} løb</strong> på kortet`;
+    if (p < 1) requestAnimationFrame(tik);
+  })(t0);
 }
 
 /* ---------- tabs + paneler ---------- */
@@ -648,7 +664,7 @@ window.addEventListener("hashchange", openFromHash);
    når kortet har haft sit første rolige øjeblik. */
 map.once("load", () => setTimeout(() => {
   const s = document.createElement("script");
-  s.src = "data/races-rsu.js?v=51";
+  s.src = "data/races-rsu.js?v=52";
   s.onload = () => {
     // filen pusher sine løb og gen-id'er hele RACES selv
     const src = map.getSource("races");

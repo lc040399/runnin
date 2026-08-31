@@ -854,3 +854,18 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- bevægelses-etik + polish ---------- */
+/* farver glider ved temaskift (klassen sidder kun på i ~450 ms) */
+html.tema-glid, html.tema-glid *, html.tema-glid *::before, html.tema-glid *::after {
+  transition: background-color .4s ease, color .4s ease, border-color .4s ease, box-shadow .4s ease !important;
+}
+/* gem-hjertet giver et lille spring når det tændes */
+@keyframes gemPop { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 70% { transform: scale(.94); } 100% { transform: scale(1); } }
+.d-actions button.on i, .save.saved { animation: gemPop .38s cubic-bezier(.22,1.4,.36,1); }
+/* synligt tastatur-fokus - kun ved tastatur (:focus-visible), aldrig ved klik */
+:focus-visible { outline: 2px solid var(--coral); outline-offset: 2px; border-radius: 6px; }
+/* respekter nedsat bevægelse: alt væsentligt indhold står stille */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
