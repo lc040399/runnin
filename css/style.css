@@ -931,3 +931,6 @@ html.tema-glid, html.tema-glid *, html.tema-glid *::before, html.tema-glid *::af
 button.brand { border: 0; background: none; cursor: pointer; padding: 0; color: var(--ink); }
 button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .brand-mark { transition: transform .25s cubic-bezier(.22,1.4,.36,1); }
+/* profilmenu: ensartede streg-ikoner i dæmpet blæk */
+.pm-items svg { width: 16px; height: 16px; flex: none; fill: none; stroke: var(--muted); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pm-items button:hover svg { stroke: var(--ink); }
