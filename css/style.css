@@ -943,3 +943,6 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .legend button:hover { background: var(--flade); }
 .legend button.on { background: var(--flade); font-weight: 700; }
 .legend button.dæmpet { opacity: .38; }
+/* din egen række i live-leaderboardet */
+.live-row.live-dig { background: rgba(192,88,0,.07); border-radius: 10px; }
+.live-row.live-dig .live-navn { color: var(--coral); font-weight: 700; }

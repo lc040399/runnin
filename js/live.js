@@ -113,6 +113,56 @@ function seedRunners(race) {
     };
   });
   sim.feed = [];
+  // er du tilmeldt løbet, løber du selv med - med dit navn, evt. gemt startnummer og foto-prik
+  const user = typeof getUser === "function" ? getUser() : null;
+  if (user && entries.has(race.n)) {
+    const bibs = JSON.parse(localStorage.getItem("runnin-bibs") || "{}");
+    sim.runners.push({
+      navn: `${user.navn.split(" ")[0]} (dig)`, dig: true,
+      bib: +bibs[race.n] || 100 + ((h0 >>> 7) % 880),
+      fart: 0.96 + ((h0 % 80) / 1000),                 // solidt midterfelt
+      prog: 0.35 + ((h0 >>> 6) % 400) / 1000,           // midt på ruten
+      done: false, tid: null,
+    });
+  }
+}
+
+/* dit profilbillede (eller initialer) som rund kort-markør m. hvid ring */
+async function byggDigMarkør() {
+  const user = getUser();
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d");
+  g.beginPath(); g.arc(32, 32, 28, 0, 7); g.closePath();
+  g.save(); g.clip();
+  if (user.foto) {
+    await new Promise(res => { const im = new Image(); im.onload = () => { g.drawImage(im, 4, 4, 56, 56); res(); }; im.onerror = res; im.src = user.foto; });
+  } else {
+    g.fillStyle = "#38240D"; g.fillRect(0, 0, 64, 64);
+    g.fillStyle = "#F5F3EE"; g.font = "700 24px Inter Tight, sans-serif";
+    g.textAlign = "center"; g.textBaseline = "middle";
+    g.fillText(user.navn.split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase(), 32, 34);
+  }
+  g.restore();
+  g.lineWidth = 4; g.strokeStyle = "#ffffff";
+  g.beginPath(); g.arc(32, 32, 28, 0, 7); g.stroke();
+  g.lineWidth = 2; g.strokeStyle = "#C05800";
+  g.beginPath(); g.arc(32, 32, 31, 0, 7); g.stroke();
+  return g.getImageData(0, 0, 64, 64);
+}
+
+async function tilføjDigLag() {
+  if (!sim.runners.some(r => r.dig)) return;
+  const img = await byggDigMarkør();
+  if (map.hasImage("dig-avatar")) map.removeImage("dig-avatar");
+  map.addImage("dig-avatar", img, { pixelRatio: 2 });
+  if (!map.getLayer("live-runner-dig") && map.getSource("live-runners")) {
+    map.addLayer({
+      id: "live-runner-dig", type: "symbol", source: "live-runners",
+      filter: ["==", ["get", "dig"], true],
+      layout: { "icon-image": "dig-avatar", "icon-size": 1, "icon-allow-overlap": true, "icon-ignore-placement": true },
+    });
+  }
 }
 
 /* ---------- kort-lag ---------- */
@@ -127,6 +177,7 @@ function ensureLiveLayers() {
   });
   map.addLayer({
     id: "live-runner-dots", type: "circle", source: "live-runners",
+    filter: ["!=", ["get", "dig"], true],
     paint: {
       "circle-color": ["case", ["get", "leader"], "#C05800", "#10B981"],
       "circle-radius": ["case", ["get", "leader"], 8, 6],
@@ -135,7 +186,7 @@ function ensureLiveLayers() {
   });
 }
 function clearLiveLayers() {
-  for (const id of ["live-runner-dots", "live-route-line"]) if (map.getLayer(id)) map.removeLayer(id);
+  for (const id of ["live-runner-dig", "live-runner-dots", "live-route-line"]) if (map.getLayer(id)) map.removeLayer(id);
   for (const id of ["live-runners", "live-route"]) if (map.getSource(id)) map.removeSource(id);
 }
 
@@ -174,7 +225,7 @@ function tick(ts) {
 
   const feats = sim.runners.filter(r => !r.done).map((r, idx) => ({
     type: "Feature",
-    properties: { leader: r === lederen() },
+    properties: { leader: r === lederen(), dig: !!r.dig },
     geometry: { type: "Point", coordinates: alongRoute(sim.route, r.prog) },
   }));
   map.getSource("live-runners")?.setData({ type: "FeatureCollection", features: feats });
@@ -222,7 +273,7 @@ function updateLivePanel() {
     let el = rowEls.get(r.bib);
     if (!el) {
       el = document.createElement("div");
-      el.className = "live-row";
+      el.className = "live-row" + (r.dig ? " live-dig" : "");
       el.style.transform = `translateY(${(i + 1.6) * ROW_H}px)`;
       el.style.opacity = "0";
       el.innerHTML = `<span class="live-pos"></span>
@@ -322,6 +373,7 @@ async function openLive(race) {
   sim.simMin = +(sim.distKm * 4.6).toFixed(1); // midterfelt ~4:36 min/km → vinder ~3:55, bagtrop ~5:35
   seedRunners(race);
   ensureLiveLayers();
+  tilføjDigLag();
   map.getSource("live-route").setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: sim.route } });
 
   // zoom så hele ruten er i billedet, med plads til panelet i højre side
