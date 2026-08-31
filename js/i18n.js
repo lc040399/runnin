@@ -40,7 +40,13 @@ function sætSprog(l) {
     "🎟 Tilmeldt": "🎟 Registered", "✓ Afholdt": "✓ Held", "LIVE": "LIVE",
     // login
     "Runnin-profil": "Runnin profile", "Navn": "Name", "Adgangskode": "Password", "E-mail": "Email",
-    "Fortsæt": "Continue", "Privatliv": "Privacy",
+    "Fortsæt": "Continue", "Privatliv": "Privacy", "Opret konto": "Create account",
+    "Forkert e-mail eller adgangskode.": "Wrong email or password.",
+    "Udfyld e-mail og adgangskode.": "Enter email and password.",
+    "Bekræft din e-mail først - tjek indbakken (og spam).": "Confirm your email first - check your inbox (and spam).",
+    "Kontoen er oprettet - bekræft din e-mail via linket i indbakken, og log så ind.": "Account created - confirm your email via the link in your inbox, then log in.",
+    "Det lykkedes ikke - prøv igen om lidt.": "That didn't work - try again shortly.",
+    "Konto og gemte løb opbevares sikkert hos Supabase (EU) og følger dig på tværs af enheder. Profilbilledet bliver kun på din enhed.": "Your account and saved races are stored securely with Supabase (EU) and follow you across devices. Your profile photo stays on this device.",
     "Demo: gemmes kun lokalt i din browser - ingen konto oprettes.": "Demo: stored only locally in your browser - no account is created.",
     // dashboard
     "Godmorgen": "Good morning", "Formiddag": "Good day", "Goddag": "Good afternoon", "Godaften": "Good evening", "Godnat": "Good night",

@@ -369,6 +369,7 @@ document.getElementById("dSave").addEventListener("click", () => {
   if (!currentRace) return;
   favs.has(currentRace.n) ? favs.delete(currentRace.n) : favs.add(currentRace.n);
   localStorage.setItem("runnin-favs", JSON.stringify([...favs]));
+  window.skyPush?.(currentRace.n);
   updateSaveBtn();
   updateFavCount();
 });
@@ -379,6 +380,7 @@ document.getElementById("dEntry").addEventListener("click", () => {
     entries.add(currentRace.n);
     favs.add(currentRace.n); // tilmeldt ⇒ også i Mine løb
     localStorage.setItem("runnin-favs", JSON.stringify([...favs]));
+    window.skyPush?.(currentRace.n);
   }
   saveEntries();
   updateSaveBtn();
@@ -895,7 +897,7 @@ function toggleProfileMenu() {
     if (act === "dash") openDashboard();
     if (act === "mine") { setTab("mine"); panel.hidden = false; renderFavs(); }
     if (act === "rediger") openDashboard("indstillinger");
-    if (act === "logud") { localStorage.removeItem("runnin-user"); updateAuthUI(); if (state.tab === "mine") renderFavs(); }
+    if (act === "logud") logUd();
   });
 }
 
@@ -904,17 +906,9 @@ document.addEventListener("click", e => { if (!profileMenu.hidden && !profileMen
 document.addEventListener("keydown", e => { if (e.key === "Escape") profileMenu.hidden = true; });
 document.getElementById("loginClose").addEventListener("click", closeLogin);
 loginOverlay.addEventListener("click", e => { if (e.target === loginOverlay) closeLogin(); });
-document.getElementById("loginForm").addEventListener("submit", e => {
-  e.preventDefault();
-  const navn = document.getElementById("loginName").value.trim();
-  if (!navn) return;
-  const email = document.getElementById("loginEmail").value.trim();
-  localStorage.setItem("runnin-user", JSON.stringify({ navn, ...(email ? { email } : {}) }));
-  closeLogin();
-  updateAuthUI();
-  if (state.tab === "mine") renderFavs();
-});
+// login/oprettelse håndteres af js/konto.js (rigtig Supabase-auth)
 function logUd() {
+  if (window.kontoLogUd) return kontoLogUd();
   localStorage.removeItem("runnin-user");
   updateAuthUI();
   if (state.tab === "mine") renderFavs();

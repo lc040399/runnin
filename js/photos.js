@@ -31,6 +31,7 @@ const huskBib = (race, bib) => {
   const m = bibHusk();
   if (bib) m[race.n] = bib; else delete m[race.n];
   localStorage.setItem("runnin-bibs", JSON.stringify(m));
+  window.skyPush?.(race.n);
 };
 
 function openFotos(race, bib) {

@@ -69,8 +69,10 @@
       </div>
       <label class="login-label" for="loginEmail">E-mail</label>
       <input class="login-field" id="loginEmail" type="email" placeholder="dig@mail.dk" autocomplete="email">
-      <button class="cta login-cta" type="submit">Fortsæt <span>→</span></button>
-      <p class="foto-note">Demo: gemmes kun lokalt i din browser - ingen konto oprettes. <a href="/privatliv.html" style="color:var(--coral)">Privatliv</a></p>
+      <p class="login-fejl" id="loginFejl" hidden></p>
+      <button class="cta login-cta" type="submit">Log ind <span>→</span></button>
+      <button class="save" type="button" id="opretKonto">Opret konto</button>
+      <p class="foto-note">Konto og gemte løb opbevares sikkert hos Supabase (EU) og følger dig på tværs af enheder. Profilbilledet bliver kun på din enhed. <a href="/privatliv.html" style="color:var(--coral)">Privatliv</a></p>
     </form>
   </div>
 </div>
@@ -183,5 +185,7 @@
 <script src="js/connect.js?v=51"></script>
 <script src="js/dashboard.js?v=68"></script>
 <script src="js/live.js?v=69"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/konto.js?v=70"></script>
 </body>
 </html>

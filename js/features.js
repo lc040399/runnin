@@ -60,9 +60,11 @@ document.getElementById("dAlarm").addEventListener("click", () => {
   const r = currentRace;
   if (alarms.has(r.n)) {
     alarms.delete(r.n); saveAlarms(); updateAlarmBtn(r);
+    window.skyPush?.(r.n);
     return;
   }
   alarms.add(r.n); saveAlarms(); updateAlarmBtn(r);
+  window.skyPush?.(r.n);
   const ics = påmindelsesIcs(r);
   const t = visToast(
     `🔔 Vi minder dig om tilmeldingen til <strong>${r.n}</strong>, når du åbner Runnin.`,
