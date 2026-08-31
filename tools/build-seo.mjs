@@ -22,9 +22,11 @@ const datoTekst = r => r.dt
   : `${MDR[+r.m.split("-")[1] - 1]} ${r.m.split("-")[0]}`;
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
+const iDag = new Date().toISOString().slice(0, 10);
 const urls = [];
 const seteSlugs = new Set();
 for (const r of RACES) {
+  if (r.dt ? r.dt < iDag : r.m < iDag.slice(0, 7)) continue; // afholdte løb får ingen sider
   const sl = slug(r.n);
   if (!sl || seteSlugs.has(sl)) continue;
   seteSlugs.add(sl);

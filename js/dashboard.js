@@ -82,9 +82,9 @@ function bindCalCells() {
 function renderDashboard() {
   const user = getUser();
   const gemte = RACES.filter(r => favs.has(r.n)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
-  const kommende = gemte.filter(r => r.dt && new Date(r.dt) >= new Date());
+  const kommende = gemte.filter(r => r.dt && r.dt >= todayISO()); // I DAG tæller med
   const next = kommende.find(r => entries.has(r.n)) || kommende[0] || null;
-  const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
+  const dage = next ? Math.max(0, Math.ceil((new Date(next.dt) - new Date()) / 86400000)) : null;
   const f = typeof stravaForm === "function" ? stravaForm() : null;
 
   /* mini-kalender for dashMonth: prikker = gemte/tilmeldte løb */
@@ -106,7 +106,7 @@ function renderDashboard() {
       <div class="dash-card dash-hero dash-in" style="--i:1" ${next ? `data-n="${next.n.replace(/"/g, "&quot;")}"` : ""}>
         ${next ? `
           <div class="foto-kicker">${entries.has(next.n) ? "🎟 Dit næste tilmeldte løb" : "Dit næste løb"}</div>
-          <div class="dash-tal"><span id="dashDage">0</span><small>dage</small></div>
+          <div class="dash-tal">${dage === 0 ? `<span class="dash-idag">I DAG</span>` : `<span id="dashDage">0</span><small>dage</small>`}</div>
           <div class="dash-næste">${next.n}</div>
           <div class="dash-sub">${dateLabel(next)} · ${next.c} ${flag(next.cc)}</div>
           <button class="cta" id="dashSeKort" style="margin-top:14px">Se på kortet <span>→</span></button>`
@@ -277,7 +277,7 @@ function renderDashboard() {
   });
 
   // tæl nedtællingen op (0 → dage)
-  if (dage !== null) {
+  if (dage !== null && dage > 0) {
     const el = document.getElementById("dashDage");
     const t0 = performance.now(), dur = 900;
     (function opTæl(ts) {

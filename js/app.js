@@ -626,11 +626,11 @@ function renderFavs() {
   const user = getUser();
   let hilsen = "";
   if (user) {
-    const kommende = list.filter(r => r.dt && new Date(r.dt) >= new Date());
+    const kommende = list.filter(r => r.dt && r.dt >= iDagISO()); // strengsammenligning: I DAG tæller med
     const next = kommende.find(r => entries.has(r.n)) || kommende[0]; // tilmeldte løb først
-    const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
+    const dage = next ? Math.max(0, Math.ceil((new Date(next.dt) - new Date()) / 86400000)) : null;
     hilsen = `<div class="mine-hilsen"><strong>Hej ${user.navn.split(" ")[0]}</strong>
-      <span>${list.length} løb gemt${next ? ` · <span class="countdown">${dage} dage</span> til ${next.n}${entries.has(next.n) ? " 🎟" : ""}` : ""}</span></div>`;
+      <span>${list.length} løb gemt${next ? ` · <span class="countdown">${dage === 0 ? "I DAG" : dage + " dage"}</span> ${dage === 0 ? "-" : "til"} ${next.n}${entries.has(next.n) ? " 🎟" : ""}` : ""}</span></div>`;
   }
   panelBody.innerHTML = hilsen + (list.length
     ? list.map(rowHtml).join("")
@@ -661,14 +661,16 @@ searchInput.addEventListener("input", () => {
   const q = norm(searchInput.value.trim());
   if (q.length < 2) { searchMenu.hidden = true; return; }
   const hits = RACES.filter(r => norm(r.n).includes(q) || norm(r.c).includes(q))
-    .sort((a, b) => sortKey(a).localeCompare(sortKey(b))) // nærmeste dato øverst
+    .sort((a, b) => (erKommende(a) === erKommende(b))
+      ? sortKey(a).localeCompare(sortKey(b))     // nærmeste dato øverst
+      : (erKommende(a) ? -1 : 1))                // afholdte nederst
     .slice(0, 8);
   if (!hits.length) { searchMenu.innerHTML = `<div class="search-tom">Ingen løb matcher "${searchInput.value.trim()}"</div>`; searchMenu.hidden = false; return; }
   searchMenu.innerHTML = hits.map(r => `
     <button data-id="${r.id}">
       <span class="dot" style="background:${TYPE_COLOR[r.t]}"></span>
       <span class="s-navn">${r.n}</span>
-      <span class="s-meta">${r.c} · ${dateLabel(r)}</span>
+      <span class="s-meta">${r.c} · ${r.dt && r.dt < iDagISO() ? "Afholdt " : ""}${dateLabel(r)}</span>
     </button>`).join("");
   searchMenu.hidden = false;
   searchMenu.querySelectorAll("button").forEach(b => b.onclick = () => {
@@ -699,12 +701,26 @@ function openFromHash() {
 map.on("load", openFromHash);
 window.addEventListener("hashchange", openFromHash);
 
+/* ---------- uret går: live-status genberegnes løbende, og ved datoskift
+   arkiveres gårsdagens løb uden reload (siden kan stå åben natten over) ---------- */
+let sidsteDato = iDagISO();
+setInterval(() => {
+  if (typeof initLiveUI === "function" && map.isStyleLoaded()) initLiveUI();
+  if (iDagISO() !== sidsteDato) {
+    sidsteDato = iDagISO();
+    const src = map.getSource("races");
+    if (src) src.setData(toGeojson(filtered()));
+    updateCounter();
+    if (!panel.hidden) setTab(state.tab);
+  }
+}, 5 * 60 * 1000);
+
 /* ---------- USA-kataloget hentes dovent (¾ af datamængden) ----------
    Norden-først: kortet står med det samme, RunSignup-løbene flettes ind
    når kortet har haft sit første rolige øjeblik. */
 map.once("load", () => setTimeout(() => {
   const s = document.createElement("script");
-  s.src = "data/races-rsu.js?v=52";
+  s.src = "data/races-rsu.js?v=57";
   s.onload = () => {
     // filen pusher sine løb og gen-id'er hele RACES selv
     const src = map.getSource("races");
@@ -762,8 +778,8 @@ function toggleProfileMenu() {
   closePanel();
   setTab("kort");
   const gemte = RACES.filter(r => favs.has(r.n)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
-  const next = gemte.find(r => r.dt && new Date(r.dt) >= new Date());
-  const dage = next ? Math.ceil((new Date(next.dt) - new Date()) / 86400000) : null;
+  const next = gemte.find(r => r.dt && r.dt >= iDagISO());
+  const dage = next ? Math.max(0, Math.ceil((new Date(next.dt) - new Date()) / 86400000)) : null;
 
   profileMenu.innerHTML = `
     <div class="pm-head">
@@ -773,7 +789,7 @@ function toggleProfileMenu() {
         <div class="pm-sub">${user.email || "Runnin-profil"}</div>
       </div>
     </div>
-    ${next ? `<div class="pm-next"><span class="countdown">${dage} dage</span> til ${next.n}</div>` : ""}
+    ${next ? `<div class="pm-next"><span class="countdown">${dage === 0 ? "I DAG" : dage + " dage"}</span> ${dage === 0 ? "-" : "til"} ${next.n}</div>` : ""}
     <div class="pm-items">
       <button data-act="dash" class="pm-dash">◈ Dashboard</button>
       <button data-act="mine">♡ Mine løb <span class="pm-tal">${gemte.length}</span></button>

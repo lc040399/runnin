@@ -906,3 +906,4 @@ html.tema-glid, html.tema-glid *, html.tema-glid *::before, html.tema-glid *::af
 .hc-liste i { width: 7px; height: 7px; border-radius: 99px; flex: none; }
 .hc-l-navn { font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
 .hc-l-dato { color: var(--muted); font-size: 11px; flex: none; }
+.dash-idag { font-size: 44px; letter-spacing: .02em; color: var(--coral); }
