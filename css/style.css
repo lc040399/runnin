@@ -718,6 +718,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 .dash-stats button {
   border: 1px solid var(--hairline); background: var(--flade); border-radius: 12px;
   font-family: var(--sans); padding: 13px 6px; cursor: pointer; text-align: center;
+  color: var(--ink); /* knapper arver ikke farve - uden denne er tallene sorte i mørk tilstand */
   transition: all .15s;
 }
 .dash-stats button:hover { border-color: var(--ink); transform: translateY(-1px); }

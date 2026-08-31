@@ -121,7 +121,7 @@ function renderDashboard() {
         <div class="dash-stats">
           <button data-act="mine"><strong>${gemte.length}</strong><span>gemte løb</span></button>
           <button data-act="mine"><strong>${[...entries].length}</strong><span>tilmeldt</span></button>
-          <button data-act="alarmer"><strong>${alarms.size}</strong><span>alarmer</span></button>
+          <button data-act="mine"><strong>${RACES.filter(r => entries.has(r.n) && r.dt && r.dt.slice(0, 4) === todayISO().slice(0, 4) && r.dt <= todayISO()).length}</strong><span>gennemført i år</span></button>
           <button data-act="mine"><strong>${new Set(gemte.map(r => r.cc)).size}</strong><span>lande</span></button>
         </div>
       </div>
