@@ -513,6 +513,7 @@ function renderList() {
   calToggle.hidden = false;
   const list = filtered().slice().sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
   if (!list.length) {
+    renderToken++;
     panelBody.innerHTML = `<div class="empty">Ingen løb matcher filtrene.<br><em>Prøv at åbne op for hvor eller hvornår.</em></div>`;
     return;
   }
@@ -632,6 +633,7 @@ calOverlay.addEventListener("click", e => { if (e.target === calOverlay) closeCa
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !calOverlay.hidden) closeCalendar(); });
 
 function renderFavs() {
+  renderToken++; // afbryd evt. igangværende bidder fra Kommende løb - ellers appender de herind
   panelTitle.textContent = "Mine løb";
   calToggle.hidden = true;
   const list = RACES.filter(r => favs.has(r.n))
