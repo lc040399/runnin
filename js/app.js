@@ -507,6 +507,7 @@ calToggle.addEventListener("click", () => openCalendar());
 const fullMonth = m => { const [y, mm] = m.split("-"); return MONTHS[+mm - 1][0].toUpperCase() + MONTHS[+mm - 1].slice(1) + " " + y; };
 const sortKey = r => r.dt || r.m + "-99";
 
+let renderToken = 0;
 function renderList() {
   panelTitle.textContent = "Kommende løb";
   calToggle.hidden = false;
@@ -515,13 +516,27 @@ function renderList() {
     panelBody.innerHTML = `<div class="empty">Ingen løb matcher filtrene.<br><em>Prøv at åbne op for hvor eller hvornår.</em></div>`;
     return;
   }
-  // Grupperet pr. måned med sticky headere (standard)
-  let html = "", current = "";
-  for (const r of list) {
-    if (r.m !== current) { current = r.m; html += `<div class="month-head">${fullMonth(r.m)}</div>`; }
-    html += rowHtml(r);
-  }
-  panelBody.innerHTML = html;
+  // ~6.000 rækker på én gang blokerer klikket i flere hundrede ms - render i bidder:
+  // første skærmfuld med det samme, resten i baggrunden (afbrydes hvis man skifter tab)
+  const token = ++renderToken;
+  const BID = 250;
+  let i = 0, current = "";
+  const byg = antal => {
+    let html = "";
+    const til = Math.min(i + antal, list.length);
+    for (; i < til; i++) {
+      const r = list[i];
+      if (r.m !== current) { current = r.m; html += `<div class="month-head">${fullMonth(r.m)}</div>`; }
+      html += rowHtml(r);
+    }
+    return html;
+  };
+  panelBody.innerHTML = byg(80);
+  (function næste() {
+    if (token !== renderToken || i >= list.length) return;
+    panelBody.insertAdjacentHTML("beforeend", byg(BID));
+    requestAnimationFrame(næste);
+  })();
 }
 
 /* ---------- kalender-modal ---------- */
