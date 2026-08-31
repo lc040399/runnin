@@ -97,7 +97,16 @@ function visAlarmer() {
 
 
 /* ================= MIT LØBS-ÅR (delbart billede) ================= */
-function tegnYearCard(gemte) {
+// letvægts verdenskort (Natural Earth 110m land) - hentes først når kortet skal tegnes
+let landGeo = null;
+async function hentLand() {
+  if (landGeo) return landGeo;
+  try { landGeo = await (await fetch("data/land.json")).json(); } catch (_) { landGeo = { features: [] }; }
+  return landGeo;
+}
+
+async function tegnYearCard(gemte) {
+  const land = await hentLand();
   const c = document.createElement("canvas");
   c.width = 1080; c.height = 1350;
   const g = c.getContext("2d");
@@ -114,7 +123,7 @@ function tegnYearCard(gemte) {
 
   // kortflade zoomet til DINE løb (ikke hele verden) - equirektangulær med margen
   const mx = 70, my = 360, mw = 940, mh = 520;
-  g.fillStyle = "#ECE8DF";
+  g.fillStyle = "#DCE4E4"; // dæmpet hav
   g.beginPath(); g.roundRect(mx, my, mw, mh, 24); g.fill();
   let laMin = Math.min(...gemte.map(r => r.la)), laMax = Math.max(...gemte.map(r => r.la));
   let loMin = Math.min(...gemte.map(r => r.lo)), loMax = Math.max(...gemte.map(r => r.lo));
@@ -129,6 +138,25 @@ function tegnYearCard(gemte) {
   const py = la => my + ((laMax - la) / (laMax - laMin)) * mh;
   g.save();
   g.beginPath(); g.roundRect(mx, my, mw, mh, 24); g.clip();
+  // landmasse: hav = kortfladen, land = svagt varmere tone m. blød kyststreg
+  g.fillStyle = "#F1EDE3"; g.strokeStyle = "rgba(56,36,13,.16)"; g.lineWidth = 1.5;
+  for (const f of land.features) {
+    const polys = f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
+    for (const poly of polys) {
+      // spring polygoner helt uden for udsnittet over
+      g.beginPath();
+      let indenfor = false;
+      for (const ring of poly) {
+        ring.forEach(([lo, la], i) => {
+          if (lo >= loMin - 8 && lo <= loMax + 8 && la >= laMin - 8 && la <= laMax + 8) indenfor = true;
+          const x = px(lo), y = py(la);
+          i === 0 ? g.moveTo(x, y) : g.lineTo(x, y);
+        });
+        g.closePath();
+      }
+      if (indenfor) { g.fill(); g.stroke(); }
+    }
+  }
   g.fillStyle = "rgba(56,36,13,.10)";
   for (const r of RACES) {
     if (r.la < laMin || r.la > laMax || r.lo < loMin || r.lo > loMax || favs.has(r.n)) continue;
@@ -160,7 +188,7 @@ function tegnYearCard(gemte) {
   return c;
 }
 
-function openYearCard() {
+async function openYearCard() {
   const gemte = RACES.filter(r => favs.has(r.n));
   const modal = featOverlay.querySelector(".cal-modal");
   if (!gemte.length) {
@@ -173,7 +201,7 @@ function openYearCard() {
     document.getElementById("aarTilKort").onclick = () => { featOverlay.hidden = true; setTab("kort"); };
     return;
   }
-  const c = tegnYearCard(gemte);
+  const c = await tegnYearCard(gemte);
   const url = c.toDataURL("image/png");
   const kanDele = !!navigator.canShare;
   modal.innerHTML = `

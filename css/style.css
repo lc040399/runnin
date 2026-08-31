@@ -869,3 +869,19 @@ html.tema-glid, html.tema-glid *, html.tema-glid *::before, html.tema-glid *::af
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+/* live-menu: dropdown fra live-pillen med de aktive løb */
+.live-menu {
+  position: fixed; z-index: 60; min-width: 280px; max-width: 360px; max-height: 340px; overflow-y: auto;
+  background: var(--card); border: 1px solid var(--hairline); border-radius: 16px;
+  box-shadow: var(--card-shadow); padding: 8px;
+  transform-origin: top left; animation: foldDown .32s cubic-bezier(.22,1.4,.36,1) both;
+}
+.live-menu button {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  border: 0; background: none; cursor: pointer; border-radius: 10px;
+  font-family: var(--sans); font-size: 13px; color: var(--ink);
+  padding: 10px 10px; transition: background .13s;
+}
+.live-menu button:hover { background: var(--flade); }
+.live-menu .lm-navn { font-weight: 600; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.live-menu .lm-sted { font-size: 11.5px; color: var(--muted); flex: none; }

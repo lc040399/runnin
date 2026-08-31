@@ -377,6 +377,41 @@ function closeLive() {
   clearLiveLayers();
 }
 
+/* ---------- live-menu: dropdown med de aktive løb ---------- */
+let liveMenuEl = null;
+function lukLiveMenu() { if (liveMenuEl) { liveMenuEl.remove(); liveMenuEl = null; } }
+
+function åbnLiveMenu(pill) {
+  lukLiveMenu();
+  const liveRaces = RACES.filter(isLive).sort((a, b) => a.n.localeCompare(b.n, "da"));
+  if (!liveRaces.length) return;
+  const rect = pill.getBoundingClientRect();
+  liveMenuEl = document.createElement("div");
+  liveMenuEl.className = "live-menu";
+  liveMenuEl.style.top = rect.bottom + 8 + "px";
+  liveMenuEl.style.left = Math.max(12, rect.left) + "px";
+  liveMenuEl.innerHTML = liveRaces.map(r => `
+    <button data-n="${r.n.replace(/"/g, "&quot;")}">
+      <i class="live-dot"></i>
+      <span class="lm-navn">${r.n}</span>
+      <span class="lm-sted">${r.c} ${flag(r.cc)}</span>
+    </button>`).join("");
+  document.body.appendChild(liveMenuEl);
+  liveMenuEl.querySelectorAll("button").forEach(b => b.onclick = () => {
+    const r = RACES.find(x => x.n === b.dataset.n);
+    lukLiveMenu();
+    if (r) openLive(r);
+  });
+  // luk når musen forlader både pill og menu (desktop-hover)
+  liveMenuEl.addEventListener("mouseleave", e => {
+    if (!pill.contains(e.relatedTarget)) lukLiveMenu();
+  });
+}
+document.addEventListener("click", e => {
+  if (liveMenuEl && !liveMenuEl.contains(e.target) && !e.target.closest("#livePill")) lukLiveMenu();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") lukLiveMenu(); });
+
 /* ---------- puls på live-prikker + live-pill ---------- */
 function initLiveUI() {
   const liveRaces = RACES.filter(isLive);
@@ -384,9 +419,13 @@ function initLiveUI() {
   if (liveRaces.length) {
     pill.hidden = false;
     pill.innerHTML = `<i class="live-dot"></i> <strong>${liveRaces.length} løb</strong>&nbsp;i gang lige nu <span class="live-cta">Følg live →</span>`;
-    let cycle = 0;
-    pill.onclick = () => { openLive(liveRaces[cycle % liveRaces.length]); cycle++; };
-  } else pill.hidden = true;
+    pill.onclick = () => (liveMenuEl ? lukLiveMenu() : åbnLiveMenu(pill));
+    pill.onmouseenter = () => åbnLiveMenu(pill);
+    pill.onmouseleave = e => {
+      // kun luk hvis musen ikke er på vej ned i menuen
+      setTimeout(() => { if (liveMenuEl && !liveMenuEl.matches(":hover") && !pill.matches(":hover")) lukLiveMenu(); }, 120);
+    };
+  } else { pill.hidden = true; lukLiveMenu(); }
 
   // idempotent: ved genkald (fx når USA-kataloget lander) opdateres kildedata blot
   const eksisterende = map.getSource("live-halo");
