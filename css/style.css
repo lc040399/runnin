@@ -755,7 +755,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 .dash-profil-felter { display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: end; }
 .dash-profil-felter .login-label { margin-top: 0; }
 .dash-profil-felter .cta { padding: 12px 24px; margin: 0; white-space: nowrap; }
-.dash-settings-rk { display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: start; margin-top: 4px; }
+.dash-settings-rk { display: grid; grid-template-columns: auto auto 1fr; gap: 28px; align-items: start; margin-top: 4px; }
 @media (max-width: 720px) {
   .dash-grid { grid-template-columns: 1fr; }
   .dash-tal span { font-size: 52px; }

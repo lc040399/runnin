@@ -226,6 +226,13 @@ function renderDashboard() {
               </div>
             </div>
             <div>
+              <span class="login-label">Sprog</span>
+              <div class="tema-valg">
+                <button class="tema-chip sprog-chip ${SPROG === "da" ? "on" : ""}" type="button" data-sprog="da">Dansk</button>
+                <button class="tema-chip sprog-chip ${SPROG === "en" ? "on" : ""}" type="button" data-sprog="en">English</button>
+              </div>
+            </div>
+            <div>
               <span class="login-label">Dine data</span>
               <div class="dash-genveje">
                 <button id="setExport" type="button">⬇️ Download mine data</button>
@@ -253,6 +260,7 @@ function renderDashboard() {
     c.classList.toggle("on", c.dataset.tema === tema);
     c.onclick = () => setTema(c.dataset.tema);
   });
+  dashOverlay.querySelectorAll(".sprog-chip").forEach(c => c.onclick = () => { if (c.dataset.sprog !== SPROG) sætSprog(c.dataset.sprog); });
   document.getElementById("dashAvatarBtn").onclick = () => document.getElementById("fotoInput").click();
   document.getElementById("setGem").onclick = () => {
     const navn = document.getElementById("setNavn").value.trim();

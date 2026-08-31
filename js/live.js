@@ -172,7 +172,8 @@ function ensureLiveLayers() {
   map.addSource("live-runners", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
   map.addLayer({
     id: "live-route-line", type: "line", source: "live-route",
-    paint: { "line-color": "#C05800", "line-width": 3.5, "line-opacity": .8 },
+    // stiplet med vilje: ruten er en illustration (OSRM, distance-matchet) - IKKE arrangørens officielle rute
+    paint: { "line-color": "#C05800", "line-width": 3, "line-opacity": .65, "line-dasharray": [2.4, 1.8] },
     layout: { "line-cap": "round", "line-join": "round" },
   });
   map.addLayer({
@@ -251,13 +252,13 @@ function buildLivePanel() {
     <div class="live-stats">
       <div><strong id="stRuten">${sim.runners.length}</strong><span>på ruten</span></div>
       <div><strong id="stMaal">0</strong><span>i mål</span></div>
-      <div><strong>${sim.distKm} km</strong><span>rute</span></div>
+      <div><strong>${sim.distKm} km</strong><span>illustrativ rute</span></div>
     </div>
     <div class="live-sec">Førende lige nu</div>
     <div class="lb-list" id="lbList"></div>
     <div class="live-sec">Målstregen</div>
     <div class="live-feed" id="liveFeed"><div class="feed-tom">Ingen i mål endnu - følg med her.</div></div>
-    <p class="foto-note">Demo: LIVE-status er ægte (løbet afholdes i dag), og løberne bevæger sig i naturligt løbetempo på rigtige veje, matchet til løbets distance - men den officielle rute og felterne kræver arrangørens data.</p>`;
+    <p class="foto-note">⚠️ Den stiplede rute er en ILLUSTRATION (rigtige veje, matchet til distancen) - ikke arrangørens officielle rute. Skal du finde løbere eller forberede dig, så brug arrangørens rutekort. LIVE-status er ægte; felterne er simulerede.</p>`;
   document.getElementById("liveClose").onclick = closeLive;
 }
 
@@ -406,7 +407,7 @@ function visÆgteResultater(res) {
     <div class="live-stats">
       <div><strong>${res.length}</strong><span>i mål</span></div>
       <div><strong>${top[0]?.tid || "-"}</strong><span>vindertid</span></div>
-      <div><strong>${sim.distKm} km</strong><span>rute</span></div>
+      <div><strong>${sim.distKm} km</strong><span>illustrativ rute</span></div>
     </div>
     <div class="live-sec">Resultater · <span style="color:#059669">ægte data</span></div>
     ${top.map(r => `

@@ -89,6 +89,7 @@ const map = new maplibregl.Map({
   minZoom: 1.2,
   renderWorldCopies: false, // én verden - ingen gentagne kontinenter/prikker
   attributionControl: { compact: true },
+  fadeDuration: 120, // kortere flise-fade: mindre synlig "firkant-loading" ved hurtig zoom
 });
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
 
