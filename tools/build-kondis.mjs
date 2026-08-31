@@ -73,8 +73,11 @@ for (const d of events) {
   else if (max >= 20000) [t, dist] = ["half", "21,1 km"];
   else [t, dist] = ["kort", max >= 1000 ? `${(max / 1000).toLocaleString("da-DK", { maximumFractionDigits: 1 })} km` : "Løb"];
 
+  // link-prioritet: ægte tilmeldingslink > Kondis' egen event-side (aldrig klub-forsiden)
   const urls = (f.urls?.arrayValue?.values || []).map(v => s(v.mapValue?.fields?.url)).filter(u => /^https?:\/\//.test(u));
-  valgte.push({ navn, by, dato, t, dist, url: urls[0] || "https://terminlista.kondis.no/" });
+  const tilmeld = urls.find(u => /p[åa]meld|signup|sign-up|registr|deltager|checkout|events?\//i.test(u));
+  const eventSide = `https://terminlista.kondis.no/l%C3%B8ping/event/${s(f.id)}`;
+  valgte.push({ navn, by, dato, t, dist, url: tilmeld || eventSide });
 }
 console.log("sportTyper:", stat);
 console.log("valgte (unikke, løb/trail/tri):", valgte.length);

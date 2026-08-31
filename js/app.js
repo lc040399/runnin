@@ -331,11 +331,18 @@ function openDetail(r, fly) {
     dagStatus +
     (r.p ? `<br>Startgebyr: ${priceLabel(r.p)}` : `<br>Pris: se tilmeldingssiden`) +
     (r.u.includes("sportstiming.dk") ? `<br><span class="d-kilde">Kalenderdata: Sportstiming</span>`
-      : r.u.includes("runsignup.com") ? `<br><span class="d-kilde">Kalenderdata: RunSignup</span>` : "");
+      : r.u.includes("runsignup.com") ? `<br><span class="d-kilde">Kalenderdata: RunSignup</span>`
+      : r.u.includes("kondis.no") ? `<br><span class="d-kilde">Kalenderdata: Kondis</span>`
+      : r.u.includes("raceid.com") ? `<br><span class="d-kilde">Kalenderdata: RaceID</span>` : "");
   const note = document.getElementById("dNote");
   note.hidden = !r.note;
   if (r.note) note.textContent = "⚑ Adgang: " + r.note;
-  document.getElementById("dCta").href = r.u;
+  const cta = document.getElementById("dCta");
+  cta.href = r.u;
+  // Kondis-event-sider er informations-sider med videre-links - lov ikke direkte tilmelding dér
+  cta.innerHTML = r.u.includes("terminlista.kondis.no")
+    ? `Se løbet hos Kondis <span>→</span>`
+    : `Tilmeld på officiel side <span>→</span>`;
   document.getElementById("dLive").hidden = !(typeof isLive === "function" && isLive(r));
   updateSaveBtn();
   if (typeof featuresOnDetail === "function") featuresOnDetail(r);
