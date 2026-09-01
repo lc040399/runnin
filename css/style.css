@@ -1027,3 +1027,52 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
   .liste-indre { padding-top: calc(86px + env(safe-area-inset-top)); }
   .l-pris { display: none; }
 }
+/* tab-hover-dropdowns */
+.tab-menu { min-width: 300px; }
+.tm-række {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  border: 0; background: none; cursor: pointer; border-radius: 10px;
+  font-family: var(--sans); font-size: 13px; color: var(--ink); padding: 9px 10px; transition: background .13s;
+}
+.tm-række:hover { background: var(--flade); }
+.tm-række i { width: 8px; height: 8px; border-radius: 99px; flex: none; }
+.tm-stats { display: flex; gap: 8px; padding: 4px 4px 10px; }
+.tm-stats div { flex: 1; background: var(--flade); border-radius: 10px; text-align: center; padding: 10px 4px; }
+.tm-stats strong { display: block; font-size: 17px; }
+.tm-stats span { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.tm-sek { font-size: 10.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--coral); padding: 8px 10px 4px; }
+.tm-næste { font-size: 12px; color: var(--muted); background: var(--flade); border-radius: 10px; padding: 9px 12px; margin: 2px 2px 8px; }
+.tm-tom { font-size: 12.5px; color: var(--muted); padding: 10px; line-height: 1.5; }
+.tm-cta {
+  display: block; width: 100%; border: 0; background: none; cursor: pointer;
+  font-family: var(--sans); font-size: 12.5px; font-weight: 700; color: var(--coral);
+  text-align: center; padding: 10px 0 6px; border-top: 1px solid var(--hairline); margin-top: 6px;
+}
+.tm-cta:hover { text-decoration: underline; }
+/* listevisningens type-vælger + sektioner */
+.l-typer { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 4px 0 14px; }
+.l-type {
+  border: 1px solid var(--hairline); background: var(--card); border-radius: 13px; cursor: pointer;
+  font-family: var(--sans); color: var(--ink); text-align: center; padding: 11px 4px 9px;
+  transition: transform .18s cubic-bezier(.22,1.4,.36,1), border-color .15s, background .15s;
+}
+.l-type:hover { transform: translateY(-2px); border-color: var(--ink); }
+.l-type.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.l-type i { display: inline-block; width: 8px; height: 8px; border-radius: 99px; margin-bottom: 4px; }
+.l-type strong { display: block; font-size: 16px; font-variant-numeric: tabular-nums; }
+.l-type span { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+.l-type.on span { color: var(--paper); opacity: .75; }
+.l-sek { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--coral); margin: 14px 4px 8px; display: flex; align-items: center; gap: 7px; }
+.l-hscroll { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 10px; scrollbar-width: none; }
+.l-hscroll::-webkit-scrollbar { display: none; }
+.l-minikort {
+  flex: none; width: 200px; text-align: left; cursor: pointer;
+  border: 1px solid var(--hairline); background: var(--card); border-radius: 14px; padding: 12px 14px;
+  font-family: var(--sans); color: var(--ink);
+  transition: transform .18s cubic-bezier(.22,1.4,.36,1), box-shadow .18s;
+}
+.l-minikort:hover { transform: translateY(-2px); box-shadow: var(--soft-shadow); }
+.l-minikort strong { display: block; font-size: 13px; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.l-minikort span { font-size: 11px; color: var(--muted); }
+.l-gruppe-antal { color: var(--faint); font-weight: 600; letter-spacing: 0; text-transform: none; }
+@media (max-width: 720px) { .l-typer { grid-template-columns: repeat(3, 1fr); } }

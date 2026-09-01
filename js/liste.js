@@ -67,6 +67,19 @@ window.renderListe = function () {
     `<button class="tema-chip ${listeScope === k ? "on" : ""}" data-scope="${k}">${label}</button>`).join("");
   const scopeNavn = LISTE_SCOPES.find(([k]) => k === listeScope)[1];
 
+  // type-vælger m. tællere (uafhængig af det aktive type-filter, så man kan skifte frit)
+  const iScopeAlle = RACES.filter(r => erKommende(r) && iListeScope(r));
+  const typeKort = Object.keys(TYPE_LABEL).map(t => {
+    const antal = iScopeAlle.filter(r => r.t === t).length;
+    return `<button class="l-type ${state.type === t ? "on" : ""}" data-type="${t}">
+      <i style="background:${TYPE_COLOR[t]}"></i><strong>${antal.toLocaleString("da-DK")}</strong><span>${TYPE_LABEL[t]}</span>
+    </button>`;
+  }).join("");
+
+  // LIVE lige nu + udvalgte klassikere (kuraterede løb m. pris) i scope
+  const liveNu = typeof isLive === "function" ? iScopeAlle.filter(isLive).slice(0, 12) : [];
+  const klassikere = iScopeAlle.filter(r => r.p).sort((a, b) => sortKey(a).localeCompare(sortKey(b))).slice(0, 10);
+
   listeOverlay.innerHTML = `
     <div class="liste-indre">
       <div class="dash-head dash-in" style="--i:0">
@@ -83,8 +96,39 @@ window.renderListe = function () {
           <button class="pill" id="listeKalender">📅 Kalender</button>
         </div>
       </div>
+      <div class="l-typer dash-in" style="--i:2">${typeKort}</div>
+      ${liveNu.length ? `
+      <div class="l-sek dash-in" style="--i:3"><i class="live-dot"></i> Live lige nu</div>
+      <div class="l-hscroll dash-in" style="--i:3">
+        ${liveNu.map(r => `<button class="l-minikort l-live" data-live="${r.id}">
+          <span class="row-live"><i class="live-dot"></i>LIVE</span>
+          <strong>${r.n}</strong><span>${r.c} ${flag(r.cc)}</span>
+        </button>`).join("")}
+      </div>` : ""}
+      ${klassikere.length ? `
+      <div class="l-sek dash-in" style="--i:4">Udvalgte klassikere</div>
+      <div class="l-hscroll dash-in" style="--i:4">
+        ${klassikere.map(r => `<button class="l-minikort" data-id="${r.id}">
+          <i class="dot" style="background:${TYPE_COLOR[r.t]}"></i>
+          <strong>${r.n}</strong><span>${dateLabel(r)} · ${priceLabel(r.p)}</span>
+        </button>`).join("")}
+      </div>` : ""}
       <div class="liste-krop" id="listeKrop"></div>
     </div>`;
+
+  // type-kort filtrerer globalt (samme mekanik som legenden - pill/menu følger med)
+  listeOverlay.querySelectorAll(".l-type").forEach(b => b.onclick = () => {
+    const t = b.dataset.type;
+    const typeMenu = document.querySelector('.menu[data-for="type"]');
+    const idx = state.type === t ? 0 : menus.type.findIndex(o => o.v === t);
+    typeMenu.querySelector(`button[data-i="${idx}"]`).click(); // applyFilters gen-renderer listen
+  });
+  listeOverlay.querySelectorAll(".l-minikort[data-id]").forEach(b => b.onclick = () => {
+    lukListe(); setTab("kort"); openDetail(RACES[+b.dataset.id], true);
+  });
+  listeOverlay.querySelectorAll(".l-minikort[data-live]").forEach(b => b.onclick = () => {
+    lukListe(); setTab("kort"); openLive(RACES[+b.dataset.live]);
+  });
 
   document.getElementById("listeLuk").onclick = () => { lukListe(); setTab("kort"); };
   document.getElementById("listeKalender").onclick = () => openCalendar();
@@ -100,8 +144,14 @@ window.renderListe = function () {
     return;
   }
 
+  // gruppe-tællere beregnes først, så headerne kan vise "September 2026 · 431 løb"
+  const gruppeAntal = {};
+  for (const r of løb) {
+    const g = listeGruppe(r, iDag, iMorgen, søndag);
+    gruppeAntal[g] = (gruppeAntal[g] || 0) + 1;
+  }
   // bidder: første skærmfuld straks, resten pr. frame - grupper får stagger-indhop
-  let i = 0, aktuelGruppe = "", gruppeIndeks = 1;
+  let i = 0, aktuelGruppe = "", gruppeIndeks = 4;
   const byg = antal => {
     let html = "";
     const til = Math.min(i + antal, løb.length);
@@ -111,7 +161,7 @@ window.renderListe = function () {
       if (g !== aktuelGruppe) {
         aktuelGruppe = g;
         gruppeIndeks++;
-        html += `<div class="l-gruppe dash-in" style="--i:${Math.min(gruppeIndeks, 8)}">${g}</div>`;
+        html += `<div class="l-gruppe dash-in" style="--i:${Math.min(gruppeIndeks, 9)}">${g} <span class="l-gruppe-antal">· ${gruppeAntal[g].toLocaleString("da-DK")} løb</span></div>`;
       }
       html += listeRække(r);
     }

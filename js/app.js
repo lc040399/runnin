@@ -496,10 +496,11 @@ document.querySelectorAll(".tab").forEach(tab =>
     tab.classList.add("active");
     state.tab = tab.dataset.tab;
     detail.hidden = true;
+    lukTabMenu();
     window.lukListe?.();
     if (state.tab === "kort") closePanel();
-    else if (state.tab === "lob") { closePanel(); window.åbnListe?.(); }
-    else { panel.hidden = false; renderFavs(); }
+    else if (state.tab === "liste") { closePanel(); window.åbnListe?.(); }
+    else { panel.hidden = false; state.tab === "lob" ? renderList() : renderFavs(); }
   })
 );
 document.getElementById("panelClose").addEventListener("click", () => {
@@ -766,6 +767,100 @@ function fjernDetailRute() {
 }
 new MutationObserver(() => { if (detail.hidden) fjernDetailRute(); })
   .observe(detail, { attributes: true, attributeFilter: ["hidden"] });
+
+/* ---------- tab-hovers: forsmag under Kort / Kommende løb / Mine løb ---------- */
+let tabMenuEl = null;
+function lukTabMenu() { if (tabMenuEl) { tabMenuEl.remove(); tabMenuEl = null; } }
+
+const LANDE_ZOOM = {
+  dk: { center: [10.7, 56.2], zoom: 6.2, label: "Danmark" },
+  norden: { center: [16, 62.5], zoom: 3.9, label: "Norden" },
+  EU: { center: [10, 51], zoom: 3.6, label: "Europa" },
+  alle: { center: [13, 59.5], zoom: 1.6, label: "Hele verden" },
+};
+const listeScopeNu = () => localStorage.getItem("runnin-liste-scope") || "dk";
+const iScopeHurtig = (r, scope) =>
+  scope === "dk" ? r.cc === "DK" : scope === "norden" ? NORDICS.includes(r.cc) : scope === "EU" ? r.co === "EU" : true;
+
+function miniRække(r) {
+  return `<button class="tm-række" data-id="${r.id}">
+    <i style="background:${TYPE_COLOR[r.t]}"></i>
+    <span class="lm-navn">${r.n}</span>
+    <span class="lm-sted">${dateLabel(r)}</span>
+  </button>`;
+}
+
+function tabMenuIndhold(navn) {
+  const scope = listeScopeNu();
+  if (navn === "kort") {
+    const antal = RACES.filter(erKommende).length;
+    const live = typeof isLive === "function" ? RACES.filter(isLive).length : 0;
+    return `<div class="tm-stats">
+        <div><strong>${antal.toLocaleString("da-DK")}</strong><span>kommende løb</span></div>
+        <div><strong>${live}</strong><span>live lige nu</span></div>
+      </div>
+      <div class="tm-sek">Flyv til</div>
+      ${Object.entries(LANDE_ZOOM).map(([k, z]) => `<button class="tm-række" data-zoom="${k}"><i style="background:var(--coral)"></i><span class="lm-navn">${z.label}</span><span class="lm-sted">→</span></button>`).join("")}`;
+  }
+  if (navn === "lob") {
+    const næste = RACES.filter(r => erKommende(r) && iScopeHurtig(r, scope))
+      .sort((a, b) => sortKey(a).localeCompare(sortKey(b))).slice(0, 6);
+    return `${næste.map(miniRække).join("")}
+      <button class="tm-cta" data-handling="liste">Åbn hele listen →</button>`;
+  }
+  if (navn === "mine") {
+    const user = getUser();
+    if (!user) return `<div class="tm-tom">Log ind for at gemme løb og følge dem her.</div>
+      <button class="tm-cta" data-handling="login">Log ind →</button>`;
+    const gemte = RACES.filter(r => favs.has(r.n) && erKommende(r))
+      .sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
+    const next = gemte.find(r => entries.has(r.n)) || gemte[0];
+    const dage = next?.dt ? Math.max(0, Math.ceil((new Date(next.dt) - new Date()) / 86400000)) : null;
+    return `${next ? `<div class="tm-næste"><span class="countdown">${dage === 0 ? "I DAG" : dage + " dage"}</span> ${dage === 0 ? "-" : "til"} ${next.n}</div>` : ""}
+      ${gemte.slice(0, 5).map(miniRække).join("") || `<div class="tm-tom">Ingen gemte løb endnu - find dem på kortet.</div>`}
+      <button class="tm-cta" data-handling="dash">Åbn dashboard →</button>`;
+  }
+  return "";
+}
+
+function åbnTabMenu(tabEl) {
+  lukTabMenu();
+  const navn = tabEl.dataset.tab;
+  if (navn === "liste") return; // toggle-tabben taler for sig selv
+  const html = tabMenuIndhold(navn);
+  if (!html) return;
+  const rect = tabEl.getBoundingClientRect();
+  tabMenuEl = document.createElement("div");
+  tabMenuEl.className = "live-menu tab-menu";
+  tabMenuEl.style.top = rect.bottom + 10 + "px";
+  tabMenuEl.style.left = Math.min(Math.max(12, rect.left - 20), innerWidth - 312) + "px";
+  tabMenuEl.innerHTML = html;
+  document.body.appendChild(tabMenuEl);
+  tabMenuEl.addEventListener("mouseleave", e => { if (!tabEl.contains(e.relatedTarget)) lukTabMenu(); });
+  tabMenuEl.querySelectorAll(".tm-række[data-id]").forEach(b => b.onclick = () => { lukTabMenu(); openDetail(RACES[+b.dataset.id], true); });
+  tabMenuEl.querySelectorAll(".tm-række[data-zoom]").forEach(b => b.onclick = () => {
+    const z = LANDE_ZOOM[b.dataset.zoom];
+    lukTabMenu();
+    map.flyTo({ center: z.center, zoom: z.zoom, duration: 1400, essential: true });
+  });
+  const cta = tabMenuEl.querySelector(".tm-cta");
+  if (cta) cta.onclick = () => {
+    const h = cta.dataset.handling;
+    lukTabMenu();
+    if (h === "liste") document.querySelector('.tab[data-tab="liste"]').click();
+    if (h === "login") openLogin();
+    if (h === "dash") openDashboard();
+  };
+}
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("mouseenter", () => { if (innerWidth > 720) åbnTabMenu(tab); });
+  tab.addEventListener("mouseleave", () => {
+    setTimeout(() => { if (tabMenuEl && !tabMenuEl.matches(":hover") && !tab.matches(":hover")) lukTabMenu(); }, 120);
+  });
+});
+document.addEventListener("click", e => { if (tabMenuEl && !tabMenuEl.contains(e.target) && !e.target.closest(".tab")) lukTabMenu(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") lukTabMenu(); });
 
 /* ---------- deep links (#løbets-navn) ---------- */
 const slug = s => norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
