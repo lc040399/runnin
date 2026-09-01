@@ -535,8 +535,32 @@ function initLiveUI() {
     map.getSource("live-halo").getClusterExpansionZoom(f.properties.cluster_id).then(z =>
       map.easeTo({ center: f.geometry.coordinates, zoom: z + .4, duration: 600 }));
   });
-  map.on("mouseenter", "live-cluster", () => (map.getCanvas().style.cursor = "pointer"));
-  map.on("mouseleave", "live-cluster", () => (map.getCanvas().style.cursor = ""));
+  // hover på grøn live-klynge: samme forsmag som de brune klynger
+  let hoverLiveKlynge = null;
+  map.on("mousemove", "live-cluster", async e => {
+    const f = e.features[0];
+    map.getCanvas().style.cursor = "pointer";
+    const id = f.properties.cluster_id;
+    if (hoverLiveKlynge === id && !hoverCard.hidden) { positionHover(e.point); return; }
+    hoverLiveKlynge = id;
+    const leaves = await map.getSource("live-halo").getClusterLeaves(id, 7, 0);
+    if (hoverLiveKlynge !== id) return; // musen er videre
+    const races = leaves.map(l => RACES[l.properties.id]).filter(Boolean);
+    const rest = f.properties.point_count - races.length;
+    hoverCard.innerHTML =
+      `<div class="hc-name"><i class="live-dot"></i> ${f.properties.point_count} løb i gang</div>
+       <div class="hc-liste">${races.map(r =>
+         `<div><i style="background:#10B981"></i><span class="hc-l-navn">${r.n}</span><span class="hc-l-dato">${r.c} ${flag(r.cc)}</span></div>`).join("")}</div>
+       ${rest > 0 ? `<div class="hc-meta">+ ${rest} flere</div>` : ""}
+       <div class="hc-hint">Klik for at zoome ind →</div>`;
+    hoverCard.hidden = false;
+    positionHover(e.point);
+  });
+  map.on("mouseleave", "live-cluster", () => {
+    hoverLiveKlynge = null;
+    hoverCard.hidden = true;
+    map.getCanvas().style.cursor = "";
+  });
   map.on("click", "live-halo-core", e => {
     const r = RACES[e.features[0].properties.id];
     openDetail(r, true);

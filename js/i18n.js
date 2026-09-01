@@ -100,6 +100,7 @@ function sætSprog(l) {
     [/^([\d.,]+) løb$/, "$1 races"],
     [/^Ingen løb matcher "(.+)"$/, 'No races match "$1"'],
     [/^([\d.]+) løb her$/, "$1 races here"],
+    [/^([\d.]+) løb i gang$/, "$1 races live"],
     [/^\+ (\d+) flere$/, "+ $1 more"],
     [/^fra ([\d.,]+) kr$/, "from $1 kr"],
     [/^Startgebyr: fra ([\d.,]+) kr$/, "Entry fee: from $1 kr"],
