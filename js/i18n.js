@@ -39,7 +39,7 @@ function sætSprog(l) {
     "Klik for detaljer →": "Click for details →", "Klik for at zoome ind →": "Click to zoom in →",
     "🎟 Tilmeldt": "🎟 Registered", "✓ Afholdt": "✓ Held", "LIVE": "LIVE",
     // login
-    "Runnin-profil": "Runnin profile", "Navn": "Name", "Adgangskode": "Password", "E-mail": "Email",
+    "Runnin-profil": "Runnin profile", "Navn": "Name", "Adgangskode": "Password", "Vis adgangskode": "Show password", "Tjek din indbakke": "Check your inbox", "Vi har sendt et bekræftelses-link til": "We've sent a confirmation link to", "Til log ind": "To log in", "Ikke modtaget? Kig i spam - eller prøv igen om lidt.": "Nothing received? Check spam - or try again shortly.", "Skjul adgangskode": "Hide password", "E-mail": "Email",
     "Fortsæt": "Continue", "Privatliv": "Privacy", "Opret konto": "Create account", "Opret min konto": "Create my account", "Ny her? ": "New here? ", "Opret en konto": "Create an account", "Har du allerede en konto? ": "Already have an account? ", "Skriv dit navn, så vi kan hilse ordentligt.": "Enter your name so we can greet you properly.",
     "Forkert e-mail eller adgangskode.": "Wrong email or password.",
     "Udfyld e-mail og adgangskode.": "Enter email and password.",

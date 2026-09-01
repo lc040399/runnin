@@ -971,3 +971,25 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 @keyframes loginRyst { 0%,100% { transform: none; } 25% { transform: translateX(-4px); } 55% { transform: translateX(3px); } 80% { transform: translateX(-2px); } }
 .login-fejl { animation: rise .25s cubic-bezier(.22,1,.36,1) both, loginRyst .4s ease .12s; }
 .login-fejl.rolig { animation: rise .3s cubic-bezier(.22,1,.36,1) both; }
+/* adgangskode-øjet */
+.pw-felt { position: relative; }
+.pw-felt .login-field { padding-right: 44px; width: 100%; }
+.pw-øje {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  border: 0; background: none; cursor: pointer; padding: 8px; border-radius: 8px;
+  display: flex; align-items: center; transition: background .15s;
+}
+.pw-øje:hover { background: var(--flade); }
+.pw-øje svg { width: 18px; height: 18px; fill: none; stroke: var(--muted); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; transition: stroke .15s; }
+.pw-øje:hover svg { stroke: var(--ink); }
+/* succes-tilstand: rolig, tydelig, IKKE en fejl */
+.login-succes { text-align: center; padding: 8px 0 4px; animation: rise .4s cubic-bezier(.22,1.4,.36,1) both; }
+.succes-mærke {
+  width: 54px; height: 54px; margin: 6px auto 14px; border-radius: 999px;
+  background: #10B981; color: #fff; font-size: 26px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  animation: gemPop .5s cubic-bezier(.22,1.4,.36,1) both .15s;
+}
+.login-succes h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+.login-succes p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+.login-succes strong { color: var(--ink); }

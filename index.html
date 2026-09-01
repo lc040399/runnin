@@ -23,7 +23,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
-<link href="css/style.css?v=71" rel="stylesheet">
+<link href="css/style.css?v=72" rel="stylesheet">
 </head>
 <body>
 
@@ -60,6 +60,13 @@
     <button class="close" id="loginClose" aria-label="Luk">✕</button>
     <div class="d-type">Runnin-profil</div>
     <h2 class="login-title" id="loginTitle">Log ind</h2>
+    <div id="loginSucces" class="login-succes" hidden>
+      <div class="succes-mærke">✓</div>
+      <h3>Tjek din indbakke</h3>
+      <p>Vi har sendt et bekræftelses-link til<br><strong id="succesEmail"></strong></p>
+      <p class="foto-note">Ikke modtaget? Kig i spam - eller prøv igen om lidt.</p>
+      <button class="cta" type="button" id="succesTilLogin">Til log ind <span>→</span></button>
+    </div>
     <form id="loginForm">
       <div id="navnWrap" hidden>
         <label class="login-label" for="loginName">Navn</label>
@@ -68,7 +75,13 @@
       <label class="login-label" for="loginEmail">E-mail</label>
       <input class="login-field" id="loginEmail" type="email" placeholder="dig@mail.dk" autocomplete="email">
       <label class="login-label" for="loginPw">Adgangskode</label>
-      <input class="login-field" id="loginPw" type="password" placeholder="••••••••" autocomplete="current-password">
+      <div class="pw-felt">
+        <input class="login-field" id="loginPw" type="password" placeholder="••••••••" autocomplete="current-password">
+        <button type="button" class="pw-øje" id="pwØje" aria-label="Vis adgangskode">
+          <svg class="øje-vis" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3.2"/></svg>
+          <svg class="øje-skjul" viewBox="0 0 24 24" hidden><path d="M2.5 12S6 5.5 12 5.5c1.8 0 3.4.6 4.8 1.4M21.5 12S18 18.5 12 18.5c-1.8 0-3.4-.6-4.8-1.4"/><circle cx="12" cy="12" r="3.2"/><line x1="4" y1="20" x2="20" y2="4"/></svg>
+        </button>
+      </div>
       <p class="login-fejl" id="loginFejl" hidden></p>
       <button class="cta login-cta" type="submit" id="loginCta">Log ind <span>→</span></button>
       <p class="login-skift">Ny her? <button type="button" id="loginSkift">Opret en konto</button></p>
@@ -172,7 +185,7 @@
 </footer>
 
 <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
-<script src="js/i18n.js?v=71"></script>
+<script src="js/i18n.js?v=72"></script>
 <script src="data/races.js?v=36"></script>
 <script src="data/races-st.js?v=47"></script>
 <script src="data/races2.js?v=36"></script>
@@ -186,6 +199,6 @@
 <script src="js/dashboard.js?v=68"></script>
 <script src="js/live.js?v=69"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/konto.js?v=71"></script>
+<script src="js/konto.js?v=72"></script>
 </body>
 </html>

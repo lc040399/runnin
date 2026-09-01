@@ -105,11 +105,40 @@ window.loginTilstand = t => {
   document.getElementById("loginSkift").parentElement.firstChild.textContent = op ? "Har du allerede en konto? " : "Ny her? ";
   document.getElementById("loginSkift").textContent = op ? "Log ind" : "Opret en konto";
   visLoginFejl("");
+  if (typeof sætPwSynlig === "function") sætPwSynlig(false);
+  document.getElementById("loginSucces").hidden = true;
+  document.getElementById("loginForm").hidden = false;
+  document.getElementById("loginTitle").hidden = false;
   // blødt indhop af navnefeltet
   const modal = document.querySelector(".login-modal");
   modal.classList.remove("skifter"); void modal.offsetWidth; modal.classList.add("skifter");
 };
 document.getElementById("loginSkift").addEventListener("click", () => loginTilstand(tilstand === "ind" ? "op" : "ind"));
+
+/* øjet: vis/skjul adgangskoden - nulstilles til skjult ved hvert modal-åbn (loginTilstand) */
+const pwØje = document.getElementById("pwØje");
+function sætPwSynlig(synlig) {
+  const felt = document.getElementById("loginPw");
+  felt.type = synlig ? "text" : "password";
+  pwØje.querySelector(".øje-vis").hidden = synlig;
+  pwØje.querySelector(".øje-skjul").hidden = !synlig;
+  pwØje.setAttribute("aria-label", synlig ? "Skjul adgangskode" : "Vis adgangskode");
+}
+pwØje.addEventListener("click", () => sætPwSynlig(document.getElementById("loginPw").type === "password"));
+
+/* succes-tilstand: formularen viger for en rigtig bekræftelses-skærm */
+function visSucces(email) {
+  document.getElementById("succesEmail").textContent = email;
+  document.getElementById("loginForm").hidden = true;
+  document.getElementById("loginTitle").hidden = true;
+  document.getElementById("loginSucces").hidden = false;
+}
+document.getElementById("succesTilLogin").addEventListener("click", () => {
+  document.getElementById("loginSucces").hidden = true;
+  document.getElementById("loginForm").hidden = false;
+  document.getElementById("loginTitle").hidden = false;
+  loginTilstand("ind");
+});
 
 const kontoForm = document.getElementById("loginForm");
 kontoForm.addEventListener("submit", async e => {
@@ -126,7 +155,7 @@ kontoForm.addEventListener("submit", async e => {
     const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { navn } } });
     knap.disabled = false;
     if (error) return visLoginFejl(pænFejl(error));
-    if (!data.session) return visLoginFejl("Kontoen er oprettet - bekræft din e-mail via linket i indbakken, og log så ind.", true);
+    if (!data.session) return visSucces(email); // bekræftelses-flow: formularen afløses af succes-tilstanden
   } else {
     const { error } = await sb.auth.signInWithPassword({ email, password: pw });
     knap.disabled = false;
