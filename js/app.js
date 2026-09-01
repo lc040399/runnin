@@ -829,13 +829,13 @@ function updateAuthUI() {
 function openLogin() {
   document.getElementById("loginName").value = "";
   document.getElementById("loginEmail").value = "";
-  document.getElementById("loginPw").required = true;
   document.getElementById("loginPw").value = "";
+  window.loginTilstand?.("ind");
   loginOverlay.hidden = false;
   // genstart entrance-animationen
   const modal = loginOverlay.querySelector(".login-modal");
   modal.style.animation = "none"; void modal.offsetWidth; modal.style.animation = "";
-  setTimeout(() => document.getElementById("loginName").focus(), 250);
+  setTimeout(() => document.getElementById("loginEmail").focus(), 250);
 }
 const closeLogin = () => (loginOverlay.hidden = true);
 

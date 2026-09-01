@@ -25,6 +25,7 @@ function visLoginFejl(tekst, roligt) {
   el.textContent = tekst || "";
   el.hidden = !tekst;
   el.classList.toggle("rolig", !!roligt);
+  if (tekst) { el.style.animation = "none"; void el.offsetWidth; el.style.animation = ""; } // genstart ryst
 }
 
 /* ---------- synk ---------- */
@@ -92,7 +93,24 @@ window.kontoLogUd = async () => {
   if (!panel.hidden && state.tab === "mine") renderFavs();
 };
 
-/* ---------- login-formularen (afløser demo-handleren) ---------- */
+/* ---------- login-formularen: to tilstande, ét submit ---------- */
+let tilstand = "ind"; // "ind" = log ind, "op" = opret konto
+window.loginTilstand = t => {
+  tilstand = t;
+  const op = t === "op";
+  document.getElementById("loginTitle").textContent = op ? "Opret konto" : "Log ind";
+  document.getElementById("navnWrap").hidden = !op;
+  document.getElementById("loginCta").innerHTML = (op ? "Opret min konto" : "Log ind") + " <span>→</span>";
+  document.getElementById("loginPw").autocomplete = op ? "new-password" : "current-password";
+  document.getElementById("loginSkift").parentElement.firstChild.textContent = op ? "Har du allerede en konto? " : "Ny her? ";
+  document.getElementById("loginSkift").textContent = op ? "Log ind" : "Opret en konto";
+  visLoginFejl("");
+  // blødt indhop af navnefeltet
+  const modal = document.querySelector(".login-modal");
+  modal.classList.remove("skifter"); void modal.offsetWidth; modal.classList.add("skifter");
+};
+document.getElementById("loginSkift").addEventListener("click", () => loginTilstand(tilstand === "ind" ? "op" : "ind"));
+
 const kontoForm = document.getElementById("loginForm");
 kontoForm.addEventListener("submit", async e => {
   e.preventDefault();
@@ -100,27 +118,20 @@ kontoForm.addEventListener("submit", async e => {
   const email = document.getElementById("loginEmail").value.trim();
   const pw = document.getElementById("loginPw").value;
   if (!email || !pw) return visLoginFejl("Udfyld e-mail og adgangskode.");
-  const knap = kontoForm.querySelector(".login-cta");
+  const knap = document.getElementById("loginCta");
   knap.disabled = true;
-  const { error } = await sb.auth.signInWithPassword({ email, password: pw });
-  knap.disabled = false;
-  if (error) return visLoginFejl(pænFejl(error));
+  if (tilstand === "op") {
+    const navn = document.getElementById("loginName").value.trim();
+    if (!navn) { knap.disabled = false; return visLoginFejl("Skriv dit navn, så vi kan hilse ordentligt."); }
+    const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { navn } } });
+    knap.disabled = false;
+    if (error) return visLoginFejl(pænFejl(error));
+    if (!data.session) return visLoginFejl("Kontoen er oprettet - bekræft din e-mail via linket i indbakken, og log så ind.", true);
+  } else {
+    const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+    knap.disabled = false;
+    if (error) return visLoginFejl(pænFejl(error));
+  }
   closeLogin();
   if (state.tab === "mine") renderFavs();
-});
-
-document.getElementById("opretKonto").addEventListener("click", async () => {
-  visLoginFejl("");
-  const navn = document.getElementById("loginName").value.trim();
-  const email = document.getElementById("loginEmail").value.trim();
-  const pw = document.getElementById("loginPw").value;
-  if (!navn) return visLoginFejl("Skriv dit navn, så vi kan hilse ordentligt.");
-  if (!email || !pw) return visLoginFejl("Udfyld e-mail og adgangskode.");
-  const knap = document.getElementById("opretKonto");
-  knap.disabled = true;
-  const { data, error } = await sb.auth.signUp({ email, password: pw, options: { data: { navn } } });
-  knap.disabled = false;
-  if (error) return visLoginFejl(pænFejl(error));
-  if (!data.session) return visLoginFejl("Kontoen er oprettet - bekræft din e-mail via linket i indbakken, og log så ind.", true);
-  closeLogin();
 });

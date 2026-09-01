@@ -237,7 +237,8 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
   padding: 12px 15px; width: 100%; outline: none;
   transition: border-color .18s, box-shadow .18s, background .18s;
 }
-.login-field:focus { border-color: var(--ink); background: var(--card); box-shadow: 0 0 0 3px rgba(56,36,13,.08); }
+.login-field { transition: border-color .18s, box-shadow .18s, background .18s, transform .18s; }
+.login-field:focus { border-color: var(--ink); background: var(--card); box-shadow: 0 0 0 3px rgba(56,36,13,.08); transform: translateY(-1px); }
 .login-cta { margin-top: 20px; width: 100%; border: 0; font-family: var(--sans); font-size: 14px; cursor: pointer; }
 .mine-hilsen {
   margin: 4px 12px 10px; padding: 14px 16px; border-radius: 14px;
@@ -950,3 +951,23 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .login-fejl { font-size: 12.5px; color: #B3261E; background: rgba(179,38,30,.07); border-radius: 10px; padding: 9px 12px; margin-top: 12px; line-height: 1.5; }
 .login-fejl.rolig { color: var(--ink); background: var(--flade); }
 #opretKonto { width: 100%; margin-top: 10px; }
+/* login-modal: skift mellem log ind/opret */
+.login-skift { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 14px; }
+.login-skift button { border: 0; background: none; color: var(--coral); font-family: var(--sans); font-size: 12.5px; font-weight: 700; cursor: pointer; padding: 0; }
+.login-skift button:hover { text-decoration: underline; }
+.login-modal.skifter #navnWrap:not([hidden]) { animation: rise .35s cubic-bezier(.22,1,.36,1) both; }
+#opretKonto { display: none; } /* udgået knap - beholdt som død regel-sanering */
+
+/* login-modal: motion-lag */
+.cta:active { transform: translateY(0) scale(.985); }
+/* tilstands-skift: titel + felter hopper blødt på plads i kaskade */
+.login-modal.skifter .login-title { animation: rise .3s cubic-bezier(.22,1.4,.36,1) both; }
+.login-modal.skifter .login-label,
+.login-modal.skifter .login-field { animation: rise .34s cubic-bezier(.22,1,.36,1) both; }
+.login-modal.skifter .login-label:nth-of-type(2), .login-modal.skifter .login-field:nth-of-type(2) { animation-delay: .04s; }
+.login-modal.skifter .login-label:nth-of-type(3), .login-modal.skifter .login-field:nth-of-type(3) { animation-delay: .08s; }
+.login-modal.skifter .login-cta { animation: rise .34s cubic-bezier(.22,1,.36,1) both .12s; }
+/* fejl: kommer ind med et lille, roligt ryst - info (.rolig) glider bare op */
+@keyframes loginRyst { 0%,100% { transform: none; } 25% { transform: translateX(-4px); } 55% { transform: translateX(3px); } 80% { transform: translateX(-2px); } }
+.login-fejl { animation: rise .25s cubic-bezier(.22,1,.36,1) both, loginRyst .4s ease .12s; }
+.login-fejl.rolig { animation: rise .3s cubic-bezier(.22,1,.36,1) both; }
