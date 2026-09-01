@@ -508,8 +508,9 @@ document.getElementById("panelClose").addEventListener("click", () => {
 function setTab(name) {
   state.tab = name;
   document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
+  if (typeof opdaterVisningsToggle === "function") setTimeout(opdaterVisningsToggle, 0);
 }
-function closePanel() { panel.hidden = true; }
+function closePanel() { panel.hidden = true; if (typeof opdaterVisningsToggle === "function") setTimeout(opdaterVisningsToggle, 0); }
 
 function rowHtml(r) {
   return `<div class="row" data-id="${r.id}">
@@ -764,6 +765,19 @@ function fjernDetailRute() {
 }
 new MutationObserver(() => { if (detail.hidden) fjernDetailRute(); })
   .observe(detail, { attributes: true, attributeFilter: ["hidden"] });
+
+/* ---------- kort/liste-toggle: samme liste som Kommende løb, bare synlig ---------- */
+const visningsToggle = document.getElementById("visningsToggle");
+function opdaterVisningsToggle() {
+  const listeÅben = !panel.hidden && state.tab === "lob";
+  visningsToggle.innerHTML = listeÅben ? "🗺 Vis som kort" : "☰ Vis som liste";
+  visningsToggle.classList.toggle("on", listeÅben);
+}
+visningsToggle.addEventListener("click", () => {
+  if (!panel.hidden && state.tab === "lob") { closePanel(); setTab("kort"); }
+  else { setTab("lob"); panel.hidden = false; renderList(); }
+  opdaterVisningsToggle();
+});
 
 /* ---------- deep links (#løbets-navn) ---------- */
 const slug = s => norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");

@@ -8,6 +8,7 @@
 const SB_URL = "https://qdqvyvidafslzvxgkvof.supabase.co";
 const SB_NØGLE = "sb_publishable_UfiDozoliZR44TAJ9SX-ng_1f3q_Mk3";
 const sb = window.supabase.createClient(SB_URL, SB_NØGLE);
+window.sb = sb;
 
 /* fejl vises pænt og på dansk - aldrig rå API-tekst til brugeren */
 const KONTO_FEJL = [

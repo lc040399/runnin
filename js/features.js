@@ -123,16 +123,22 @@ async function visVejr(r) {
   if (currentRace === r && weatherCache.get(key)) el.innerHTML = weatherCache.get(key);
 }
 
-/* ================= VENNER (demo) ================= */
-const VENNER = ["Jonas K.", "Sofie H.", "Mikkel T.", "Camilla J.", "Frederik L.", "Ida S."];
-function visVenner(r) {
+/* ================= TILMELDTE (ægte tal fra databasen) ================= */
+const tilmeldtCache = new Map();
+async function visVenner(r) {
   const el = document.getElementById("dFriends");
-  const h = [...r.n].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 11);
-  if (h % 10 < 4) {
-    const antal = 1 + (h % 3);
-    const navne = Array.from({ length: antal }, (_, i) => VENNER[(h >>> (i * 4)) % VENNER.length]);
-    el.innerHTML = `👟 ${[...new Set(navne)].join(" og ")} er tilmeldt <span class="w-src">(demo)</span>`;
-  } else el.textContent = "";
+  el.textContent = "";
+  if (!window.sb) return;
+  if (!tilmeldtCache.has(r.n)) {
+    try {
+      const { data, error } = await sb.rpc("antal_tilmeldte", { loeb: r.n });
+      tilmeldtCache.set(r.n, error ? 0 : data);
+    } catch (_) { tilmeldtCache.set(r.n, 0); }
+  }
+  const antal = tilmeldtCache.get(r.n);
+  if (currentRace === r && antal > 0) {
+    el.innerHTML = `👟 <strong>${antal}</strong> ${antal === 1 ? "Runnin-løber er" : "Runnin-løbere er"} tilmeldt`;
+  }
 }
 
 /* hook: kaldes fra openDetail */

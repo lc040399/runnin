@@ -16,7 +16,7 @@ Her er den ærlige tilstand, så du ved præcis, hvad du overtager.
 - **Login/konti**: RIGTIGE (Supabase-auth, egen gratis org) - favoritter/tilmeldinger synkes på tværs af enheder via public.user_races (RLS). Gæster kører stadig rent lokalt. OBS: e-mail-bekræftelse kræver egen SMTP (Resend + domæne); indtil da bør "Confirm email" være slået fra i Supabase-dashboardet. Gratis-projektet holdes vågent af .github/workflows/keepalive.yml
 - **Alarmer**: gemmes lokalt, men der SENDES ingen beskeder (kræver backend + mail)
 - **Fotos**: samme 9 Pexels-billeder for alle løb
-- **Venner**: eksempeldata
+- **Tilmeldt-tal på løb**: ÆGTE (antal Runnin-brugere tilmeldt, via public.antal_tilmeldte-aggregat - aldrig navne). Venne-graf (hvem af DINE venner) findes ikke endnu
 - **Strava**: rigtig OAuth-kobling ER bygget (functions/api/strava-token.js + strava.js), men kræver at DU opretter en API-app på strava.com/settings/api og lægger nøglerne ind: `npx wrangler pages secret put STRAVA_CLIENT_ID` + `STRAVA_CLIENT_SECRET` (projekt: dit Pages-projekt). Uden nøgler falder UI'et pænt tilbage til demo-mode. OBS: nye Strava-apps må kun hente ejerens egne data, indtil appen er godkendt af Strava (deres review-formular)
 - **Live-løbere**: simulerede (LIVE-status er ægte, felterne er ikke)
 

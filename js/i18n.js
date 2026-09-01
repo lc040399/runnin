@@ -22,7 +22,7 @@ function sætSprog(l) {
     // nav + hero
     "Kort": "Map", "🔎 Søg løb eller by…": "🔎 Search race or city…", "Kommende løb": "Upcoming races", "Mine løb": "My races", "Log ind": "Log in",
     "Find dit næste løb.": "Find your next race.", "Hele verden. Hele året.": "The whole world. All year.",
-    "Hvor som helst": "Anywhere", "Når som helst": "Anytime", "Alle distancer": "All distances", "📍 Nær mig": "📍 Near me",
+    "Hvor som helst": "Anywhere", "Når som helst": "Anytime", "Alle distancer": "All distances", "📍 Nær mig": "📍 Near me", "☰ Vis som liste": "☰ Show as list", "🗺 Vis som kort": "🗺 Show as map",
     "Danmark": "Denmark", "Norden": "The Nordics", "Europa": "Europe", "Nordamerika": "North America",
     "Sydamerika": "South America", "Asien": "Asia", "Afrika": "Africa", "Oceanien": "Oceania",
     "Kort (5-15 km)": "Short (5-15 km)", "Halvmarathon": "Half marathon", "Half": "Half",
@@ -101,6 +101,7 @@ function sætSprog(l) {
     [/^Ingen løb matcher "(.+)"$/, 'No races match "$1"'],
     [/^([\d.]+) løb her$/, "$1 races here"],
     [/^([\d.]+) løb i gang$/, "$1 races live"],
+    [/^(\d+) Runnin-løbere? er tilmeldt$/, (m) => m.replace("Runnin-løbere er tilmeldt", "Runnin runners are registered").replace("Runnin-løber er tilmeldt", "Runnin runner is registered")],
     [/^\+ (\d+) flere$/, "+ $1 more"],
     [/^fra ([\d.,]+) kr$/, "from $1 kr"],
     [/^Startgebyr: fra ([\d.,]+) kr$/, "Entry fee: from $1 kr"],
