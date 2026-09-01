@@ -54,7 +54,7 @@ for (const r of RACES) {
 <link rel="canonical" href="${url}">
 <meta property="og:title" content="${esc(r.n)}">
 <meta property="og:description" content="${esc(besk)}">
-<meta property="og:image" content="${BASE}/assets/og.png">
+<meta property="og:image" content="${BASE}/assets/og.png?v=2">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/png" href="/assets/mark.png">
 <script type="application/ld+json">${JSON.stringify(jsonld)}</script>
