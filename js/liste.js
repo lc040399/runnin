@@ -34,20 +34,17 @@ function listeGruppe(r, iDag, iMorgen, ugeSlut) {
 }
 
 function listeRække(r) {
-  const dagNr = r.dt ? +r.dt.slice(8, 10) : "";
-  const md = r.dt ? MONTHS[+r.dt.slice(5, 7) - 1].slice(0, 3) : MONTHS[+r.m.split("-")[1] - 1].slice(0, 3);
   const live = typeof isLive === "function" && isLive(r);
   return `<div class="l-række" data-id="${r.id}">
-    <div class="l-dato">${r.dt ? `<strong>${dagNr}</strong><span>${md}.</span>` : `<span class="l-md-kun">${md}.</span>`}</div>
     <span class="dot" style="background:${TYPE_COLOR[r.t]}"></span>
     <div class="l-main">
-      <div class="l-navn">${r.n}${entries.has(r.n) ? ` <span class="r-entry">🎟 Tilmeldt</span>` : ""}</div>
-      <div class="l-meta">${r.d} · ${r.c} ${flag(r.cc)}</div>
+      <div class="l-navn">${r.n}</div>
+      <div class="l-meta">${dateLabel(r)} · ${r.d} · ${r.c} ${flag(r.cc)}</div>
     </div>
     <div class="l-side">
+      ${entries.has(r.n) ? `<span class="r-entry">🎟</span>` : ""}
       ${live ? `<span class="row-live"><i class="live-dot"></i>LIVE</span>`
              : r.p ? `<span class="l-pris">${priceLabel(r.p)}</span>` : ""}
-      <span class="l-pil">→</span>
     </div>
   </div>`;
 }
@@ -150,10 +147,9 @@ window.renderListe = function () {
     const g = listeGruppe(r, iDag, iMorgen, søndag);
     gruppeAntal[g] = (gruppeAntal[g] || 0) + 1;
   }
-  // bidder: første skærmfuld straks, resten pr. frame - grupper får stagger-indhop
-  let i = 0, aktuelGruppe = "", gruppeIndeks = 4;
+  // grid pr. gruppe: header i fuld bredde, rækker i responsivt grid - stadig i bidder
+  let i = 0, aktuelGruppe = "", gruppeIndeks = 4, aktueltGrid = null;
   const byg = antal => {
-    let html = "";
     const til = Math.min(i + antal, løb.length);
     for (; i < til; i++) {
       const r = løb[i];
@@ -161,16 +157,17 @@ window.renderListe = function () {
       if (g !== aktuelGruppe) {
         aktuelGruppe = g;
         gruppeIndeks++;
-        html += `<div class="l-gruppe dash-in" style="--i:${Math.min(gruppeIndeks, 9)}">${g} <span class="l-gruppe-antal">· ${gruppeAntal[g].toLocaleString("da-DK")} løb</span></div>`;
+        krop.insertAdjacentHTML("beforeend",
+          `<div class="l-gruppe dash-in" style="--i:${Math.min(gruppeIndeks, 9)}">${g} <span class="l-gruppe-antal">· ${gruppeAntal[g].toLocaleString("da-DK")} løb</span></div><div class="l-grid"></div>`);
+        aktueltGrid = krop.lastElementChild;
       }
-      html += listeRække(r);
+      aktueltGrid.insertAdjacentHTML("beforeend", listeRække(r));
     }
-    return html;
   };
-  krop.innerHTML = byg(60);
+  byg(80);
   (function næste() {
     if (token !== listeBidToken || i >= løb.length) return;
-    krop.insertAdjacentHTML("beforeend", byg(300));
+    byg(400);
     requestAnimationFrame(næste);
   })();
 };
