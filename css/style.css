@@ -1074,3 +1074,4 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .l-minikort span { font-size: 11px; color: var(--muted); }
 .l-gruppe-antal { color: var(--faint); font-weight: 600; letter-spacing: 0; text-transform: none; }
 @media (max-width: 720px) { .l-typer { grid-template-columns: repeat(3, 1fr); } }
+.cal-hover { z-index: 90; } /* over kalender-modalen (80) */

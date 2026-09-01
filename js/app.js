@@ -653,6 +653,44 @@ function renderCalendar() {
   document.getElementById("calClose").onclick = closeCalendar;
   calOverlay.querySelectorAll(".cal-chip").forEach(b => b.onclick = () => { cal.type = b.dataset.type || null; cal.day = null; renderCalendar(); });
   calOverlay.querySelectorAll(".cal-cell.has").forEach(c => c.onclick = () => { cal.day = cal.day === +c.dataset.day ? null : +c.dataset.day; renderCalendar(); });
+
+  // hover-teaser på dag-celler: forsmag på dagens løb (samme mønster som klynger/faner)
+  let calHoverEl = null;
+  const lukCalHover = () => { calHoverEl?.remove(); calHoverEl = null; };
+  calOverlay.querySelectorAll(".cal-cell.has").forEach(c => {
+    c.addEventListener("mouseenter", () => {
+      if (innerWidth <= 720) return;
+      lukCalHover();
+      const dagens = (byDay[+c.dataset.day] || []);
+      if (!dagens.length) return;
+      const rect = c.getBoundingClientRect();
+      calHoverEl = document.createElement("div");
+      calHoverEl.className = "live-menu cal-hover";
+      calHoverEl.style.top = Math.min(rect.bottom + 8, innerHeight - 300) + "px";
+      calHoverEl.style.left = Math.min(Math.max(12, rect.left - 30), innerWidth - 312) + "px";
+      calHoverEl.innerHTML = `
+        <div class="tm-sek">${+c.dataset.day}. ${MONTHS[m - 1]} · ${dagens.length} løb</div>
+        ${dagens.slice(0, 7).map(r => `<button class="tm-række" data-id="${r.id}">
+          <i style="background:${TYPE_COLOR[r.t]}"></i>
+          <span class="lm-navn">${r.n}</span>
+          <span class="lm-sted">${r.c} ${flag(r.cc)}</span>
+        </button>`).join("")}
+        ${dagens.length > 7 ? `<div class="tm-tom">+ ${dagens.length - 7} flere - klik på dagen</div>` : ""}`;
+      document.body.appendChild(calHoverEl);
+      calHoverEl.addEventListener("mouseleave", e => { if (!c.contains(e.relatedTarget)) lukCalHover(); });
+      calHoverEl.querySelectorAll(".tm-række").forEach(b => b.onclick = () => {
+        lukCalHover();
+        calOverlay.hidden = true;
+        window.lukListe?.();
+        setTab("kort");
+        openDetail(RACES[+b.dataset.id], true);
+      });
+    });
+    c.addEventListener("mouseleave", () => {
+      setTimeout(() => { if (calHoverEl && !calHoverEl.matches(":hover") && !c.matches(":hover")) lukCalHover(); }, 120);
+    });
+    c.addEventListener("click", lukCalHover);
+  });
   calOverlay.querySelectorAll(".cal-list .row").forEach(row => row.onclick = () => {
     closeCalendar(); closePanel(); setTab("kort");
     openDetail(RACES[+row.dataset.id], true);
