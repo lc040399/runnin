@@ -486,7 +486,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 
 /* ---------- kalender-modal ---------- */
 .cal-overlay {
-  position: fixed; inset: 0; z-index: 60;
+  position: fixed; inset: 0; z-index: 80; /* over fuldskærms-lagene (liste/dashboard = 70) */
   background: rgba(17, 24, 39, .42); backdrop-filter: blur(5px);
   display: flex; align-items: center; justify-content: center; padding: 24px;
   animation: backdropIn .32s ease both;
