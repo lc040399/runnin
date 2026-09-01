@@ -22,10 +22,10 @@ function sætSprog(l) {
     // nav + hero
     "Kort": "Map", "🔎 Søg løb eller by…": "🔎 Search race or city…", "Kommende løb": "Upcoming races", "Mine løb": "My races", "Log ind": "Log in",
     "Find dit næste løb.": "Find your next race.", "Hele verden. Hele året.": "The whole world. All year.",
-    "Hvor som helst": "Anywhere", "Når som helst": "Anytime", "Alle distancer": "All distances", "📍 Nær mig": "📍 Near me", "☰ Vis som liste": "☰ Show as list", "🗺 Vis som kort": "🗺 Show as map",
+    "Hvor som helst": "Anywhere", "Når som helst": "Anytime", "Alle distancer": "All distances", "📍 Nær mig": "📍 Near me",
     "Danmark": "Denmark", "Norden": "The Nordics", "Europa": "Europe", "Nordamerika": "North America",
     "Sydamerika": "South America", "Asien": "Asia", "Afrika": "Africa", "Oceanien": "Oceania",
-    "Kort (5-15 km)": "Short (5-15 km)", "Halvmarathon": "Half marathon", "Half": "Half",
+    "Kort (5-15 km)": "Short (5-15 km)", "Hele verden": "The whole world", "I dag": "Today", "I morgen": "Tomorrow", "Denne uge": "This week", "📅 Kalender": "📅 Calendar", "Halvmarathon": "Half marathon", "Half": "Half",
     "Marathon": "Marathon", "Ultra & trail": "Ultra & trail", "Triathlon": "Triathlon",
     "på kortet": "on the map", "på ruten": "on course", "i mål": "finished", "illustrativ rute": "illustrative route", "officiel rute": "official route", "Førende lige nu": "Leading right now", "Målstregen": "The finish line", "Ingen i mål endnu - følg med her.": "No finishers yet - follow along here.", "i gang lige nu": "live right now", "Følg live →": "Follow live →",
     // detalje
@@ -98,6 +98,7 @@ function sætSprog(l) {
 
   const REGLER = [
     [/^([\d.,]+) løb$/, "$1 races"],
+    [/^Løb i (.+)\.$/, (m, sted) => `Races in ${({"Danmark":"Denmark","Norden":"the Nordics","Europa":"Europe","Hele verden":"the whole world"})[sted] || sted}.`],
     [/^Ingen løb matcher "(.+)"$/, 'No races match "$1"'],
     [/^([\d.]+) løb her$/, "$1 races here"],
     [/^([\d.]+) løb i gang$/, "$1 races live"],

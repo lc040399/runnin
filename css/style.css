@@ -993,3 +993,37 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .login-succes h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
 .login-succes p { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
 .login-succes strong { color: var(--ink); }
+/* ---------- fuldskærms-listevisning ---------- */
+.liste-overlay { overflow-y: auto; }
+.liste-indre { max-width: 760px; margin: 0 auto; padding: calc(28px + env(safe-area-inset-top)) 24px calc(90px + env(safe-area-inset-bottom)); }
+.liste-styr { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin: 18px 0 8px; }
+.liste-scope { flex-wrap: wrap; }
+.liste-scope .tema-chip { flex: none; }
+.liste-styr-højre { display: flex; align-items: center; gap: 12px; }
+.liste-antal { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.l-gruppe {
+  position: sticky; top: 0; z-index: 2;
+  font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--coral);
+  background: var(--paper); padding: 18px 4px 8px; border-bottom: 1px solid var(--hairline);
+}
+.l-række {
+  display: flex; align-items: center; gap: 14px; padding: 13px 10px; cursor: pointer;
+  border-radius: 14px; border-bottom: 1px solid var(--hairline);
+  transition: background .14s, transform .18s cubic-bezier(.22,1.4,.36,1);
+}
+.l-række:hover { background: var(--card); transform: translateX(3px); }
+.l-række:hover .l-pil { opacity: 1; transform: translateX(0); }
+.l-dato { width: 44px; flex: none; text-align: center; line-height: 1.05; }
+.l-dato strong { display: block; font-size: 21px; letter-spacing: -.01em; }
+.l-dato span { font-size: 11px; color: var(--muted); text-transform: lowercase; }
+.l-md-kun { font-size: 13px; font-weight: 700; color: var(--muted); }
+.l-main { flex: 1; min-width: 0; }
+.l-navn { font-weight: 650; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.l-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.l-side { display: flex; align-items: center; gap: 10px; flex: none; }
+.l-pris { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.l-pil { color: var(--coral); font-weight: 700; opacity: 0; transform: translateX(-4px); transition: opacity .15s, transform .2s cubic-bezier(.22,1.4,.36,1); }
+@media (max-width: 720px) {
+  .liste-indre { padding-top: calc(86px + env(safe-area-inset-top)); }
+  .l-pris { display: none; }
+}

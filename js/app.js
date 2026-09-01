@@ -463,7 +463,7 @@ function applyFilters() {
   const src = map.getSource("races");
   if (src) src.setData(toGeojson(list));
   updateCounter(list);
-  if (state.tab === "lob") renderList();
+  if (window.listeOverlay && !window.listeOverlay.hidden) window.renderListe();
   if (typeof updateRadarBtn === "function") updateRadarBtn();
 }
 
@@ -496,8 +496,10 @@ document.querySelectorAll(".tab").forEach(tab =>
     tab.classList.add("active");
     state.tab = tab.dataset.tab;
     detail.hidden = true;
+    window.lukListe?.();
     if (state.tab === "kort") closePanel();
-    else { panel.hidden = false; state.tab === "lob" ? renderList() : renderFavs(); }
+    else if (state.tab === "lob") { closePanel(); window.åbnListe?.(); }
+    else { panel.hidden = false; renderFavs(); }
   })
 );
 document.getElementById("panelClose").addEventListener("click", () => {
@@ -508,9 +510,8 @@ document.getElementById("panelClose").addEventListener("click", () => {
 function setTab(name) {
   state.tab = name;
   document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
-  if (typeof opdaterVisningsToggle === "function") setTimeout(opdaterVisningsToggle, 0);
 }
-function closePanel() { panel.hidden = true; if (typeof opdaterVisningsToggle === "function") setTimeout(opdaterVisningsToggle, 0); }
+function closePanel() { panel.hidden = true; }
 
 function rowHtml(r) {
   return `<div class="row" data-id="${r.id}">
@@ -766,19 +767,6 @@ function fjernDetailRute() {
 new MutationObserver(() => { if (detail.hidden) fjernDetailRute(); })
   .observe(detail, { attributes: true, attributeFilter: ["hidden"] });
 
-/* ---------- kort/liste-toggle: samme liste som Kommende løb, bare synlig ---------- */
-const visningsToggle = document.getElementById("visningsToggle");
-function opdaterVisningsToggle() {
-  const listeÅben = !panel.hidden && state.tab === "lob";
-  visningsToggle.innerHTML = listeÅben ? "🗺 Vis som kort" : "☰ Vis som liste";
-  visningsToggle.classList.toggle("on", listeÅben);
-}
-visningsToggle.addEventListener("click", () => {
-  if (!panel.hidden && state.tab === "lob") { closePanel(); setTab("kort"); }
-  else { setTab("lob"); panel.hidden = false; renderList(); }
-  opdaterVisningsToggle();
-});
-
 /* ---------- deep links (#løbets-navn) ---------- */
 const slug = s => norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 function openFromHash() {
@@ -801,6 +789,7 @@ setInterval(() => {
     if (src) src.setData(toGeojson(filtered()));
     updateCounter();
     if (!panel.hidden) setTab(state.tab);
+    if (window.listeOverlay && !window.listeOverlay.hidden) window.renderListe();
   }
 }, 5 * 60 * 1000);
 
@@ -817,6 +806,7 @@ map.once("load", () => setTimeout(() => {
     updateCounter();
     if (typeof initLiveUI === "function") initLiveUI();
     if (!panel.hidden) setTab(state.tab); // genopfrisk åben liste
+    if (window.listeOverlay && !window.listeOverlay.hidden) window.renderListe();
     if (!currentRace) openFromHash();     // deep-link til et USA-løb kan nu løses
   };
   document.head.appendChild(s);
@@ -859,6 +849,7 @@ document.getElementById("loginBtn").addEventListener("click", openLogin);
 document.getElementById("brandHjem").addEventListener("click", () => {
   closePanel(); detail.hidden = true; profileMenu.hidden = true;
   featOverlay.hidden = true; dashOverlay.hidden = true;
+  window.lukListe?.();
   setTab("kort");
   state.type = state.month = state.region = null;
   document.querySelectorAll(".pill-wrap").forEach(wrap => {
