@@ -31,13 +31,12 @@ mark.thumbnail((92, 92))
 img.paste(mark, (84, 76), mark)
 
 d.text((196, 84), "R U N N I N", font=font(38, 800), fill=INK)
-d.text((80, 236), "Hele verdens løb.", font=font(96, 800), fill=INK)
-d.text((80, 348), "Ét kort.", font=font(96, 800), fill=CARAMEL)
-d.text((84, 496), f"{ANTAL} løb · Norden i dybden · live på løbsdagen · gratis", font=font(30, 500), fill=MUTED)
+d.text((80, 268), "Hele verdens løb.", font=font(100, 800), fill=INK)
+d.text((84, 424), f"{ANTAL} løb · Norden i dybden · live på løbsdagen · gratis", font=font(30, 500), fill=MUTED)
 
 x = 84
 for c in TYPE_FARVER:
-    d.ellipse([x, 556, x+18, 574], fill=c, outline="#ffffff", width=2)
+    d.ellipse([x, 490, x+18, 508], fill=c, outline="#ffffff", width=2)
     x += 30
 
 img.save("assets/og.png", optimize=True)

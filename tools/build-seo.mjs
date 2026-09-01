@@ -54,7 +54,7 @@ for (const r of RACES) {
 <link rel="canonical" href="${url}">
 <meta property="og:title" content="${esc(r.n)}">
 <meta property="og:description" content="${esc(besk)}">
-<meta property="og:image" content="${BASE}/assets/og.png?v=2">
+<meta property="og:image" content="${BASE}/assets/og.png?v=3">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:type" content="website">
