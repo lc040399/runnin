@@ -73,6 +73,22 @@ async function skyPush(raceN) {
 }
 window.skyPush = skyPush;
 
+/* ---------- auth-links fra mails: fejl vises roligt, succes fejres ---------- */
+(function håndterAuthHash() {
+  const h = new URLSearchParams(location.hash.slice(1));
+  if (h.get("error_description")) {
+    history.replaceState(null, "", location.pathname);
+    const kode = h.get("error_code") || "";
+    const tekst = kode === "otp_expired"
+      ? "Bekræftelses-linket er udløbet eller allerede brugt. Prøv at logge ind - virker det ikke, så opret dig igen og brug det nyeste link."
+      : "Linket kunne ikke bruges. Prøv at logge ind.";
+    setTimeout(() => {
+      openLogin();
+      visLoginFejl(tekst, true);
+    }, 600);
+  }
+})();
+
 /* ---------- session ↔ appens brugermodel ---------- */
 sb.auth.onAuthStateChange((event, session) => {
   if (!session?.user) return;
@@ -82,6 +98,8 @@ sb.auth.onAuthStateChange((event, session) => {
   localStorage.setItem("runnin-user", JSON.stringify({ ...eksisterende, navn, email: u.email }));
   updateAuthUI();
   if (event === "SIGNED_IN" || event === "INITIAL_SESSION") skyHent();
+  if (event === "SIGNED_IN" && location.hash.includes("access_token")) history.replaceState(null, "", location.pathname);
+  if (event === "SIGNED_IN" && typeof visToast === "function") visToast(`✓ Velkommen, ${navn.split(" ")[0]} - dine løb følger dig nu på tværs af enheder.`);
 });
 
 window.kontoLogUd = async () => {
