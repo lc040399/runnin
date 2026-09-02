@@ -177,10 +177,12 @@ window.visRuteStationer = function (rute) {
   });
   map.addLayer({
     id: "rute-station-prik", type: "circle", source: "rute-stationer",
+    minzoom: 8, // depoter er nærkamps-info - ikke synlige fra verdensrummet
     paint: { "circle-color": "#ffffff", "circle-radius": 5.5, "circle-stroke-width": 2.5, "circle-stroke-color": "#C05800" },
   });
   map.addLayer({
     id: "rute-station-navn", type: "symbol", source: "rute-stationer",
+    minzoom: 9, // navne + km først når man er helt tæt på
     layout: {
       "text-field": ["format", ["get", "navn"], {}, "\n", {}, ["concat", ["to-string", ["get", "km"]], " km"], { "font-scale": 0.85 }],
       "text-font": ["Noto Sans Regular"], "text-size": 11, "text-offset": [0, 1.1], "text-anchor": "top",
