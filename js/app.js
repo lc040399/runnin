@@ -931,7 +931,7 @@ setInterval(() => {
    når kortet har haft sit første rolige øjeblik. */
 map.once("load", () => setTimeout(() => {
   const s = document.createElement("script");
-  s.src = "data/races-rsu.js?v=57";
+  s.src = "data/races-rsu.js?v=81";
   s.onload = () => {
     // filen pusher sine løb og gen-id'er hele RACES selv
     const src = map.getSource("races");

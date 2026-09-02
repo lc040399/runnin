@@ -25,7 +25,7 @@ function sætSprog(l) {
     "Hvor som helst": "Anywhere", "Når som helst": "Anytime", "Alle distancer": "All distances", "📍 Nær mig": "📍 Near me",
     "Danmark": "Denmark", "Norden": "The Nordics", "Europa": "Europe", "Nordamerika": "North America",
     "Sydamerika": "South America", "Asien": "Asia", "Afrika": "Africa", "Oceanien": "Oceania",
-    "Kort (5-15 km)": "Short (5-15 km)", "Hele verden": "The whole world", "I dag": "Today", "I morgen": "Tomorrow", "Denne uge": "This week", "📅 Kalender": "📅 Calendar", "Live lige nu": "Live right now", "Udvalgte klassikere": "Selected classics", "kommende løb": "upcoming races", "live lige nu": "live right now", "Flyv til": "Fly to", "Åbn hele listen →": "Open the full list →", "Åbn dashboard →": "Open dashboard →", "Log ind for at gemme løb og følge dem her.": "Log in to save races and follow them here.", "Log ind →": "Log in →", "Liste": "List", "Halvmarathon": "Half marathon", "Half": "Half",
+    "Kort (5-15 km)": "Short (5-15 km)", "Løb": "Run", "Triatlon": "Triathlon", "Hele verden": "The whole world", "I dag": "Today", "I morgen": "Tomorrow", "Denne uge": "This week", "📅 Kalender": "📅 Calendar", "Live lige nu": "Live right now", "Udvalgte klassikere": "Selected classics", "kommende løb": "upcoming races", "live lige nu": "live right now", "Flyv til": "Fly to", "Åbn hele listen →": "Open the full list →", "Åbn dashboard →": "Open dashboard →", "Log ind for at gemme løb og følge dem her.": "Log in to save races and follow them here.", "Log ind →": "Log in →", "Liste": "List", "Halvmarathon": "Half marathon", "Half": "Half",
     "Marathon": "Marathon", "Ultra & trail": "Ultra & trail", "Triathlon": "Triathlon",
     "på kortet": "on the map", "på ruten": "on course", "i mål": "finished", "illustrativ rute": "illustrative route", "officiel rute": "official route", "Førende lige nu": "Leading right now", "Målstregen": "The finish line", "Ingen i mål endnu - følg med her.": "No finishers yet - follow along here.", "i gang lige nu": "live right now", "Følg live →": "Follow live →",
     // detalje
@@ -98,6 +98,7 @@ function sætSprog(l) {
 
   const REGLER = [
     [/^([\d.,]+) løb$/, "$1 races"],
+    [/^· ([\d.,]+) løb$/, "· $1 races"],
     [/^Løb i (.+)\.$/, (m, sted) => `Races in ${({"Danmark":"Denmark","Norden":"the Nordics","Europa":"Europe","Hele verden":"the whole world"})[sted] || sted}.`],
     [/^Ingen løb matcher "(.+)"$/, 'No races match "$1"'],
     [/^([\d.]+) løb her$/, "$1 races here"],
@@ -124,13 +125,24 @@ function sætSprog(l) {
     [/^(\d+) af (\d+)$/, "$1 of $2"],
   ];
 
-  function oversæt(tekst) {
+  function oversæt(tekst, dybde) {
     const t = tekst.trim();
     if (!t) return null;
     const hit = EN.get(t);
     if (hit) return tekst.replace(t, hit);
     for (const [re, ud] of REGLER) {
       if (re.test(t)) return tekst.replace(t, typeof ud === "string" ? t.replace(re, ud) : t.replace(re, ud));
+    }
+    // kombinerede linjer ("1. sep. 2026 · Løb · Namsos"): oversæt delene hver for sig
+    if (!dybde && t.includes(" · ")) {
+      const dele = t.split(" · ");
+      let ændret = false;
+      const ud = dele.map(d => {
+        const o = oversæt(d, 1);
+        if (o !== null) ændret = true;
+        return o !== null ? o : d;
+      });
+      if (ændret) return tekst.replace(t, ud.join(" · "));
     }
     return null;
   }

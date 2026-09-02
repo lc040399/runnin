@@ -807,7 +807,9 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
     box-shadow: 0 8px 28px rgba(56,36,13,.18);
     animation: springIn .5s cubic-bezier(.22,1.4,.36,1) both .3s;
   }
-  .tab { flex: 1; text-align: center; padding: 12px 4px; font-size: 12.5px; }
+  .tab { flex: 1; text-align: center; padding: 12px 4px; font-size: 12.5px; white-space: nowrap; }
+  /* Liste ER kommende løb-visningen på mobil - side-panel-fanen skjules */
+  .tab[data-tab="lob"] { display: none; }
   .hero { left: 16px; right: 16px; top: calc(64px + env(safe-area-inset-top)); }
   .hero h1 { font-size: 27px; }
   .search-wrap { margin-top: 12px; }
