@@ -29,7 +29,7 @@ function sætSprog(l) {
     "Marathon": "Marathon", "Ultra & trail": "Ultra & trail", "Triathlon": "Triathlon",
     "på kortet": "on the map", "på ruten": "on course", "i mål": "finished", "illustrativ rute": "illustrative route", "officiel rute": "official route", "Førende lige nu": "Leading right now", "Højdeprofil": "Elevation profile", "Målstregen": "The finish line", "Ingen i mål endnu - følg med her.": "No finishers yet - follow along here.", "i gang lige nu": "live right now", "Følg live →": "Follow live →",
     // detalje
-    "Tilmeld på officiel side": "Register on official site", "Se løbet hos Kondis": "View race at Kondis", "Se løbet hos AIMS": "View race at AIMS", "Kalenderdata: AIMS": "Calendar data: AIMS",
+    "Tilmeld på officiel side": "Register on official site", "Se løbet hos Kondis": "View race at Kondis", "Se løbet hos AIMS": "View race at AIMS", "Kalenderdata: AIMS": "Calendar data: AIMS", "Se løbet hos WorldsMarathons": "View race at WorldsMarathons", "Kalenderdata: WorldsMarathons": "Calendar data: WorldsMarathons",
     "🎟 Markér som tilmeldt": "🎟 Mark as registered", "🎟 Du er tilmeldt": "🎟 You're registered",
     "Gem": "Save", "Gemt": "Saved", "Påmind": "Remind", "Påmindelse til": "Reminder on", "Fotos": "Photos",
     "I dag - løbet er i gang": "Today - race in progress", "I dag - starter senere": "Today - starts later",
