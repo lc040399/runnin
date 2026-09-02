@@ -1157,3 +1157,5 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .filter-chip:hover span { opacity: 1; }
 .filter-ryd-alle { background: var(--card); color: var(--muted); border: 1px solid var(--hairline); }
 @media (max-width: 720px) { .aktive-filtre { bottom: calc(150px + env(safe-area-inset-bottom)); } }
+/* usynlig bro mellem fane og dropdown, så musen ikke "falder ud" i mellemrummet */
+.tab-menu::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; height: 12px; }

@@ -11,11 +11,15 @@ let topRegion = "verden"; // "verden" (RunSignup) | "nordisk" (EQ Timing)
 
 const TOP_KATEGORIER = [["marathon", "Marathon"], ["half", "Halvmarathon"], ["10k", "10 km"], ["5k", "5 km"]];
 
+window.hentTopData = async function () {
+  if (!topData) { try { topData = await (await fetch("data/toplister.json?v=4")).json(); window.topDataCache = topData; } catch (_) {} }
+  return topData;
+};
 window.åbnToplister = async function () {
   topOverlay.hidden = false;
   if (!topData) {
     topOverlay.innerHTML = `<div class="liste-indre"><div class="feed-tom" style="padding:60px 0;text-align:center">Henter leaderboards…</div></div>`;
-    try { topData = await (await fetch("data/toplister.json?v=4")).json(); }
+    try { topData = await (await fetch("data/toplister.json?v=4")).json(); window.topDataCache = topData; }
     catch (_) { topOverlay.innerHTML = `<div class="liste-indre"><div class="empty">Leaderboards kunne ikke hentes - prøv igen om lidt.</div></div>`; return; }
   }
   renderToplister();

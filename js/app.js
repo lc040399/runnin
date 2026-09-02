@@ -928,6 +928,19 @@ function tabMenuIndhold(navn) {
     return `${næste.map(miniRække).join("")}
       <button class="tm-cta" data-handling="liste">Åbn hele listen →</button>`;
   }
+  if (navn === "top") {
+    const d = window.topDataCache;
+    if (!d) return `<div class="tm-sek">Leaderboards</div><div class="tm-tom">Henter hurtigste tider…</div>`;
+    const board = d.boards.marathon?.length ? d.boards.marathon : (d.boards.half || []);
+    const label = d.boards.marathon?.length ? "Marathon" : "Halvmarathon";
+    return `<div class="tm-sek">Hurtigste ${label.toLowerCase()}</div>
+      ${board.slice(0, 3).map((r, i) => `<div class="tm-række" style="cursor:default">
+        <span style="width:18px;text-align:center">${["🥇","🥈","🥉"][i]}</span>
+        <span class="lm-navn">${r.cc ? flag(r.cc) + " " : ""}${r.navn}</span>
+        <span class="lm-sted">${r.tid}</span>
+      </div>`).join("")}
+      <button class="tm-cta" data-handling="top">Åbn leaderboards →</button>`;
+  }
   if (navn === "mine") {
     const user = getUser();
     if (!user) return `<div class="tm-tom">Log ind for at gemme løb og følge dem her.</div>
@@ -943,20 +956,7 @@ function tabMenuIndhold(navn) {
   return "";
 }
 
-function åbnTabMenu(tabEl) {
-  lukTabMenu();
-  const navn = tabEl.dataset.tab;
-  if (navn === "liste" || navn === "top") return; // disse taler for sig selv
-  const html = tabMenuIndhold(navn);
-  if (!html) return;
-  const rect = tabEl.getBoundingClientRect();
-  tabMenuEl = document.createElement("div");
-  tabMenuEl.className = "live-menu tab-menu";
-  tabMenuEl.style.top = rect.bottom + 10 + "px";
-  tabMenuEl.style.left = Math.min(Math.max(12, rect.left - 20), innerWidth - 312) + "px";
-  tabMenuEl.innerHTML = html;
-  document.body.appendChild(tabMenuEl);
-  tabMenuEl.addEventListener("mouseleave", e => { if (!tabEl.contains(e.relatedTarget)) lukTabMenu(); });
+function bindTabMenu(tabEl) {
   tabMenuEl.querySelectorAll(".tm-række[data-id]").forEach(b => b.onclick = () => { lukTabMenu(); openDetail(RACES[+b.dataset.id], true); });
   tabMenuEl.querySelectorAll(".tm-række[data-zoom]").forEach(b => b.onclick = () => {
     const z = LANDE_ZOOM[b.dataset.zoom];
@@ -968,15 +968,44 @@ function åbnTabMenu(tabEl) {
     const h = cta.dataset.handling;
     lukTabMenu();
     if (h === "liste") document.querySelector('.tab[data-tab="liste"]').click();
+    if (h === "top") document.querySelector('.tab[data-tab="top"]').click();
     if (h === "login") openLogin();
     if (h === "dash") openDashboard();
   };
 }
 
+function åbnTabMenu(tabEl) {
+  const navn = tabEl.dataset.tab;
+  if (navn === "liste") return; // ren toggle - ingen teaser
+  // allerede åben for samme fane? så lad den stå (undgår flicker ved musejitter)
+  if (tabMenuEl && tabMenuEl.dataset.tab === navn) return;
+  lukTabMenu();
+  const html = tabMenuIndhold(navn);
+  if (!html) return;
+  const rect = tabEl.getBoundingClientRect();
+  tabMenuEl = document.createElement("div");
+  tabMenuEl.className = "live-menu tab-menu";
+  tabMenuEl.dataset.tab = navn;
+  tabMenuEl.style.top = rect.bottom + 8 + "px";
+  tabMenuEl.style.left = Math.min(Math.max(12, rect.left - 20), innerWidth - 312) + "px";
+  tabMenuEl.innerHTML = html;
+  document.body.appendChild(tabMenuEl);
+  tabMenuEl.addEventListener("mouseleave", e => { if (!tabEl.contains(e.relatedTarget)) lukTabMenu(); });
+  bindTabMenu(tabEl);
+  // Leaderboards: hent data dovent og genudfyld når klar
+  if (navn === "top" && !window.topDataCache && window.hentTopData) {
+    window.hentTopData().then(() => {
+      if (tabMenuEl && tabMenuEl.dataset.tab === "top") { tabMenuEl.innerHTML = tabMenuIndhold("top"); bindTabMenu(tabEl); }
+    });
+  }
+}
+
+let tabMenuTimer = null;
 document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("mouseenter", () => { if (innerWidth > 720) åbnTabMenu(tab); });
+  tab.addEventListener("mouseenter", () => { clearTimeout(tabMenuTimer); if (innerWidth > 720) åbnTabMenu(tab); });
   tab.addEventListener("mouseleave", () => {
-    setTimeout(() => { if (tabMenuEl && !tabMenuEl.matches(":hover") && !tab.matches(":hover")) lukTabMenu(); }, 120);
+    clearTimeout(tabMenuTimer);
+    tabMenuTimer = setTimeout(() => { if (tabMenuEl && !tabMenuEl.matches(":hover") && !tab.matches(":hover")) lukTabMenu(); }, 180);
   });
 });
 document.addEventListener("click", e => { if (tabMenuEl && !tabMenuEl.contains(e.target) && !e.target.closest(".tab")) lukTabMenu(); });
