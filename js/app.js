@@ -501,8 +501,10 @@ document.querySelectorAll(".tab").forEach(tab =>
     detail.hidden = true;
     lukTabMenu();
     window.lukListe?.();
+    window.lukToplister?.();
     if (state.tab === "kort") closePanel();
     else if (state.tab === "liste") { closePanel(); window.åbnListe?.(); }
+    else if (state.tab === "top") { closePanel(); window.åbnToplister?.(); }
     else { panel.hidden = false; state.tab === "lob" ? renderList() : renderFavs(); }
   })
 );
@@ -869,7 +871,7 @@ function tabMenuIndhold(navn) {
 function åbnTabMenu(tabEl) {
   lukTabMenu();
   const navn = tabEl.dataset.tab;
-  if (navn === "liste") return; // toggle-tabben taler for sig selv
+  if (navn === "liste" || navn === "top") return; // disse taler for sig selv
   const html = tabMenuIndhold(navn);
   if (!html) return;
   const rect = tabEl.getBoundingClientRect();
@@ -988,6 +990,7 @@ document.getElementById("brandHjem").addEventListener("click", () => {
   closePanel(); detail.hidden = true; profileMenu.hidden = true;
   featOverlay.hidden = true; dashOverlay.hidden = true;
   window.lukListe?.();
+  window.lukToplister?.();
   setTab("kort");
   state.type = state.month = state.region = null;
   document.querySelectorAll(".pill-wrap").forEach(wrap => {

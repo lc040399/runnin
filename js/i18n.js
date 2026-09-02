@@ -20,7 +20,7 @@ function sætSprog(l) {
 
   const EN = new Map(Object.entries({
     // nav + hero
-    "Kort": "Map", "🔎 Søg løb eller by…": "🔎 Search race or city…", "Kommende løb": "Upcoming races", "Mine løb": "My races", "Log ind": "Log in",
+    "Kort": "Map", "Toplister": "Leaderboards", "Hurtigste tider.": "Fastest times.", "Halvmarathon i toplister": "Half marathon", "🔎 Find dig selv…": "🔎 Find yourself…", "Henter toplister…": "Loading leaderboards…", "Ingen resultater i denne kategori endnu.": "No results in this category yet.", "🔎 Søg løb eller by…": "🔎 Search race or city…", "Kommende løb": "Upcoming races", "Mine løb": "My races", "Log ind": "Log in",
     "Find dit næste løb.": "Find your next race.", "Hele verden. Hele året.": "The whole world. All year.",
     "Hvor som helst": "Anywhere", "Når som helst": "Anytime", "Alle distancer": "All distances", "📍 Nær mig": "📍 Near me",
     "Danmark": "Denmark", "Norden": "The Nordics", "Europa": "Europe", "Nordamerika": "North America",
@@ -124,6 +124,7 @@ function sætSprog(l) {
       (m, md, t, a, b) => `Typical race weather in ${MDR[md] || md}: ~${t}° in the morning · rain ${a} of ${b} days`],
     [/^(\d+) af (\d+)$/, "$1 of $2"],
     [/^\+([\d.,]+) m stigning$/, "+$1 m gain"],
+    [/^Offentlige resultater · (.+) · opdateret (.+)\.$/, "Public results · $1 · updated $2."],
   ];
 
   function oversæt(tekst, dybde) {
