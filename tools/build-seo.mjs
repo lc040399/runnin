@@ -7,7 +7,7 @@ const dist = process.argv[2] || "dist";
 
 const RACES = [];
 global.RACES = RACES;
-for (const f of ["data/races.js", "data/races-st.js", "data/races2.js", "data/races-nordics.js", "data/races-rid.js", "data/races-kondis.js"]) {
+for (const f of ["data/races.js", "data/races-st.js", "data/races2.js", "data/races-nordics.js", "data/races-rid.js", "data/races-kondis.js", "data/races-aims.js"]) {
   // races.js definerer const RACES - omskriv til push på vores globale
   const src = readFileSync(f, "utf8").replace("const RACES = [", "RACES.push(...[").replace(/^\];$/m, "]);");
   eval(src);

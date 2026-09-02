@@ -334,7 +334,8 @@ function openDetail(r, fly) {
     (r.u.includes("sportstiming.dk") ? `<br><span class="d-kilde">Kalenderdata: Sportstiming</span>`
       : r.u.includes("runsignup.com") ? `<br><span class="d-kilde">Kalenderdata: RunSignup</span>`
       : r.u.includes("kondis.no") ? `<br><span class="d-kilde">Kalenderdata: Kondis</span>`
-      : r.u.includes("raceid.com") ? `<br><span class="d-kilde">Kalenderdata: RaceID</span>` : "");
+      : r.u.includes("raceid.com") ? `<br><span class="d-kilde">Kalenderdata: RaceID</span>`
+      : r.u.includes("aims-worldrunning") ? `<br><span class="d-kilde">Kalenderdata: AIMS</span>` : "");
   const note = document.getElementById("dNote");
   note.hidden = !r.note;
   if (r.note) note.textContent = "⚑ Adgang: " + r.note;
@@ -343,6 +344,8 @@ function openDetail(r, fly) {
   // Kondis-event-sider er informations-sider med videre-links - lov ikke direkte tilmelding dér
   cta.innerHTML = r.u.includes("terminlista.kondis.no")
     ? `Se løbet hos Kondis <span>→</span>`
+    : r.u.includes("aims-worldrunning")
+    ? `Se løbet hos AIMS <span>→</span>`
     : `Tilmeld på officiel side <span>→</span>`;
   document.getElementById("dLive").hidden = !(typeof isLive === "function" && isLive(r));
   updateSaveBtn();
