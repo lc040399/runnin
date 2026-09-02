@@ -2,7 +2,7 @@
 // Google kan indeksere hvert løb; siderne sender brugere videre til appen (/#slug).
 import { readFileSync, writeFileSync, mkdirSync } from "fs";
 
-const BASE = "https://runnin.pages.dev";
+const BASE = "https://runnin.org";
 const dist = process.argv[2] || "dist";
 
 const RACES = [];
