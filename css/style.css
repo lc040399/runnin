@@ -1089,15 +1089,17 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 /* toplister */
 .liste-smal { max-width: 720px; }
 .top-søg { max-width: 220px; margin: 0; padding: 10px 14px; font-size: 13px; }
-.podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0 16px; }
+.podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0 16px; align-items: start; }
 .podium-kort {
   background: var(--card); border: 1px solid var(--hairline); border-radius: 16px;
   text-align: center; padding: 16px 10px 14px; position: relative;
   transition: transform .2s cubic-bezier(.22,1.4,.36,1);
 }
 .podium-kort:hover { transform: translateY(-2px); }
+/* sejrsskammel: 1. øverst, 2. et trin nede, 3. nederst */
 .podium-1 { order: 2; border-color: rgba(192,88,0,.45); box-shadow: 0 6px 22px rgba(192,88,0,.14); transform: scale(1.04); }
-.podium-2 { order: 1; } .podium-3 { order: 3; }
+.podium-1:hover { transform: scale(1.04) translateY(-2px); }
+.podium-2 { order: 1; margin-top: 12px; } .podium-3 { order: 3; margin-top: 22px; }
 .podium-medalje { font-size: 22px; }
 .podium-tid { font-size: 22px; font-weight: 800; letter-spacing: -.01em; font-variant-numeric: tabular-nums; margin-top: 2px; }
 .podium-1 .podium-tid { font-size: 26px; color: var(--coral); }
