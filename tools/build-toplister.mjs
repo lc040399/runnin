@@ -22,6 +22,7 @@ for (let side = 1; side <= 30; side++) {
 console.log("resultatsæt fundet:", sæt.length);
 
 // 2) klassificér på sæt-/løbsnavn; virtuelle løb og stafetter frasorteres
+const DISTANCER = { marathon: 42.195, half: 21.0975, "10k": 10, "5k": 5 };
 // [kategori, ja-mønster, nej-mønster, tidsgulv, tidsloft] - lofter holder støj (ultra/stafet/gå) ude
 const KATEGORIER = [
   ["marathon", /marathon|26\.2/i, /half|1\/2|½|relay|ultra/i, 2 * 3600 + 600, 6.5 * 3600],
@@ -95,6 +96,9 @@ for (const { s, k } of relevante.slice(0, CAP)) {
         navn: `${r.first_name} ${(r.last_name || "").slice(0, 1)}.`.trim(),
         tid: sekTilTid(sek), sek,
         løb: s.race_name.slice(0, 60),
+        cc: (r.country_code || "US").toUpperCase().slice(0, 2),
+        by: [r.city, r.state].filter(Boolean).join(", ").slice(0, 34),
+        pace: sekTilTid(sek / DISTANCER[k.kat]),
       });
     }
   } catch (_) { /* enkelte sæt fejler - ok */ }

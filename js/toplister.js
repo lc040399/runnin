@@ -14,7 +14,7 @@ window.åbnToplister = async function () {
   topOverlay.hidden = false;
   if (!topData) {
     topOverlay.innerHTML = `<div class="liste-indre"><div class="feed-tom" style="padding:60px 0;text-align:center">Henter leaderboards…</div></div>`;
-    try { topData = await (await fetch("data/toplister.json?v=2")).json(); }
+    try { topData = await (await fetch("data/toplister.json?v=3")).json(); }
     catch (_) { topOverlay.innerHTML = `<div class="liste-indre"><div class="empty">Leaderboards kunne ikke hentes - prøv igen om lidt.</div></div>`; return; }
   }
   renderToplister();
@@ -49,7 +49,9 @@ function renderToplister(søg) {
         <div class="podium-kort podium-${i + 1} ${match(r) ? "top-match" : ""}">
           <div class="podium-medalje">${["🥇", "🥈", "🥉"][i]}</div>
           <div class="podium-tid">${r.tid}</div>
-          <div class="podium-navn">${r.navn}</div>
+          <div class="podium-pace">${r.pace ? r.pace + " /km" : ""}</div>
+          <div class="podium-navn">${r.cc ? flag(r.cc) + " " : ""}${r.navn}</div>
+          ${r.by ? `<div class="podium-by">${r.by}</div>` : ""}
           <div class="podium-løb">${r.løb}</div>
         </div>`).join("")}
       </div>` : `<div class="empty">Ingen resultater i denne kategori endnu.</div>`}
@@ -57,8 +59,15 @@ function renderToplister(søg) {
         ${rest.map((r, i) => `
         <div class="top-række ${match(r) ? "top-match" : ""}">
           <span class="top-plac">${i + 4}</span>
-          <div class="top-main"><strong>${r.navn}</strong><span>${r.løb}</span></div>
-          <b class="top-tid">${r.tid}</b>
+          <span class="top-flag">${r.cc ? flag(r.cc) : ""}</span>
+          <div class="top-main">
+            <div class="top-linje1"><strong>${r.navn}</strong>${r.by ? `<span class="top-by">${r.by}</span>` : ""}</div>
+            <span class="top-løb">${r.løb}</span>
+          </div>
+          <div class="top-højre">
+            <b class="top-tid">${r.tid}</b>
+            ${r.pace ? `<span class="top-pace">${r.pace} /km</span>` : ""}
+          </div>
         </div>`).join("")}
       </div>
       <p class="foto-note dash-in" style="--i:4">
