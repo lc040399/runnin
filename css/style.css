@@ -1138,3 +1138,4 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 
 .podium-pace { font-size: 10.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
 .podium-by { font-size: 10.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top-regioner { display: flex; gap: 8px; margin: 4px 0 10px; }

@@ -7,6 +7,7 @@
 window.topOverlay = document.getElementById("topOverlay");
 let topData = null;
 let topKat = "marathon";
+let topRegion = "verden"; // "verden" (RunSignup) | "nordisk" (EQ Timing)
 
 const TOP_KATEGORIER = [["marathon", "Marathon"], ["half", "Halvmarathon"], ["10k", "10 km"], ["5k", "5 km"]];
 
@@ -14,7 +15,7 @@ window.åbnToplister = async function () {
   topOverlay.hidden = false;
   if (!topData) {
     topOverlay.innerHTML = `<div class="liste-indre"><div class="feed-tom" style="padding:60px 0;text-align:center">Henter leaderboards…</div></div>`;
-    try { topData = await (await fetch("data/toplister.json?v=3")).json(); }
+    try { topData = await (await fetch("data/toplister.json?v=4")).json(); }
     catch (_) { topOverlay.innerHTML = `<div class="liste-indre"><div class="empty">Leaderboards kunne ikke hentes - prøv igen om lidt.</div></div>`; return; }
   }
   renderToplister();
@@ -22,7 +23,9 @@ window.åbnToplister = async function () {
 window.lukToplister = function () { topOverlay.hidden = true; };
 
 function renderToplister(søg) {
-  const rækker = topData.boards[topKat] || [];
+  const kilder = topRegion === "nordisk" ? (topData.nordisk || {}) : topData.boards;
+  const rækker = kilder[topKat] || [];
+  const kildeTekst = topRegion === "nordisk" ? (topData.nordiskKilde || "EQ Timing") : topData.kilde;
   const q = (søg || "").trim().toLowerCase();
   const match = r => q && r.navn.toLowerCase().includes(q);
   const podium = rækker.slice(0, 3);
@@ -37,7 +40,11 @@ function renderToplister(søg) {
         </div>
         <button class="close" id="topLuk" aria-label="Luk">✕</button>
       </div>
-      <div class="liste-styr dash-in" style="--i:1">
+      <div class="top-regioner dash-in" style="--i:1">
+        <button class="tema-chip ${topRegion === "verden" ? "on" : ""}" data-region="verden">🌍 Verden</button>
+        <button class="tema-chip ${topRegion === "nordisk" ? "on" : ""}" data-region="nordisk">🇳🇴 Norden</button>
+      </div>
+      <div class="liste-styr dash-in" style="--i:2">
         <div class="tema-valg">
           ${TOP_KATEGORIER.map(([k, label]) => `<button class="tema-chip ${topKat === k ? "on" : ""}" data-kat="${k}">${label}</button>`).join("")}
         </div>
@@ -54,7 +61,7 @@ function renderToplister(søg) {
           ${r.by ? `<div class="podium-by">${r.by}</div>` : ""}
           <div class="podium-løb">${r.løb}</div>
         </div>`).join("")}
-      </div>` : `<div class="empty">Ingen resultater i denne kategori endnu.</div>`}
+      </div>` : `<div class="empty">${topRegion === "nordisk" ? "Få nordiske resultater i denne kategori lige nu - de fyldes op gennem sæsonen." : "Ingen resultater i denne kategori endnu."}</div>`}
       <div class="top-liste dash-in" style="--i:3">
         ${rest.map((r, i) => `
         <div class="top-række ${match(r) ? "top-match" : ""}">
@@ -70,13 +77,16 @@ function renderToplister(søg) {
           </div>
         </div>`).join("")}
       </div>
-      <p class="foto-note dash-in" style="--i:4">
-        Offentlige resultater · ${topData.kilde} · opdateret ${topData.opdateret}.<br>
-        🇩🇰 Danmark og 🌍 resten af verden kommer med partnerdata - tiderne her er ægte, men dækker kun løb tidsregistreret via RunSignup.
+      <p class="foto-note dash-in" style="--i:5">
+        Offentlige resultater · ${kildeTekst} · opdateret ${topData.opdateret}.<br>
+        ${topRegion === "nordisk"
+          ? "Ægte tider fra EQ Timing (mest Norge). Danmark følger med Sportstiming-partnerskab; listerne vokser gennem sæsonen."
+          : "🌍 Verden dækker løb tidsregistreret via RunSignup. Skift til Norden for nordiske tider."}
       </p>
     </div>`;
 
   document.getElementById("topLuk").onclick = () => { lukToplister(); setTab("kort"); };
+  topOverlay.querySelectorAll("[data-region]").forEach(c => c.onclick = () => { topRegion = c.dataset.region; renderToplister(document.getElementById("topSøg")?.value); });
   topOverlay.querySelectorAll("[data-kat]").forEach(c => c.onclick = () => { topKat = c.dataset.kat; renderToplister(document.getElementById("topSøg").value); });
   const søgFelt = document.getElementById("topSøg");
   søgFelt.addEventListener("input", () => {
