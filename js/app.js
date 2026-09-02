@@ -89,8 +89,15 @@ const map = new maplibregl.Map({
   minZoom: 1.2,
   renderWorldCopies: false, // én verden - ingen gentagne kontinenter/prikker
   attributionControl: { compact: true },
-  fadeDuration: 120, // kortere flise-fade: mindre synlig "firkant-loading" ved hurtig zoom
+  fadeDuration: 80, // kort flise-fade: mindre "firkant-loading" ved hurtig zoom
+  dragRotate: false, // rent 2D - ingen utilsigtet rotation, der føles klunky
+  pitchWithRotate: false,
+  touchPitch: false,
 });
+map.touchZoomRotate.disableRotation(); // to-finger-drej på trackpad skal ikke vride kortet
+// blødere hjul/trackpad-zoom: lavere rate = mere kontinuerlig, mindre stepvis
+map.scrollZoom.setWheelZoomRate(1 / 380);
+map.scrollZoom.setZoomRate(1 / 120);
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
 
 // minZoom så verden altid mindst fylder skærmbredden (ellers klemmer maxBounds kameraet skævt)
@@ -101,19 +108,19 @@ function clampMinZoom() {
 map.on("load", clampMinZoom);
 window.addEventListener("resize", clampMinZoom);
 
-// blødt pan-cap: centrum holdes inden for verden (fuld-verdens maxBounds er ustabilt i MapLibre)
-let clamper = false;
-map.on("move", () => {
-  if (clamper) return;
+// blødt pan-cap: i stedet for at rette centrum HVER frame (kæmper mod zoom/pan-
+// animationen = klunky), lader vi gesten køre frit og glider blødt tilbage på plads
+// FØRST når den er sluppet. Fuld-verdens maxBounds er ustabilt i MapLibre, derfor manuelt.
+function klampCentrum() {
   const c = map.getCenter();
   const lat = Math.min(74, Math.max(-52, c.lat));
   const lng = Math.min(178, Math.max(-178, c.lng));
   if (lat !== c.lat || lng !== c.lng) {
-    clamper = true;
-    map.setCenter([lng, lat]);
-    clamper = false;
+    map.easeTo({ center: [lng, lat], duration: 300, easing: t => t * (2 - t) });
   }
-});
+}
+map.on("moveend", klampCentrum);
+map.on("zoomend", klampCentrum);
 
 // Atlas-palet oven på Positron - lys: varmt papir/blødt vand, mørk: chokolade-nat.
 const erMørk = () => document.documentElement.dataset.tema === "mørk";
@@ -371,8 +378,19 @@ function updateSaveBtn() {
   eBtn.classList.toggle("entered", entered);
 }
 
+// personlige handlinger kræver konto - ellers spøgelses-tilstand kun på én enhed
+function kræverLogin(besked) {
+  if (getUser()) return false;
+  openLogin();
+  if (window.loginTilstand) loginTilstand("ind");
+  const fejl = document.getElementById("loginFejl");
+  if (fejl) { fejl.textContent = besked; fejl.hidden = false; fejl.classList.add("rolig"); }
+  return true;
+}
+
 document.getElementById("dSave").addEventListener("click", () => {
   if (!currentRace) return;
+  if (kræverLogin("Log ind for at gemme løb - så følger de dig på tværs af enheder.")) return;
   favs.has(currentRace.n) ? favs.delete(currentRace.n) : favs.add(currentRace.n);
   localStorage.setItem("runnin-favs", JSON.stringify([...favs]));
   window.skyPush?.(currentRace.n);
@@ -381,6 +399,7 @@ document.getElementById("dSave").addEventListener("click", () => {
 });
 document.getElementById("dEntry").addEventListener("click", () => {
   if (!currentRace) return;
+  if (kræverLogin("Log ind for at markere dig tilmeldt - så gemmer vi det til dig.")) return;
   if (entries.has(currentRace.n)) entries.delete(currentRace.n);
   else {
     entries.add(currentRace.n);

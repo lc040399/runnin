@@ -57,6 +57,7 @@ function visToast(html, handlinger) {
 
 document.getElementById("dAlarm").addEventListener("click", () => {
   if (!currentRace) return;
+  if (typeof kræverLogin === "function" && kræverLogin("Log ind for at få påmindelser om tilmelding.")) return;
   const r = currentRace;
   if (alarms.has(r.n)) {
     alarms.delete(r.n); saveAlarms(); updateAlarmBtn(r);
