@@ -793,6 +793,11 @@ async function visDetailRute(r) {
   }
   const rute = ruteCache.get(sl);
   if (!rute || currentRace !== r || detail.hidden) return;
+  // rute-fakta i detaljen: distance, højdemeter, depoter - det man forbereder sig på
+  document.getElementById("dMeta").insertAdjacentHTML("beforeend",
+    `<br><span class="d-rute">⛰ Officiel rute: ${String(rute.km).replace(".", ",")} km` +
+    `${rute.stigning ? ` · +${rute.stigning.toLocaleString("da-DK")} m` : ""}` +
+    `${rute.stationer?.length ? ` · ${rute.stationer.length} depoter` : ""}</span>`);
   map.addSource("detail-rute", { type: "geojson", data: { type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: rute.punkter } } });
   map.addLayer({
     id: "detail-rute-linje", type: "line", source: "detail-rute",

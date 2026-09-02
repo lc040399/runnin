@@ -124,6 +124,7 @@ function sætSprog(l) {
       (m, md, t, a, b) => `Typical race weather in ${MDR[md] || md}: ~${t}° in the morning · rain ${a} of ${b} days`],
     [/^(\d+) af (\d+)$/, "$1 of $2"],
     [/^\+([\d.,]+) m stigning$/, "+$1 m gain"],
+    [/^⛰ Officiel rute: ([\d,\.]+) km( · \+[\d.,]+ m)?( · (\d+) depoter)?$/, (m, km, stig, dep, depN) => `⛰ Official route: ${km} km${stig || ""}${depN ? ` · ${depN} aid stations` : ""}`],
     [/^Offentlige resultater · (.+) · opdateret (.+)\.$/, "Public results · $1 · updated $2."],
   ];
 

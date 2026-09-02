@@ -1125,3 +1125,4 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
   .tab { padding: 12px 2px; font-size: 11.5px; }
 }
 .top-dæmpet { opacity: .28; }
+.d-rute { color: var(--coral); font-weight: 650; }
