@@ -1,8 +1,7 @@
-// Autogenereret af tools/build-aims.mjs - kilde: AIMS-kalenderen (79 løb, verden)
+// Autogenereret af tools/build-aims.mjs - kilde: AIMS-kalenderen (78 løb, verden)
 // Kompakt format: [navn, by, cc, co, lat, lng, type, distance, måned, dato|null, officiel-url]
 for (const a of [
 ["Wizz Air Skopje Marathon","Skopje","MK","EU",41.9965,21.4314,"marathon","42,2 km","2026-09","2026-09-04","https://www.aims-worldrunning.org/races/726.html"],
-["PBG Satara Hill Half Marathon","Satara","IN","AS",17.6859,73.9933,"half","21,1 km","2026-09","2026-09-06","https://www.aims-worldrunning.org/races/10083.html"],
 ["Kazan Half Marathon","Kazan","RU","EU",55.7887,49.1221,"half","21,1 km","2026-09","2026-09-11","https://www.aims-worldrunning.org/races/10336.html"],
 ["Wizz Air Sofia Marathon","Sofia","BG","EU",42.6975,23.3241,"marathon","42,2 km","2026-09","2026-09-11","https://www.aims-worldrunning.org/races/10237.html"],
 ["Tlajomulco Half Marathon Skarch Hydrated by Electrolit","Tlajomulco","MX","NA",20.4742,-103.4465,"half","21,1 km","2026-09","2026-09-11","https://www.aims-worldrunning.org/races/10091.html"],
