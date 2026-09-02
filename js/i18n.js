@@ -20,7 +20,7 @@ function sætSprog(l) {
 
   const EN = new Map(Object.entries({
     // nav + hero
-    "Kort": "Map", "Hurtigste tider.": "Fastest times.", "Halvmarathon i toplister": "Half marathon", "🔎 Find dig selv…": "🔎 Find yourself…", "Henter leaderboards…": "Loading leaderboards…", "Leaderboards kunne ikke hentes - prøv igen om lidt.": "Leaderboards could not be loaded - try again shortly.", "Ingen match i top 25 - måske ved dit næste løb.": "No match in the top 25 - maybe at your next race.", "Ingen resultater i denne kategori endnu.": "No results in this category yet.", "🔎 Søg løb eller by…": "🔎 Search race or city…", "Kommende løb": "Upcoming races", "Mine løb": "My races", "Log ind": "Log in",
+    "Kort": "Map", "Ryd alle": "Clear all", "Hurtigste tider.": "Fastest times.", "Halvmarathon i toplister": "Half marathon", "🔎 Find dig selv…": "🔎 Find yourself…", "Henter leaderboards…": "Loading leaderboards…", "Leaderboards kunne ikke hentes - prøv igen om lidt.": "Leaderboards could not be loaded - try again shortly.", "Ingen match i top 25 - måske ved dit næste løb.": "No match in the top 25 - maybe at your next race.", "Ingen resultater i denne kategori endnu.": "No results in this category yet.", "🔎 Søg løb eller by…": "🔎 Search race or city…", "Kommende løb": "Upcoming races", "Mine løb": "My races", "Log ind": "Log in",
     "Find dit næste løb.": "Find your next race.", "Hele verden. Hele året.": "The whole world. All year.",
     "Hvor som helst": "Anywhere", "Når som helst": "Anytime", "Alle distancer": "All distances", "📍 Nær mig": "📍 Near me",
     "Danmark": "Denmark", "Norden": "The Nordics", "Europa": "Europe", "Nordamerika": "North America",

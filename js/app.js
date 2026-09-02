@@ -205,12 +205,14 @@ map.on("load", () => {
       "circle-radius": ["step", ["get", "point_count"], 13, 8, 17, 25, 22],
       "circle-stroke-width": 5,
       "circle-stroke-color": "rgba(17,24,39,.15)",
+      "circle-opacity": 1, "circle-stroke-opacity": 1,
+      "circle-opacity-transition": { duration: 220 }, "circle-stroke-opacity-transition": { duration: 220 },
     },
   });
   map.addLayer({
     id: "cluster-count", type: "symbol", source: "races", filter: ["has", "point_count"],
     layout: { "text-field": "{point_count_abbreviated}", "text-font": ["Noto Sans Regular"], "text-size": 11 },
-    paint: { "text-color": "#ffffff" },
+    paint: { "text-color": "#ffffff", "text-opacity": 1, "text-opacity-transition": { duration: 220 } },
   });
   map.addLayer({
     id: "race-dots", type: "circle", source: "races", filter: ["!", ["has", "point_count"]],
@@ -220,6 +222,8 @@ map.on("load", () => {
       "circle-stroke-width": ["case", ["==", ["get", "e"], 1], 3, ["case", ["boolean", ["feature-state", "hover"], false], 3, 1.5]],
       "circle-stroke-color": ["case", ["==", ["get", "e"], 1], "#C05800", "#ffffff"],
       "circle-radius-transition": { duration: 150 },
+      "circle-opacity": 1, "circle-stroke-opacity": 1,
+      "circle-opacity-transition": { duration: 220 }, "circle-stroke-opacity-transition": { duration: 220 },
     },
   });
 
@@ -482,14 +486,58 @@ function opdaterLegend() {
   });
 }
 
+const RACE_LAG = [
+  ["race-dots", "circle-opacity"], ["race-dots", "circle-stroke-opacity"],
+  ["clusters", "circle-opacity"], ["clusters", "circle-stroke-opacity"],
+  ["cluster-count", "text-opacity"],
+];
+const settLagOpacity = v => { for (const [lag, prop] of RACE_LAG) if (map.getLayer(lag)) map.setPaintProperty(lag, prop, v); };
+let fadeTimer = null;
 function applyFilters() {
   opdaterLegend();
   const list = filtered();
-  const src = map.getSource("races");
-  if (src) src.setData(toGeojson(list));
   updateCounter(list);
+  opdaterAktiveFiltre();
   if (window.listeOverlay && !window.listeOverlay.hidden) window.renderListe();
   if (typeof updateRadarBtn === "function") updateRadarBtn();
+  const src = map.getSource("races");
+  if (!src) return;
+  // crossfade: gamle prikker fader ud, ny data lægges ind, nye fader blødt ind
+  settLagOpacity(0);
+  clearTimeout(fadeTimer);
+  fadeTimer = setTimeout(() => { src.setData(toGeojson(list)); settLagOpacity(1); }, 200);
+}
+
+/* aktive-filtre-chips: viser hvad du lige satte + ét klik til at fjerne */
+function ryddType() { const m = document.querySelector('.menu[data-for="type"]'); m?.querySelector('button[data-i="0"]')?.click(); }
+function ryddMenu(key) {
+  state[key] = null;
+  const wrap = [...document.querySelectorAll(".pill-wrap")].find(w => w.querySelector(".pill")?.dataset.menu === key);
+  if (wrap) {
+    const pill = wrap.querySelector(".pill");
+    pill.innerHTML = `${menus[key][0].label} <span class="caret">▾</span>`;
+    pill.classList.remove("on");
+    wrap.querySelectorAll(".menu button").forEach((b, i) => b.classList.toggle("sel", i === 0));
+  }
+  applyFilters();
+}
+function opdaterAktiveFiltre() {
+  const bar = document.getElementById("aktiveFiltre");
+  if (!bar) return;
+  const chips = [];
+  if (state.type) chips.push([`${TYPE_LABEL[state.type]}`, "type"]);
+  if (state.region) chips.push([REGIONS.find(r => r.key === state.region)?.label || state.region, "region"]);
+  if (state.month !== null) chips.push([MONTHS[state.month - 1][0].toUpperCase() + MONTHS[state.month - 1].slice(1), "month"]);
+  bar.innerHTML = chips.map(([label, key]) =>
+    `<button class="filter-chip" data-key="${key}">${label} <span>✕</span></button>`).join("")
+    + (chips.length > 1 ? `<button class="filter-chip filter-ryd-alle" data-key="alle">Ryd alle</button>` : "");
+  bar.hidden = !chips.length;
+  bar.querySelectorAll(".filter-chip").forEach(c => c.onclick = () => {
+    const k = c.dataset.key;
+    if (k === "alle") { state.type && ryddType(); state.region && ryddMenu("region"); state.month !== null && ryddMenu("month"); }
+    else if (k === "type") ryddType();
+    else ryddMenu(k);
+  });
 }
 
 let counterVist = 0;
