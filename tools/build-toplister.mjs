@@ -39,8 +39,12 @@ function kategori(s) {
   for (const [kat, ja, nej, gulv, loft] of KATEGORIER) {
     if (ja.test(s.individual_result_set_name) && !nej.test(navn)) return { kat, gulv, loft };
   }
-  for (const [kat, ja, nej, gulv, loft] of KATEGORIER) {
-    if (/overall|results/i.test(s.individual_result_set_name) && ja.test(s.race_name) && !nej.test(navn)) return { kat, gulv, loft };
+  // fallback på race-navnet KUN når det matcher præcis én kategori - multi-distance-løb
+  // ("5k, 10K, HALF MARATHON & Fun Run") kan ellers hælde 10K-tider i half-listen
+  const kandidater = KATEGORIER.filter(([, ja]) => ja.test(s.race_name));
+  if (kandidater.length === 1 && /overall|results/i.test(s.individual_result_set_name)) {
+    const [kat, , nej, gulv, loft] = kandidater[0];
+    if (!nej.test(navn)) return { kat, gulv, loft };
   }
   return null;
 }
@@ -98,8 +102,10 @@ for (const { s, k } of relevante.slice(0, CAP)) {
 
 for (const kat of Object.keys(boards)) {
   const set = new Set();
+  const prLøb = {};
   boards[kat] = boards[kat].sort((a, b) => a.sek - b.sek)
     .filter(r => { const k = r.navn + r.tid; if (set.has(k)) return false; set.add(k); return true; })
+    .filter(r => (prLøb[r.løb] = (prLøb[r.løb] || 0) + 1) <= 3) // maks 3 pr. løb - variation over dominans
     .slice(0, 25).map(({ sek, ...r }) => r);
   console.log(`${kat}: ${boards[kat].length} rækker, hurtigst ${boards[kat][0]?.tid || "-"}`);
 }

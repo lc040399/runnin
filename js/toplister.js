@@ -14,7 +14,7 @@ window.åbnToplister = async function () {
   topOverlay.hidden = false;
   if (!topData) {
     topOverlay.innerHTML = `<div class="liste-indre"><div class="feed-tom" style="padding:60px 0;text-align:center">Henter toplister…</div></div>`;
-    try { topData = await (await fetch("data/toplister.json?v=1")).json(); }
+    try { topData = await (await fetch("data/toplister.json?v=2")).json(); }
     catch (_) { topOverlay.innerHTML = `<div class="liste-indre"><div class="empty">Toplisterne kunne ikke hentes - prøv igen om lidt.</div></div>`; return; }
   }
   renderToplister();
@@ -71,13 +71,25 @@ function renderToplister(søg) {
   topOverlay.querySelectorAll("[data-kat]").forEach(c => c.onclick = () => { topKat = c.dataset.kat; renderToplister(document.getElementById("topSøg").value); });
   const søgFelt = document.getElementById("topSøg");
   søgFelt.addEventListener("input", () => {
-    const v = søgFelt.value;
-    // let fremhævning uden fuld gen-render: toggl match-klassen
-    const ql = v.trim().toLowerCase();
+    const ql = søgFelt.value.trim().toLowerCase();
+    let fund = 0;
     topOverlay.querySelectorAll(".podium-kort, .top-række").forEach(el => {
       const navn = (el.querySelector(".podium-navn") || el.querySelector(".top-main strong"))?.textContent.toLowerCase() || "";
-      el.classList.toggle("top-match", !!ql && navn.includes(ql));
+      const match = !!ql && navn.includes(ql);
+      if (match) fund++;
+      el.classList.toggle("top-match", match);
+      el.classList.toggle("top-dæmpet", !!ql && !match); // resten træder i baggrunden
     });
+    let note = document.getElementById("topSøgNote");
+    if (ql && !fund) {
+      if (!note) {
+        note = document.createElement("p");
+        note.id = "topSøgNote";
+        note.className = "foto-note";
+        søgFelt.closest(".liste-styr").insertAdjacentElement("afterend", note);
+      }
+      note.textContent = "Ingen match i top 25 - måske ved dit næste løb.";
+    } else note?.remove();
   });
   if (søg) { søgFelt.focus(); søgFelt.setSelectionRange(søg.length, søg.length); }
 }
