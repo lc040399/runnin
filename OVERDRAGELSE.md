@@ -32,7 +32,10 @@ Her er den ærlige tilstand, så du ved præcis, hvad du overtager.
 ## Officielle ruter
 
 `data/ruter/<slug>.json` viser en ÆGTE rute (fuldt optrukket) på detalje- og live-visning;
-alle andre løb får en stiplet OSRM-illustration, tydeligt mærket. Tilføj en rute med
+alle andre løb får en stiplet OSRM-illustration, tydeligt mærket. Ruter kan beriges med depoter/stationer og højdeprofil via
+`node tools/berig-rute.mjs data/ruter/<slug>.json stationer.json` (stationer =
+[[navn, lat, lng], ...], km-mærker beregnes; højder fra Open-Meteos frie API).
+Tilføj en rute med
 `node tools/gpx2rute.mjs <gpx-eller-overpass-fil> "<Løbets navn>" "<kilde>"`.
 Kun legitime kilder: arrangørens egen GPX eller OSM-relationer for permanente stier (ODbL).
 Seed: Laugavegur Ultra (OSM-relation, ét kort stræk interpoleret over datahul).

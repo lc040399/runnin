@@ -1077,3 +1077,12 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .l-gruppe-antal { color: var(--faint); font-weight: 600; letter-spacing: 0; text-transform: none; }
 @media (max-width: 720px) { .l-typer { grid-template-columns: repeat(3, 1fr); } }
 .cal-hover { z-index: 90; } /* over kalender-modalen (80) */
+/* højdeprofil + depoter (officielle ruter) */
+.profil { width: 100%; height: 58px; display: block; margin: 2px 0 6px; }
+.profil-flade { fill: rgba(192,88,0,.14); }
+.profil-linje { fill: none; stroke: var(--coral); stroke-width: .7; vector-effect: non-scaling-stroke; }
+.profil-station { fill: #fff; stroke: var(--coral); stroke-width: .6; }
+.depot-liste { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-bottom: 8px; }
+.depot { font-size: 11px; color: var(--muted); display: inline-flex; align-items: center; gap: 5px; }
+.depot i { width: 7px; height: 7px; border-radius: 99px; background: #fff; border: 2px solid var(--coral); }
+.depot b { color: var(--ink); font-variant-numeric: tabular-nums; }

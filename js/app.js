@@ -794,6 +794,7 @@ async function visDetailRute(r) {
     paint: { "line-color": "#C05800", "line-width": 3.5, "line-opacity": .85 },
     layout: { "line-cap": "round", "line-join": "round" },
   }, map.getLayer("clusters") ? "clusters" : undefined);
+  window.visRuteStationer?.(rute);
   // vis hele ruten, med plads til detaljepanelet
   const lons = rute.punkter.map(p => p[0]), lats = rute.punkter.map(p => p[1]);
   map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
@@ -802,6 +803,7 @@ async function visDetailRute(r) {
 function fjernDetailRute() {
   if (map.getLayer("detail-rute-linje")) map.removeLayer("detail-rute-linje");
   if (map.getSource("detail-rute")) map.removeSource("detail-rute");
+  window.fjernRuteStationer?.();
 }
 new MutationObserver(() => { if (detail.hidden) fjernDetailRute(); })
   .observe(detail, { attributes: true, attributeFilter: ["hidden"] });

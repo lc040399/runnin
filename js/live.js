@@ -165,6 +165,53 @@ async function tilføjDigLag() {
   }
 }
 
+/* ---------- depoter/stationer på officielle ruter ---------- */
+window.visRuteStationer = function (rute) {
+  fjernRuteStationer();
+  if (!rute?.stationer?.length) return;
+  map.addSource("rute-stationer", {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: rute.stationer.map(st => ({
+      type: "Feature", properties: { navn: st.navn, km: st.km }, geometry: { type: "Point", coordinates: [st.lo, st.la] },
+    })) },
+  });
+  map.addLayer({
+    id: "rute-station-prik", type: "circle", source: "rute-stationer",
+    paint: { "circle-color": "#ffffff", "circle-radius": 5.5, "circle-stroke-width": 2.5, "circle-stroke-color": "#C05800" },
+  });
+  map.addLayer({
+    id: "rute-station-navn", type: "symbol", source: "rute-stationer",
+    layout: {
+      "text-field": ["format", ["get", "navn"], {}, "\n", {}, ["concat", ["to-string", ["get", "km"]], " km"], { "font-scale": 0.85 }],
+      "text-font": ["Noto Sans Regular"], "text-size": 11, "text-offset": [0, 1.1], "text-anchor": "top",
+      "text-allow-overlap": false,
+    },
+    paint: { "text-color": "#38240D", "text-halo-color": "#F5F3EE", "text-halo-width": 1.6 },
+  });
+};
+window.fjernRuteStationer = function () {
+  for (const id of ["rute-station-navn", "rute-station-prik"]) if (map.getLayer(id)) map.removeLayer(id);
+  if (map.getSource("rute-stationer")) map.removeSource("rute-stationer");
+};
+
+/* højdeprofil som lille SVG-områdekurve med depot-mærker */
+window.byggProfilSvg = function (rute) {
+  if (!rute?.højde?.length) return "";
+  const H = rute.højde, W = 100, HØJ = 34;
+  const min = Math.min(...H), max = Math.max(...H), spænd = Math.max(max - min, 1);
+  const x = i => (i / (H.length - 1)) * W;
+  const y = h => HØJ - 3 - ((h - min) / spænd) * (HØJ - 8);
+  const linje = H.map((h, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(h).toFixed(1)}`).join("");
+  const km = rute.km || 1;
+  const mærker = (rute.stationer || []).map(st => {
+    const i = Math.round((st.km / km) * (H.length - 1));
+    return `<circle cx="${x(Math.min(i, H.length - 1)).toFixed(1)}" cy="${y(H[Math.min(i, H.length - 1)]).toFixed(1)}" r="1.7" class="profil-station"/>`;
+  }).join("");
+  return `<svg class="profil" viewBox="0 0 ${W} ${HØJ}" preserveAspectRatio="none">
+    <path d="${linje} L${W},${HØJ} L0,${HØJ} Z" class="profil-flade"/>
+    <path d="${linje}" class="profil-linje"/>${mærker}</svg>`;
+};
+
 /* ---------- kort-lag ---------- */
 function ensureLiveLayers() {
   if (map.getSource("live-route")) return;
@@ -187,6 +234,7 @@ function ensureLiveLayers() {
   });
 }
 function clearLiveLayers() {
+  fjernRuteStationer();
   for (const id of ["live-runner-dig", "live-runner-dots", "live-route-line"]) if (map.getLayer(id)) map.removeLayer(id);
   for (const id of ["live-runners", "live-route"]) if (map.getSource(id)) map.removeSource(id);
 }
@@ -254,6 +302,11 @@ function buildLivePanel() {
       <div><strong id="stMaal">0</strong><span>i mål</span></div>
       <div><strong>${sim.distKm} km</strong><span>${sim.officiel ? "officiel rute" : "illustrativ rute"}</span></div>
     </div>
+    ${sim.officiel?.højde?.length ? `
+    <div class="live-sec">Højdeprofil <span class="w-src">+${(sim.officiel.stigning || 0).toLocaleString("da-DK")} m stigning</span></div>
+    ${byggProfilSvg(sim.officiel)}
+    ${sim.officiel.stationer?.length ? `<div class="depot-liste">${sim.officiel.stationer.map(st =>
+      `<span class="depot"><i></i>${st.navn} <b>${st.km} km</b></span>`).join("")}</div>` : ""}` : ""}
     <div class="live-sec">Førende lige nu</div>
     <div class="lb-list" id="lbList"></div>
     <div class="live-sec">Målstregen</div>
@@ -390,6 +443,7 @@ async function openLive(race) {
   tilføjDigLag();
   map.getSource("live-route").setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: sim.route } });
   map.setPaintProperty("live-route-line", "line-dasharray", sim.officiel ? [1, 0] : [2.4, 1.8]);
+  if (sim.officiel) visRuteStationer(sim.officiel); else fjernRuteStationer();
   map.setPaintProperty("live-route-line", "line-opacity", sim.officiel ? .85 : .65);
   map.setPaintProperty("live-route-line", "line-width", sim.officiel ? 3.5 : 3);
 

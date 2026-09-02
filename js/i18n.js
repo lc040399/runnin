@@ -27,7 +27,7 @@ function sætSprog(l) {
     "Sydamerika": "South America", "Asien": "Asia", "Afrika": "Africa", "Oceanien": "Oceania",
     "Kort (5-15 km)": "Short (5-15 km)", "Løb": "Run", "Triatlon": "Triathlon", "Hele verden": "The whole world", "I dag": "Today", "I morgen": "Tomorrow", "Denne uge": "This week", "📅 Kalender": "📅 Calendar", "Live lige nu": "Live right now", "Udvalgte klassikere": "Selected classics", "kommende løb": "upcoming races", "live lige nu": "live right now", "Flyv til": "Fly to", "Åbn hele listen →": "Open the full list →", "Åbn dashboard →": "Open dashboard →", "Log ind for at gemme løb og følge dem her.": "Log in to save races and follow them here.", "Log ind →": "Log in →", "Liste": "List", "Halvmarathon": "Half marathon", "Half": "Half",
     "Marathon": "Marathon", "Ultra & trail": "Ultra & trail", "Triathlon": "Triathlon",
-    "på kortet": "on the map", "på ruten": "on course", "i mål": "finished", "illustrativ rute": "illustrative route", "officiel rute": "official route", "Førende lige nu": "Leading right now", "Målstregen": "The finish line", "Ingen i mål endnu - følg med her.": "No finishers yet - follow along here.", "i gang lige nu": "live right now", "Følg live →": "Follow live →",
+    "på kortet": "on the map", "på ruten": "on course", "i mål": "finished", "illustrativ rute": "illustrative route", "officiel rute": "official route", "Førende lige nu": "Leading right now", "Højdeprofil": "Elevation profile", "Målstregen": "The finish line", "Ingen i mål endnu - følg med her.": "No finishers yet - follow along here.", "i gang lige nu": "live right now", "Følg live →": "Follow live →",
     // detalje
     "Tilmeld på officiel side": "Register on official site", "Se løbet hos Kondis": "View race at Kondis",
     "🎟 Markér som tilmeldt": "🎟 Mark as registered", "🎟 Du er tilmeldt": "🎟 You're registered",
@@ -123,6 +123,7 @@ function sætSprog(l) {
     [/^Typisk løbevejr i (\w+): ~(-?\d+)° om formiddagen · regn (\d+) af (\d+) dage$/,
       (m, md, t, a, b) => `Typical race weather in ${MDR[md] || md}: ~${t}° in the morning · rain ${a} of ${b} days`],
     [/^(\d+) af (\d+)$/, "$1 of $2"],
+    [/^\+([\d.,]+) m stigning$/, "+$1 m gain"],
   ];
 
   function oversæt(tekst, dybde) {
