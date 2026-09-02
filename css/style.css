@@ -704,6 +704,10 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
   max-width: 1060px; margin: 22px auto 0;
 }
+@media (min-width: 1500px) {
+  .dash-grid { max-width: 1500px; grid-template-columns: repeat(3, 1fr); }
+  .dash-head { max-width: 1500px; }
+}
 .dash-card {
   background: var(--card); border: 1px solid var(--hairline); border-radius: 18px;
   padding: 20px 22px; box-shadow: var(--soft-shadow);
@@ -997,7 +1001,7 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .login-succes strong { color: var(--ink); }
 /* ---------- fuldskærms-listevisning ---------- */
 .liste-overlay { overflow-y: auto; }
-.liste-indre { max-width: 1380px; margin: 0 auto; padding: calc(22px + env(safe-area-inset-top)) clamp(16px, 3vw, 40px) calc(90px + env(safe-area-inset-bottom)); }
+.liste-indre { max-width: 1760px; margin: 0 auto; padding: calc(22px + env(safe-area-inset-top)) clamp(16px, 3vw, 56px) calc(90px + env(safe-area-inset-bottom)); }
 .liste-indre .dash-head h2 { font-size: clamp(24px, 3.2vw, 34px); }
 .l-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px; margin-bottom: 4px; }
 .liste-styr { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 10px 0 6px; }
@@ -1087,7 +1091,7 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .depot i { width: 7px; height: 7px; border-radius: 99px; background: #fff; border: 2px solid var(--coral); }
 .depot b { color: var(--ink); font-variant-numeric: tabular-nums; }
 /* toplister */
-.liste-smal { max-width: 720px; }
+.liste-smal { max-width: 960px; }
 .top-søg { max-width: 220px; margin: 0; padding: 10px 14px; font-size: 13px; }
 .podium { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0 16px; align-items: start; }
 .podium-kort {
@@ -1105,7 +1109,12 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .podium-1 .podium-tid { font-size: 26px; color: var(--coral); }
 .podium-navn { font-size: 13px; font-weight: 700; margin-top: 3px; }
 .podium-løb { font-size: 10.5px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.top-liste { display: flex; flex-direction: column; }
+.top-liste { display: grid; grid-template-columns: 1fr; column-gap: 28px; }
+@media (min-width: 1200px) {
+  .liste-smal { max-width: 1240px; }
+  .top-liste { grid-template-columns: 1fr 1fr; }
+  .podium { max-width: 860px; margin-left: auto; margin-right: auto; }
+}
 .top-række {
   display: flex; align-items: center; gap: 12px; padding: 9px 12px;
   border-bottom: 1px solid var(--hairline); border-radius: 10px;
