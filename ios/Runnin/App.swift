@@ -11,7 +11,7 @@ final class VC: UIViewController, WKNavigationDelegate {
     web.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     web.scrollView.contentInsetAdjustmentBehavior = .never
     web.navigationDelegate = self
-    web.load(URLRequest(url: URL(string: "https://runnin.pages.dev")!))
+    web.load(URLRequest(url: URL(string: "https://runnin.org")!))
     view.addSubview(web)
   }
 }
