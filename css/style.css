@@ -394,7 +394,8 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
   padding: 11px 18px; outline: none; box-shadow: var(--soft-shadow);
   transition: border-color .18s, box-shadow .18s;
 }
-.search:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(56,36,13,.08); }
+.search:focus { border-color: var(--ink); box-shadow: var(--soft-shadow); }
+.search:focus-visible { outline: none; } /* ingen caramel-ring om søgefeltet - ren kant er nok */
 .search::placeholder { color: var(--faint); }
 
 /* filter-knap inde i søgebaren (kun mobil - desktop har de fritstående piller) */

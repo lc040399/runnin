@@ -13,7 +13,7 @@ permissions:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
 
@@ -27,11 +27,25 @@ jobs:
         continue-on-error: true
         run: |
           set +e
+          # per-kilde timeout: en hængende kilde dræbes efter 6 min, de andre kører videre
           for p in build-st build-rid build-kondis build-wm build-aims build-rsu build-toplister build-eq-toplister; do
             echo "::group::$p"
-            node "tools/$p.mjs" || echo "::warning::$p fejlede - beholder eksisterende data"
+            timeout 360 node "tools/$p.mjs"
+            rc=$?
+            [ $rc -eq 124 ] && echo "::warning::$p timeout (>6 min) - beholder eksisterende data"
+            [ $rc -ne 0 ] && [ $rc -ne 124 ] && echo "::warning::$p fejlede (exit $rc) - beholder eksisterende data"
             echo "::endgroup::"
           done
+
+      - name: Valider parse (gendan sidste gode ved halvskrevet fil)
+        run: |
+          for f in data/races*.js; do
+            node --check "$f" 2>/dev/null || { echo "::warning::$f parser ikke - gendanner sidste gode"; git checkout -- "$f"; }
+          done
+          if [ -f data/toplister.json ]; then
+            node -e "JSON.parse(require('fs').readFileSync('data/toplister.json','utf8'))" 2>/dev/null \
+              || { echo "::warning::toplister.json ugyldig - gendanner"; git checkout -- data/toplister.json; }
+          fi
 
       - name: Krympe-vagt (afbryd hvis en datafil kollapser)
         run: |
