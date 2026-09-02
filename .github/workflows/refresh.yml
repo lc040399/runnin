@@ -1,0 +1,71 @@
+# Ugentlig data-refresh: genimportér løbskilderne, valider at intet katalog
+# kollapser, stempl "sidst opdateret" og deploy. Kør den MANUELT (workflow_dispatch)
+# første gang og hold øje - kræver Cloudflare-hemmeligheder (se noter nederst).
+name: Data-refresh
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 4 * * 1" # mandag 04:00 UTC
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # Kilderne kører hver for sig - én død kilde må ikke vælte de andre.
+      # (De skriver kun deres egen data/*.js; fejler de, beholder git den gamle.)
+      - name: Genimportér kilder
+        continue-on-error: true
+        run: |
+          set +e
+          for p in build-st build-rid build-kondis build-wm build-aims build-rsu build-toplister build-eq-toplister; do
+            echo "::group::$p"
+            node "tools/$p.mjs" || echo "::warning::$p fejlede - beholder eksisterende data"
+            echo "::endgroup::"
+          done
+
+      - name: Krympe-vagt (afbryd hvis en datafil kollapser)
+        run: |
+          fejl=0
+          for f in data/races*.js; do
+            old=$(git show "HEAD:$f" 2>/dev/null | wc -c || echo 0)
+            new=$(wc -c < "$f")
+            if [ "$old" -gt 0 ] && [ "$new" -lt $((old / 2)) ]; then
+              echo "::error::$f skrumpede fra $old til $new bytes - afbryder deploy"
+              fejl=1
+            fi
+          done
+          [ "$fejl" -eq 0 ] || exit 1
+
+      - name: Stempl sidst-opdateret
+        run: node tools/build-meta.mjs
+
+      - name: Commit data-ændringer
+        run: |
+          git config user.name "runnin-bot"
+          git config user.email "bot@runnin.org"
+          git add data/
+          git commit -m "chore: ugentlig data-refresh [skip ci]" || { echo "ingen ændringer"; exit 0; }
+          git push
+
+      - name: Deploy til Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@latest pages deploy . --project-name=runnin --commit-dirty=true
+
+# ---------------------------------------------------------------------------
+# KRÆVER at Lasse lægger to repo-hemmeligheder ind (Settings → Secrets → Actions):
+#   CLOUDFLARE_API_TOKEN   - token m. "Cloudflare Pages: Edit"-rettighed
+#   CLOUDFLARE_ACCOUNT_ID  - konto-id (står i Cloudflare-dashboardets URL/sidepanel)
+# Uden dem kører refresh + commit fint, men deploy-trinnet fejler.
+# Kør workflowet manuelt (Actions → Data-refresh → Run) første gang og se loggen.

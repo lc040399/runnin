@@ -198,14 +198,14 @@ map.on("load", () => {
   if (attrib) { attrib.classList.remove("maplibregl-compact-show"); attrib.removeAttribute("open"); }
   warmify();
 
-  map.addSource("races", { type: "geojson", data: toGeojson(filtered()), cluster: true, clusterMaxZoom: 8, clusterRadius: 42 });
+  map.addSource("races", { type: "geojson", data: toGeojson(filtered()), cluster: true, clusterMaxZoom: 11, clusterRadius: 60 });
 
   map.addLayer({
     id: "clusters", type: "circle", source: "races", filter: ["has", "point_count"],
     paint: {
       "circle-color": "#111827",
-      "circle-radius": ["step", ["get", "point_count"], 13, 8, 17, 25, 22],
-      "circle-stroke-width": 5,
+      "circle-radius": ["step", ["get", "point_count"], 12, 15, 15, 60, 18, 250, 22],
+      "circle-stroke-width": 3,
       "circle-stroke-color": "rgba(17,24,39,.15)",
       "circle-opacity": 1, "circle-stroke-opacity": 1,
       "circle-opacity-transition": { duration: 220 }, "circle-stroke-opacity-transition": { duration: 220 },
@@ -256,8 +256,15 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 const hoverCard = document.getElementById("hoverCard");
 let hoverId = null;
 
+// hover-tooltip skal aldrig leve mens en fuldskærms-modal/detalje dækker kortet
+function overlayÅben() {
+  return (detail && !detail.hidden) ||
+    !!document.querySelector(".foto-overlay:not([hidden]), .cal-overlay:not([hidden]), .login-overlay:not([hidden])");
+}
+
 function wireMapEvents() {
   map.on("mousemove", "race-dots", e => {
+    if (overlayÅben()) { hoverCard.hidden = true; return; }
     const f = e.features[0];
     if (hoverId !== null) map.setFeatureState({ source: "races", id: hoverId }, { hover: false });
     hoverId = f.id;
@@ -289,6 +296,7 @@ function wireMapEvents() {
   // hover på klynge: forsmag på løbene indeni, før man zoomer
   let hoverClusterId = null;
   map.on("mousemove", "clusters", async e => {
+    if (overlayÅben()) { hoverCard.hidden = true; return; }
     const f = e.features[0];
     map.getCanvas().style.cursor = "pointer";
     const id = f.properties.cluster_id;
@@ -368,6 +376,7 @@ function openDetail(r, fly) {
   if (typeof featuresOnDetail === "function") featuresOnDetail(r);
   visDetailRute(r);
   history.replaceState(null, "", "#" + slug(r.n));
+  hoverCard.hidden = true; // ingen hover-tooltip bag/oven på detalje-modalen
   detail.hidden = false;
   if (fly) map.flyTo({ center: [r.lo, r.la], zoom: Math.max(map.getZoom(), 5.5), duration: 1100, essential: true });
 }
@@ -431,7 +440,6 @@ document.getElementById("detailClose").addEventListener("click", () => {
   detail.hidden = true;
   history.replaceState(null, "", location.pathname + location.search);
 });
-document.getElementById("dPhotos").addEventListener("click", () => currentRace && openFotos(currentRace));
 document.getElementById("dLive").addEventListener("click", () => currentRace && openLive(currentRace));
 
 /* ---------- filtre ---------- */
@@ -500,6 +508,7 @@ function applyFilters() {
   const list = filtered();
   updateCounter(list);
   opdaterAktiveFiltre();
+  if (typeof opdaterFilterBadge === "function") opdaterFilterBadge();
   if (window.listeOverlay && !window.listeOverlay.hidden) window.renderListe();
   if (typeof updateRadarBtn === "function") updateRadarBtn();
   const src = map.getSource("races");
@@ -543,18 +552,27 @@ function opdaterAktiveFiltre() {
 }
 
 let counterVist = 0;
+// ærligt friskheds-signal: "· opdateret 2. sep" (fra data/meta.js, stemplet ved genimport)
+function opdateretLabel() {
+  const iso = window.RUNNIN_META?.opdateret;
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00");
+  if (isNaN(d)) return "";
+  return ` <span class="counter-opd">· opdateret ${d.toLocaleDateString("da-DK", { day: "numeric", month: "short" }).replace(".", "")}</span>`;
+}
 function updateCounter(list) {
   const n = (list || filtered()).length;
   const el = document.getElementById("counter");
+  const opd = opdateretLabel();
   // tæl op/ned til det nye tal - store spring (USA-fletningen) føles levende, små er øjeblikkelige
   const fra = counterVist, dur = Math.abs(n - fra) > 400 ? 900 : 0;
   counterVist = n;
-  if (!dur) { el.innerHTML = `<strong>${n.toLocaleString("da-DK")} løb</strong> på kortet`; return; }
+  if (!dur) { el.innerHTML = `<strong>${n.toLocaleString("da-DK")} løb</strong> på kortet${opd}`; return; }
   const t0 = performance.now();
   (function tik(ts) {
     const p = Math.min((ts - t0) / dur, 1);
     const v = Math.round(fra + (n - fra) * (1 - Math.pow(1 - p, 3)));
-    el.innerHTML = `<strong>${v.toLocaleString("da-DK")} løb</strong> på kortet`;
+    el.innerHTML = `<strong>${v.toLocaleString("da-DK")} løb</strong> på kortet${opd}`;
     if (p < 1) requestAnimationFrame(tik);
   })(t0);
 }

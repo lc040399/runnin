@@ -138,18 +138,16 @@ function renderDashboard() {
         <div class="cal-grid dash-cal">${celler}</div>
       </div>
 
+      ${f && f.ægte ? `
       <div class="dash-card dash-in" style="--i:4">
-        <div class="foto-kicker">${f ? `Din form <span class="strava-tag">Strava · ${f.ægte ? "live" : "demo"}</span>` : "Din form"}</div>
-        ${f ? `
-          <div class="dash-form">
-            <div><strong>${f.snit}</strong><span>km/uge</span></div>
-            <div><strong>${f.pb ? f.pb["10K"] : "-"}</strong><span>${f.ægte ? "10K-form" : "10K-PB"}</span></div>
-            <div><strong>${f.halfEst ? "~" + f.halfEst : "-"}</strong><span>half-form</span></div>
-            <div><strong>${f.maraEst ? "~" + f.maraEst : "-"}</strong><span>marathon-form</span></div>
-          </div>`
-        : `<div class="dash-sub" style="margin-top:10px">Forbind Strava og få formen ind i planlægningen.</div>
-           <button class="cta strava-btn" id="dashStrava" style="margin-top:12px">Forbind med Strava</button>`}
-      </div>
+        <div class="foto-kicker">Din form <span class="strava-tag">Strava · live</span></div>
+        <div class="dash-form">
+          <div><strong>${f.snit}</strong><span>km/uge</span></div>
+          <div><strong>${f.pb ? f.pb["10K"] : "-"}</strong><span>10K-form</span></div>
+          <div><strong>${f.halfEst ? "~" + f.halfEst : "-"}</strong><span>half-form</span></div>
+          <div><strong>${f.maraEst ? "~" + f.maraEst : "-"}</strong><span>marathon-form</span></div>
+        </div>
+      </div>` : ""}
 
       <div class="dash-card dash-in" style="--i:5">
         <div class="foto-kicker">Årets mål</div>
@@ -192,7 +190,7 @@ function renderDashboard() {
           <button data-act="aar">🗺 Mit løbs-år</button>
           <button data-act="alarmer">🔔 Påmindelser</button>
           <button data-act="ics">📅 Kalender-feed</button>
-          <button data-act="strava">${f ? "🟠 Strava" : "🟠 Forbind Strava"}</button>
+          ${f && f.ægte ? `<button data-act="strava">🟠 Strava</button>` : ""}
         </div>
       </div>
 

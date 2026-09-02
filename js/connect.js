@@ -10,11 +10,6 @@ const STRAVA_ORANGE = "#FC4C02";
 const stravaData = () => { try { return JSON.parse(localStorage.getItem("runnin-strava")); } catch (_) { return null; } };
 const stravaAuth = () => { try { return JSON.parse(localStorage.getItem("runnin-strava-auth")); } catch (_) { return null; } };
 
-const DEMO_ATLET = {
-  ugeKm: [38, 44, 40, 46],            // seneste 4 uger
-  pb: { "5K": "19:42", "10K": "41:05", "Half": "1:31:28", "Marathon": "3:22:54" },
-};
-
 const tidTilSek = t => t.split(":").reduce((a, v) => a * 60 + +v, 0);
 const sekTilTid = s => {
   s = Math.round(s);
@@ -147,23 +142,17 @@ async function openStrava() {
     const cfg = await stravaCfg();
     modal.innerHTML = `
       <div class="cal-head"><h2 style="margin:0 auto">Forbind med Strava</h2><button class="close" id="featClose">✕</button></div>
-      <p class="strava-intro">Din form ind i Runnin - så bliver kalenderen personlig:</p>
+      <p class="strava-intro">Din form ind i Runnin - beregnet af dine egne løb:</p>
       <ul class="strava-punkter">
-        <li>🏅 Formtider beregnet af dine seneste 90 dages løb</li>
+        <li>🏅 Formtider fra dine seneste 90 dages løb</li>
         <li>📊 Ugentlige kilometer og formkurve</li>
         <li>🎯 Realistiske måltider på løbene du har gemt</li>
       </ul>
       ${cfg.configured
         ? `<button class="cta strava-btn" id="stravaConnect">Forbind med Strava</button>
-           <button class="save" id="stravaDemo" style="margin-top:10px">Prøv med eksempeldata</button>
            <p class="foto-note">Du sendes til Strava og godkender selv. Dine data gemmes kun i din browser og vises kun til dig - Runnin har ingen database.</p>`
-        : `<button class="cta strava-btn" id="stravaDemo">Prøv med eksempeldata</button>
-           <p class="foto-note">Rigtig Strava-kobling er bygget og klar, men site-ejeren mangler at lægge app-nøgler ind (se OVERDRAGELSE.md). Demoen gemmes kun i din browser.</p>`}`;
-    const demo = document.getElementById("stravaDemo");
-    if (demo) demo.onclick = () => {
-      localStorage.setItem("runnin-strava", JSON.stringify(DEMO_ATLET));
-      openStrava();
-    };
+        : `<button class="cta strava-btn" disabled style="opacity:.55;cursor:default">Strava-kobling kommer snart</button>
+           <p class="foto-note">Den rigtige Strava-kobling er bygget og klar - den åbnes, så snart app-nøglerne er lagt ind. Ingen eksempeldata her: vi viser kun dine ægte tal.</p>`}`;
     const ægte = document.getElementById("stravaConnect");
     if (ægte && cfg.configured) ægte.onclick = () => startStravaLogin(cfg.clientId);
   } else {
