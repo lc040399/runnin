@@ -13,9 +13,9 @@ const TOP_KATEGORIER = [["marathon", "Marathon"], ["half", "Halvmarathon"], ["10
 window.åbnToplister = async function () {
   topOverlay.hidden = false;
   if (!topData) {
-    topOverlay.innerHTML = `<div class="liste-indre"><div class="feed-tom" style="padding:60px 0;text-align:center">Henter toplister…</div></div>`;
+    topOverlay.innerHTML = `<div class="liste-indre"><div class="feed-tom" style="padding:60px 0;text-align:center">Henter leaderboards…</div></div>`;
     try { topData = await (await fetch("data/toplister.json?v=2")).json(); }
-    catch (_) { topOverlay.innerHTML = `<div class="liste-indre"><div class="empty">Toplisterne kunne ikke hentes - prøv igen om lidt.</div></div>`; return; }
+    catch (_) { topOverlay.innerHTML = `<div class="liste-indre"><div class="empty">Leaderboards kunne ikke hentes - prøv igen om lidt.</div></div>`; return; }
   }
   renderToplister();
 };
@@ -32,7 +32,7 @@ function renderToplister(søg) {
     <div class="liste-indre liste-smal">
       <div class="dash-head dash-in" style="--i:0">
         <div>
-          <div class="foto-kicker">Toplister</div>
+          <div class="foto-kicker">Leaderboards</div>
           <h2>Hurtigste tider.</h2>
         </div>
         <button class="close" id="topLuk" aria-label="Luk">✕</button>
