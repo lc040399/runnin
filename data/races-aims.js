@@ -1,4 +1,4 @@
-// Autogenereret af tools/build-aims.mjs - kilde: AIMS-kalenderen (78 løb, verden)
+// Autogenereret af tools/build-aims.mjs - kilde: AIMS-kalenderen (76 løb, verden)
 // Kompakt format: [navn, by, cc, co, lat, lng, type, distance, måned, dato|null, officiel-url]
 for (const a of [
 ["Wizz Air Skopje Marathon","Skopje","MK","EU",41.9965,21.4314,"marathon","42,2 km","2026-09","2026-09-04","https://www.aims-worldrunning.org/races/726.html"],
@@ -68,12 +68,10 @@ for (const a of [
 ["Du Motion-Runners’ Days Dubrovnik (Dubrovnik Half Marathon)","Dubrovnik","HR","EU",42.6412,18.1091,"half","21,1 km","2026-11","2026-11-25","https://www.aims-worldrunning.org/races/10188.html"],
 ["Kaunas Marathon","Kaunas","LT","EU",54.9016,23.9091,"marathon","42,2 km","2026-11","2026-11-25","https://www.aims-worldrunning.org/races/10109.html"],
 ["Lidl São Silvestre de Lisboa","Lisbon","PT","EU",38.7251,-9.1498,"kort","Løb","2026-11","2026-11-26","https://www.aims-worldrunning.org/races/10081.html"],
-["Gulf Bank 642 Marathon","Kuwait","KW","AS",29.5,47.75,"marathon","42,2 km","2026-11","2026-11-28","https://www.aims-worldrunning.org/races/10124.html"],
 ["Daegu Marathon","Daegu","KR","AS",35.8703,128.5911,"marathon","42,2 km","2026-11","2026-11-28","https://www.aims-worldrunning.org/races/698.html"],
 ["Malta Marathon","Bugibba","MT","EU",35.9514,14.4106,"marathon","42,2 km","2026-11","2026-11-28","https://www.aims-worldrunning.org/races/895.html"],
 ["Björn Borg Helsinki Marathon","Helsinki","FI","EU",60.1695,24.9354,"marathon","42,2 km","2026-11","2026-11-28","https://www.aims-worldrunning.org/races/10198.html"],
 ["Stavanger Marathon","Stavanger","NO","EU",58.9701,5.7333,"marathon","42,2 km","2026-11","2026-11-28","https://www.aims-worldrunning.org/races/10144.html"],
-["Adani Ahmedabad Marathon","Ahmedabad","IN","AS",23.0258,72.5873,"marathon","42,2 km","2026-11","2026-11-29","https://www.aims-worldrunning.org/races/10317.html"],
 ["Amazing Thailand Marathon Bangkok - Official Bangkok Capital City Marathon","Bangkok","TH","AS",13.754,100.5014,"marathon","42,2 km","2026-11","2026-11-29","https://www.aims-worldrunning.org/races/10342.html"],
 ["Vedanta Pink City Half Marathon – Jaipur","Jaipur","IN","AS",26.9196,75.7878,"half","21,1 km","2026-11","2026-11-29","https://www.aims-worldrunning.org/races/10217.html"],
 ["Funchal Marathon","Funchal","PT","EU",32.6657,-16.9255,"marathon","42,2 km","2026-11","2026-11-31","https://www.aims-worldrunning.org/races/10131.html"],

@@ -1,4 +1,4 @@
-// Autogenereret af tools/build-st.mjs 2026-09-02 - kilde: sportstiming.dk/events (239 events)
+// Autogenereret af tools/build-st.mjs 2026-09-03 - kilde: sportstiming.dk/events (239 events)
 // Priser kendes ikke herfra (p:null) - CTA linker til tilmeldingssiden.
 RACES.push(...[
   {"n":"Skolestafetten 2026","c":"Aalborg SV","cc":"DK","co":"EU","la":57.005,"lo":9.8542,"t":"kort","d":"Løb","m":"2026-08","dt":"2026-08-28","p":null,"u":"https://www.sportstiming.dk/event/18451"},
