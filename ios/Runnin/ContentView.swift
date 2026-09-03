@@ -3,6 +3,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var store = RaceStore()
     @StateObject private var auth = Auth()
+    @StateObject private var saved = Saved()
     @State private var selected: Race?
     @State private var showFilters = false
     @State private var showLogin = false
@@ -15,21 +16,24 @@ struct ContentView: View {
     private let coral = Color(red: 0.75, green: 0.35, blue: 0.0)
     private let hairline = Color(red: 0.22, green: 0.14, blue: 0.05).opacity(0.12)
 
+    private var mineKilde: [Race] { store.all.filter { saved.erGemt($0.n) } }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             tabContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(
-                    MapView(store: store, selected: $selected).ignoresSafeArea()
-                )
+                .background(MapView(store: store, selected: $selected).ignoresSafeArea())
 
-            BottomNav(tab: $tab)
+            BottomNav(tab: $tab, badges: saved.navne.isEmpty ? [:] : [.mine: saved.navne.count])
                 .padding(.horizontal, 22)
                 .padding(.bottom, 2)
         }
-        .sheet(item: $selected) { RaceDetailView(race: $0) }
+        .sheet(item: $selected) { RaceDetailView(race: $0, saved: saved, auth: auth) }
         .sheet(isPresented: $showFilters) { FilterSheet(store: store) }
         .sheet(isPresented: $showLogin) { LoginView(auth: auth) }
+        .onChange(of: auth.user?.id) { id in
+            if id != nil { Task { await saved.syncMedSky(auth: auth) } } else { saved.ryd() }
+        }
     }
 
     @ViewBuilder private var tabContent: some View {
@@ -37,14 +41,20 @@ struct ContentView: View {
         case .kort:
             VStack(spacing: 10) {
                 header
-                searchBar
+                SearchBar(store: store, focused: $searchFocused) { searchFocused = false; showFilters = true }
                 Spacer()
                 counter.padding(.bottom, 74)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 6)
+            .padding(.horizontal, 16).padding(.top, 6)
         case .liste:
-            ListeView(store: store, selected: $selected)
+            VStack(spacing: 10) {
+                header
+                SearchBar(store: store, focused: $searchFocused) { searchFocused = false; showFilters = true }
+                ListeView(store: store, saved: saved, selected: $selected)
+            }
+            .padding(.horizontal, 16).padding(.top, 6)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(paper.ignoresSafeArea())
         case .top:
             KommerSnartView(titel: "Leaderboards", ikon: "trophy")
         case .mine:
@@ -95,62 +105,6 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - søgebar
-
-    private var searchBar: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 15, weight: searchFocused ? .semibold : .regular))
-                .foregroundColor(searchFocused ? ink : .secondary)
-            TextField("Søg løb eller by…", text: $store.search)
-                .font(.system(size: 15)).foregroundColor(ink)
-                .focused($searchFocused)
-                .submitLabel(.search)
-                .onSubmit { searchFocused = false }
-            if !store.search.isEmpty {
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { store.search = "" }
-                } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundColor(Color.secondary.opacity(0.55))
-                }
-                .transition(.scale.combined(with: .opacity))
-            }
-            Button { searchFocused = false; showFilters = true } label: { filterIkon }
-                .buttonStyle(PressableStyle())
-        }
-        .padding(.leading, 16).padding(.trailing, 6).padding(.vertical, 7)
-        .background(paper)
-        .overlay(Capsule().stroke(searchFocused ? ink : hairline, lineWidth: searchFocused ? 1.6 : 1))
-        .clipShape(Capsule())
-        .shadow(color: .black.opacity(searchFocused ? 0.13 : 0.06),
-                radius: searchFocused ? 16 : 10, y: searchFocused ? 5 : 3)
-        .animation(.spring(response: 0.34, dampingFraction: 0.8), value: searchFocused)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: store.search.isEmpty)
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Færdig") { searchFocused = false }.fontWeight(.semibold)
-            }
-        }
-    }
-
-    private var filterIkon: some View {
-        Image(systemName: "line.3.horizontal.decrease")
-            .font(.system(size: 15, weight: .semibold)).foregroundColor(.white)
-            .frame(width: 34, height: 34)
-            .background(store.aktiveFiltre > 0 ? coral : ink)
-            .clipShape(Circle())
-            .overlay(alignment: .topTrailing) {
-                if store.aktiveFiltre > 0 {
-                    Circle().fill(.white).frame(width: 9, height: 9)
-                        .overlay(Circle().fill(coral).frame(width: 6, height: 6))
-                        .offset(x: 1, y: -1)
-                        .transition(.scale.combined(with: .opacity))
-                }
-            }
-            .animation(.spring(response: 0.3, dampingFraction: 0.65), value: store.aktiveFiltre)
-    }
-
     private var counter: some View {
         HStack(spacing: 3) {
             CountingNumber(value: Double(store.filtered.count))
@@ -159,33 +113,29 @@ struct ContentView: View {
         .animation(.easeOut(duration: 0.5), value: store.filtered.count)
         .font(.system(size: 12)).foregroundColor(.secondary)
         .padding(.vertical, 8).padding(.horizontal, 16)
-        .background(paper.opacity(0.9))
-        .background(.ultraThinMaterial)
-        .clipShape(Capsule())
-        .overlay(Capsule().stroke(hairline))
+        .background(paper.opacity(0.9)).background(.ultraThinMaterial)
+        .clipShape(Capsule()).overlay(Capsule().stroke(hairline))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
     }
 
-    // MARK: - Mine løb (kræver login)
+    // MARK: - Mine løb (gemte)
 
     @ViewBuilder private var mineTab: some View {
-        if auth.user != nil {
-            KommerSnartView(titel: "Mine løb", ikon: "heart")
-        } else {
-            VStack(spacing: 16) {
-                Image(systemName: "heart").font(.system(size: 40, weight: .light)).foregroundColor(ink.opacity(0.5))
-                Text("Log ind for at gemme løb").font(.system(size: 20, weight: .bold)).foregroundColor(ink)
-                Text("Så følger dine gemte løb dig på tværs af enheder.")
-                    .multilineTextAlignment(.center).font(.system(size: 15)).foregroundColor(.secondary)
-                    .padding(.horizontal, 40)
+        VStack(spacing: 10) {
+            header
+            ListeView(store: store, saved: saved, selected: $selected,
+                      kilde: mineKilde, titel: "Mine løb",
+                      tomTekst: "Ingen gemte løb endnu.\nTryk hjertet på et løb for at gemme det.")
+            if auth.user == nil {
                 Button { showLogin = true } label: {
-                    Text("Log ind eller opret konto").font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.white).padding(.vertical, 14).padding(.horizontal, 26)
-                        .background(coral).clipShape(RoundedRectangle(cornerRadius: 14))
+                    Text("Log ind for at synke på tværs af enheder")
+                        .font(.system(size: 13, weight: .semibold)).foregroundColor(coral)
                 }
+                .padding(.bottom, 82)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(paper.ignoresSafeArea())
         }
+        .padding(.horizontal, 16).padding(.top, 6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(paper.ignoresSafeArea())
     }
 }

@@ -3,11 +3,14 @@ import SwiftUI
 /// Detalje-ark for ét løb - navn, distance, sted, dato, pris + tilmeldingslink.
 struct RaceDetailView: View {
     let race: Race
+    @ObservedObject var saved: Saved
+    var auth: Auth
     @Environment(\.dismiss) private var dismiss
 
     private let ink = Color(red: 0.22, green: 0.14, blue: 0.05)
     private let muted = Color(red: 0.49, green: 0.42, blue: 0.31)
     private let coral = Color(red: 0.75, green: 0.35, blue: 0.0)
+    private let hairline = Color(red: 0.22, green: 0.14, blue: 0.05).opacity(0.18)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -43,26 +46,48 @@ struct RaceDetailView: View {
                 .foregroundColor(muted)
                 .padding(.top, 3)
 
-            Spacer(minLength: 22)
+            Spacer(minLength: 20)
 
-            if let u = race.u, let url = URL(string: u) {
-                Link(destination: url) {
-                    HStack {
-                        Text("Tilmeld på officiel side")
-                            .font(.system(size: 16, weight: .semibold))
-                        Spacer()
-                        Text("→").font(.system(size: 16, weight: .semibold))
+            HStack(spacing: 10) {
+                let gemt = saved.erGemt(race.n)
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        saved.toggle(race.n, auth: auth)
                     }
-                    .foregroundColor(.white)
+                } label: {
+                    HStack(spacing: 7) {
+                        Image(systemName: gemt ? "heart.fill" : "heart")
+                            .font(.system(size: 15, weight: .semibold))
+                        Text(gemt ? "Gemt" : "Gem")
+                            .font(.system(size: 15, weight: .semibold))
+                    }
+                    .foregroundColor(gemt ? .white : ink)
                     .padding(.vertical, 15).padding(.horizontal, 20)
-                    .background(coral)
+                    .background(gemt ? coral : Color.clear)
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(gemt ? Color.clear : hairline, lineWidth: 1))
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+                .buttonStyle(PressableStyle())
+
+                if let u = race.u, let url = URL(string: u) {
+                    Link(destination: url) {
+                        HStack {
+                            Text("Tilmeld på officiel side").font(.system(size: 16, weight: .semibold))
+                            Spacer()
+                            Text("→").font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15).padding(.horizontal, 18)
+                        .background(ink)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
                 }
             }
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 20)
-        .presentationDetents([.height(320)])
+        .presentationDetents([.height(340)])
         .presentationDragIndicator(.hidden)
     }
 }

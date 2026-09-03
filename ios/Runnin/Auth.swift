@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AuthUser: Codable {
+    let id: String
     let email: String
     var navn: String
     var initialer: String {
@@ -16,15 +17,17 @@ struct AuthUser: Codable {
 final class Auth: ObservableObject {
     @Published var user: AuthUser?
     @Published var loading = false
+    private(set) var token: String?
 
-    private static let base = "https://qdqvyvidafslzvxgkvof.supabase.co"
-    private static let anon = "sb_publishable_UfiDozoliZR44TAJ9SX-ng_1f3q_Mk3"
+    static let base = "https://qdqvyvidafslzvxgkvof.supabase.co"
+    static let anon = "sb_publishable_UfiDozoliZR44TAJ9SX-ng_1f3q_Mk3"
     private let defaults = UserDefaults.standard
 
     init() {
         if let data = defaults.data(forKey: "runnin-user"),
            let u = try? JSONDecoder().decode(AuthUser.self, from: data) {
             user = u
+            token = defaults.string(forKey: "runnin-token")
         }
     }
 
@@ -63,7 +66,8 @@ final class Auth: ObservableObject {
         let u = json["user"] as? [String: Any]
         let meta = u?["user_metadata"] as? [String: Any]
         let navn = (meta?["navn"] as? String) ?? (meta?["name"] as? String) ?? String(email.split(separator: "@").first ?? "")
-        gem(AuthUser(email: email, navn: navn), token: json["access_token"] as? String,
+        let id = (u?["id"] as? String) ?? ""
+        gem(AuthUser(id: id, email: email, navn: navn), token: json["access_token"] as? String,
             refresh: json["refresh_token"] as? String)
     }
 
@@ -73,21 +77,22 @@ final class Auth: ObservableObject {
         let json = try await request("/auth/v1/signup",
                                      body: ["email": email, "password": pw, "data": ["navn": navn]])
         if let token = json["access_token"] as? String {
-            gem(AuthUser(email: email, navn: navn), token: token, refresh: json["refresh_token"] as? String)
+            let id = ((json["user"] as? [String: Any])?["id"] as? String) ?? (json["id"] as? String) ?? ""
+            gem(AuthUser(id: id, email: email, navn: navn), token: token, refresh: json["refresh_token"] as? String)
             return false
         }
         return true // bekræftelses-mail sendt
     }
 
     func logout() {
-        user = nil
+        user = nil; token = nil
         for k in ["runnin-user", "runnin-token", "runnin-refresh"] { defaults.removeObject(forKey: k) }
     }
 
-    private func gem(_ u: AuthUser, token: String?, refresh: String?) {
-        user = u
+    private func gem(_ u: AuthUser, token tok: String?, refresh: String?) {
+        user = u; token = tok
         if let d = try? JSONEncoder().encode(u) { defaults.set(d, forKey: "runnin-user") }
-        defaults.set(token, forKey: "runnin-token")
+        defaults.set(tok, forKey: "runnin-token")
         defaults.set(refresh, forKey: "runnin-refresh")
     }
 }
