@@ -53,10 +53,15 @@ struct FilterSheet: View {
                 .opacity(store.aktiveFiltre == 0 ? 0.4 : 1)
 
                 Button { dismiss() } label: {
-                    Text("Vis \(store.filtered.count) løb")
-                        .font(.system(size: 15, weight: .bold)).foregroundColor(.white)
-                        .frame(maxWidth: .infinity).padding(.vertical, 14)
-                        .background(coral).clipShape(RoundedRectangle(cornerRadius: 14))
+                    HStack(spacing: 4) {
+                        Text("Vis")
+                        CountingNumber(value: Double(store.filtered.count))
+                        Text("løb")
+                    }
+                    .animation(.easeOut(duration: 0.45), value: store.filtered.count)
+                    .font(.system(size: 15, weight: .bold)).foregroundColor(.white)
+                    .frame(maxWidth: .infinity).padding(.vertical, 14)
+                    .background(coral).clipShape(RoundedRectangle(cornerRadius: 14))
                 }
             }
             .padding(.top, 6).padding(.bottom, 8)

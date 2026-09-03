@@ -4,6 +4,7 @@ struct ContentView: View {
     @StateObject private var store = RaceStore()
     @State private var selected: Race?
     @State private var showFilters = false
+    @State private var tab: Tab = .kort
     @FocusState private var searchFocused: Bool
 
     private let paper = Color(red: 0.96, green: 0.953, blue: 0.933)
@@ -12,21 +13,39 @@ struct ContentView: View {
     private let hairline = Color(red: 0.22, green: 0.14, blue: 0.05).opacity(0.12)
 
     var body: some View {
-        VStack(spacing: 10) {
-            header
-            searchBar
-            Spacer()
-            counter
-                .padding(.bottom, 14)
+        ZStack(alignment: .bottom) {
+            tabContent
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(
+                    MapView(store: store, selected: $selected).ignoresSafeArea()
+                )
+
+            BottomNav(tab: $tab)
+                .padding(.horizontal, 22)
+                .padding(.bottom, 2)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 6)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(
-            MapView(store: store, selected: $selected).ignoresSafeArea()
-        )
         .sheet(item: $selected) { RaceDetailView(race: $0) }
         .sheet(isPresented: $showFilters) { FilterSheet(store: store) }
+    }
+
+    @ViewBuilder private var tabContent: some View {
+        switch tab {
+        case .kort:
+            VStack(spacing: 10) {
+                header
+                searchBar
+                Spacer()
+                counter.padding(.bottom, 74)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 6)
+        case .liste:
+            ListeView(store: store, selected: $selected)
+        case .top:
+            KommerSnartView(titel: "Leaderboards", ikon: "trophy")
+        case .mine:
+            KommerSnartView(titel: "Mine løb", ikon: "heart")
+        }
     }
 
     private var header: some View {
@@ -49,22 +68,22 @@ struct ContentView: View {
                 .submitLabel(.search)
             if !store.search.isEmpty {
                 Button { store.search = "" } label: {
-                    Image(systemName: "xmark.circle.fill").foregroundColor(.secondary.opacity(0.6))
+                    Image(systemName: "xmark.circle.fill").foregroundColor(Color.secondary.opacity(0.6))
                 }
             }
             Button { searchFocused = false; showFilters = true } label: {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: "line.3.horizontal.decrease")
-                        .font(.system(size: 15, weight: .semibold)).foregroundColor(.white)
-                        .frame(width: 34, height: 34)
-                        .background(store.aktiveFiltre > 0 ? coral : ink)
-                        .clipShape(Circle())
-                    if store.aktiveFiltre > 0 {
-                        Circle().fill(.white).frame(width: 9, height: 9)
-                            .overlay(Circle().fill(coral).frame(width: 6, height: 6))
-                            .offset(x: 2, y: -2)
+                Image(systemName: "line.3.horizontal.decrease")
+                    .font(.system(size: 15, weight: .semibold)).foregroundColor(.white)
+                    .frame(width: 34, height: 34)
+                    .background(store.aktiveFiltre > 0 ? coral : ink)
+                    .clipShape(Circle())
+                    .overlay(alignment: .topTrailing) {
+                        if store.aktiveFiltre > 0 {
+                            Circle().fill(.white).frame(width: 9, height: 9)
+                                .overlay(Circle().fill(coral).frame(width: 6, height: 6))
+                                .offset(x: 1, y: -1)
+                        }
                     }
-                }
             }
         }
         .padding(.leading, 16).padding(.trailing, 6).padding(.vertical, 6)
@@ -76,13 +95,17 @@ struct ContentView: View {
     }
 
     private var counter: some View {
-        Text("\(store.filtered.count.formatted(.number.grouping(.automatic))) løb på kortet")
-            .font(.system(size: 12)).foregroundColor(.secondary)
-            .padding(.vertical, 8).padding(.horizontal, 16)
-            .background(paper.opacity(0.9))
-            .background(.ultraThinMaterial)
-            .clipShape(Capsule())
-            .overlay(Capsule().stroke(hairline))
-            .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+        HStack(spacing: 3) {
+            CountingNumber(value: Double(store.filtered.count))
+            Text("løb på kortet")
+        }
+        .animation(.easeOut(duration: 0.5), value: store.filtered.count)
+        .font(.system(size: 12)).foregroundColor(.secondary)
+        .padding(.vertical, 8).padding(.horizontal, 16)
+        .background(paper.opacity(0.9))
+        .background(.ultraThinMaterial)
+        .clipShape(Capsule())
+        .overlay(Capsule().stroke(hairline))
+        .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
     }
 }
