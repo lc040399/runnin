@@ -29,3 +29,15 @@ if (!Array.isArray(races) || races.length < 100) {
 }
 writeFileSync(new URL("../data/races.json", import.meta.url), JSON.stringify(races));
 console.log("races.json skrevet:", races.length, "løb");
+
+// GeoJSON-variant til native MapLibre (URL-baseret kilde klynger pålideligt)
+const geojson = {
+  type: "FeatureCollection",
+  features: races.map(r => ({
+    type: "Feature",
+    properties: { id: r.id, t: r.t },
+    geometry: { type: "Point", coordinates: [r.lo, r.la] },
+  })),
+};
+writeFileSync(new URL("../data/races.geojson", import.meta.url), JSON.stringify(geojson));
+console.log("races.geojson skrevet:", geojson.features.length, "features");
