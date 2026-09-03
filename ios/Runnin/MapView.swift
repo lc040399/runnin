@@ -1,6 +1,15 @@
 import SwiftUI
 import MapLibre
 
+extension UIColor {
+    convenience init(hex: String) {
+        var s = hex; if s.hasPrefix("#") { s.removeFirst() }
+        var v: UInt64 = 0; Scanner(string: s).scanHexInt64(&v)
+        self.init(red: CGFloat((v >> 16) & 0xFF) / 255, green: CGFloat((v >> 8) & 0xFF) / 255,
+                  blue: CGFloat(v & 0xFF) / 255, alpha: 1)
+    }
+}
+
 /// Native kort via MapLibre - samme OpenFreeMap Positron-tiles, klyngning og
 /// brand-farver som web. Klyngning beregnes i Swift (grid pr. zoom); kilden
 /// genskabes via features:-init ved hver genberegning, fordi source.shape-
@@ -53,7 +62,25 @@ struct MapView: UIViewRepresentable {
         }
 
         func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
+            warmify(style)
             rebuildClusters(style: style)
+        }
+
+        /// Varm toning af Positron-stilen - præcis samme farver som web (js/app.js warmify).
+        private func warmify(_ style: MLNStyle) {
+            let fills = [
+                "water": "#B7CFD8", "park": "#D8E3C6", "landcover_wood": "#D3E0C3",
+                "landuse_residential": "#ECE8DC", "landcover_ice_shelf": "#F2F5F2",
+                "landcover_glacier": "#F2F5F2",
+            ]
+            for (id, hex) in fills {
+                (style.layer(withIdentifier: id) as? MLNFillStyleLayer)?
+                    .fillColor = NSExpression(forConstantValue: UIColor(hex: hex))
+            }
+            (style.layer(withIdentifier: "background") as? MLNBackgroundStyleLayer)?
+                .backgroundColor = NSExpression(forConstantValue: UIColor(hex: "#F3EFE6"))
+            (style.layer(withIdentifier: "waterway") as? MLNLineStyleLayer)?
+                .lineColor = NSExpression(forConstantValue: UIColor(hex: "#B7CFD8"))
         }
 
         func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) {
