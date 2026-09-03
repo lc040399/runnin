@@ -1,0 +1,27 @@
+# Daglig Runnin-puls til Telegram: downloads + tilmeldings-klik + nye brugere.
+name: Daglig puls
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * *" # 07:00 UTC ≈ 09:00 dansk
+
+permissions:
+  contents: read
+
+jobs:
+  pulse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Send daglig puls
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER: ${{ secrets.ASC_ISSUER }}
+          ASC_VENDOR: ${{ secrets.ASC_VENDOR }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: node tools/daily-pulse.mjs

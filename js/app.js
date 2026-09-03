@@ -426,7 +426,18 @@ document.getElementById("dEntry").addEventListener("click", () => {
 });
 // Efter man har klikket ud til tilmeldingen: nudge "Markér som tilmeldt", når man kommer tilbage
 document.getElementById("dCta").addEventListener("click", () => {
-  if (!currentRace || entries.has(currentRace.n)) return;
+  if (!currentRace) return;
+  // anonym tælling af tilmeldings-klik (kun løbsnavn + platform, ingen bruger-/enheds-id)
+  try {
+    fetch("https://qdqvyvidafslzvxgkvof.supabase.co/rest/v1/reg_klik", {
+      method: "POST", keepalive: true,
+      headers: { apikey: "sb_publishable_UfiDozoliZR44TAJ9SX-ng_1f3q_Mk3",
+        Authorization: "Bearer sb_publishable_UfiDozoliZR44TAJ9SX-ng_1f3q_Mk3",
+        "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ race_n: currentRace.n, platform: "web" }),
+    });
+  } catch (_) {}
+  if (entries.has(currentRace.n)) return;
   const eBtn = document.getElementById("dEntry");
   setTimeout(() => {
     eBtn.classList.add("nudge");

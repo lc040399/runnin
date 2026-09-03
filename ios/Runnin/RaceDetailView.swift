@@ -82,6 +82,7 @@ struct RaceDetailView: View {
                         .background(ink)
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
+                    .simultaneousGesture(TapGesture().onEnded { sporKlik() })
                 }
             }
         }
@@ -89,5 +90,17 @@ struct RaceDetailView: View {
         .padding(.bottom, 20)
         .presentationDetents([.height(340)])
         .presentationDragIndicator(.hidden)
+    }
+
+    /// anonym tælling af tilmeldings-klik (kun løbsnavn + platform, ingen bruger-/enheds-id)
+    private func sporKlik() {
+        var req = URLRequest(url: URL(string: "\(Auth.base)/rest/v1/reg_klik")!)
+        req.httpMethod = "POST"
+        req.setValue(Auth.anon, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(Auth.anon)", forHTTPHeaderField: "Authorization")
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue("return=minimal", forHTTPHeaderField: "Prefer")
+        req.httpBody = try? JSONSerialization.data(withJSONObject: ["race_n": race.n, "platform": "ios"])
+        URLSession.shared.dataTask(with: req).resume()
     }
 }
