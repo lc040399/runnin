@@ -160,10 +160,15 @@ struct MapView: UIViewRepresentable {
             var clusters: [MLNPointFeature] = []
             for (_, group) in buckets {
                 if group.count == 1 { dots.append(dot(group[0])); continue }
-                let lat = group.reduce(0.0) { $0 + $1.la } / Double(group.count)
-                let lon = group.reduce(0.0) { $0 + $1.lo } / Double(group.count)
+                // placér klyngen ved det løb der er tættest på centroidet - så den altid
+                // sidder på land ved en rigtig løbs-position (ikke midt i Kattegat)
+                let cLat = group.reduce(0.0) { $0 + $1.la } / Double(group.count)
+                let cLon = group.reduce(0.0) { $0 + $1.lo } / Double(group.count)
+                let midt = group.min {
+                    hypot($0.la - cLat, $0.lo - cLon) < hypot($1.la - cLat, $1.lo - cLon)
+                }!
                 let f = MLNPointFeature()
-                f.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+                f.coordinate = CLLocationCoordinate2D(latitude: midt.la, longitude: midt.lo)
                 f.attributes = ["antal": group.count, "label": String(group.count)]
                 clusters.append(f)
             }

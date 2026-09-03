@@ -19,6 +19,7 @@ enum Tab: String, CaseIterable {
 /// Farverig bund-nav: chokolade-bar, caramel aktiv-fane (matcher web's mørke chrome).
 struct BottomNav: View {
     @Binding var tab: Tab
+    var badges: [Tab: Int] = [:]
     @Namespace private var ns
 
     private let ink = Color(red: 0.22, green: 0.14, blue: 0.05)
@@ -33,7 +34,18 @@ struct BottomNav: View {
                     withAnimation(.spring(response: 0.32, dampingFraction: 0.74)) { tab = t }
                 } label: {
                     VStack(spacing: 3) {
-                        Image(systemName: t.icon).font(.system(size: 15, weight: .semibold))
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: t.icon).font(.system(size: 15, weight: .semibold))
+                            if let n = badges[t], n > 0 {
+                                Text(n > 99 ? "99+" : "\(n)")
+                                    .font(.system(size: 9, weight: .bold)).foregroundColor(.white)
+                                    .padding(.horizontal, 4).frame(minWidth: 15, minHeight: 15)
+                                    .background(Color(red: 0.85, green: 0.2, blue: 0.2))
+                                    .clipShape(Capsule())
+                                    .overlay(Capsule().stroke(ink, lineWidth: 1.5))
+                                    .offset(x: 13, y: -8)
+                            }
+                        }
                         Text(t.rawValue).font(.system(size: 9.5, weight: .semibold))
                             .lineLimit(1).minimumScaleFactor(0.8)
                     }

@@ -14,3 +14,12 @@ struct CountingNumber: View, Animatable {
             .monospacedDigit()
     }
 }
+
+/// Blødt fjeder-tryk på knapper (skalerer let ned mens man holder).
+struct PressableStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.9 : 1)
+            .animation(.spring(response: 0.28, dampingFraction: 0.6), value: configuration.isPressed)
+    }
+}
