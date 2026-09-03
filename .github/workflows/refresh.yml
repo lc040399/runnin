@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22" # wrangler@latest kræver >=22
 
       # Kilderne kører hver for sig - én død kilde må ikke vælte de andre.
       # (De skriver kun deres egen data/*.js; fejler de, beholder git den gamle.)
@@ -28,7 +28,8 @@ jobs:
         run: |
           set +e
           # per-kilde timeout: en hængende kilde dræbes efter 6 min, de andre kører videre
-          for p in build-st build-rid build-kondis build-wm build-aims build-rsu build-toplister build-eq-toplister; do
+          # (build-rsu udeladt: kræver /tmp/US.txt-geokoding der ikke findes i CI - US-refresh er manuel)
+          for p in build-st build-rid build-kondis build-wm build-aims build-toplister build-eq-toplister; do
             echo "::group::$p"
             timeout 360 node "tools/$p.mjs"
             rc=$?
