@@ -43,7 +43,7 @@ function listeRække(r) {
     </div>
     <div class="l-side">
       ${entries.has(r.n) ? `<span class="r-entry">🎟</span>` : ""}
-      ${live ? `<span class="row-live"><i class="live-dot"></i>LIVE</span>`
+      ${live ? `<span class="row-live"><i class="live-dot"></i>I DAG</span>`
              : r.p ? `<span class="l-pris">${priceLabel(r.p)}</span>` : ""}
     </div>
   </div>`;
@@ -73,7 +73,7 @@ window.renderListe = function () {
     </button>`;
   }).join("");
 
-  // LIVE lige nu + udvalgte klassikere (kuraterede løb m. pris) i scope
+  // I dag + udvalgte klassikere (kuraterede løb m. pris) i scope
   const liveNu = typeof isLive === "function" ? iScopeAlle.filter(isLive).slice(0, 12) : [];
   const klassikere = iScopeAlle.filter(r => r.p).sort((a, b) => sortKey(a).localeCompare(sortKey(b))).slice(0, 10);
 
@@ -95,10 +95,10 @@ window.renderListe = function () {
       </div>
       <div class="l-typer dash-in" style="--i:2">${typeKort}</div>
       ${liveNu.length ? `
-      <div class="l-sek dash-in" style="--i:3"><i class="live-dot"></i> Live lige nu</div>
+      <div class="l-sek dash-in" style="--i:3"><i class="live-dot"></i> I dag</div>
       <div class="l-hscroll dash-in" style="--i:3">
         ${liveNu.map(r => `<button class="l-minikort l-live" data-live="${r.id}">
-          <span class="row-live"><i class="live-dot"></i>LIVE</span>
+          <span class="row-live"><i class="live-dot"></i>I DAG</span>
           <strong>${r.n}</strong><span>${r.c} ${flag(r.cc)}</span>
         </button>`).join("")}
       </div>` : ""}

@@ -342,11 +342,8 @@ function openDetail(r, fly) {
   document.getElementById("dType").textContent = TYPE_LABEL[r.t];
   document.getElementById("dType").style.color = TYPE_COLOR[r.t];
   document.getElementById("dName").textContent = r.n;
-  const live = typeof isLive === "function" && isLive(r);
   const løbsdag = typeof erLøbsdag === "function" && erLøbsdag(r);
-  const dagStatus = live ? `<span class="d-idag">I dag - løbet er i gang</span>`
-    : løbsdag && stedTime(r) < 7 ? `<span class="d-idag">I dag - starter senere</span>`
-    : løbsdag ? `Afholdt i dag`
+  const dagStatus = løbsdag ? `<span class="d-idag">Afholdes i dag</span>`
     : r.dt && r.dt < iDagISO() ? `Afholdt ${dateLabel(r)}` : `Næste udgave: ${dateLabel(r)}`;
   document.getElementById("dMeta").innerHTML =
     `${r.d} · ${r.c} ${flag(r.cc)}<br>` +
@@ -618,7 +615,7 @@ function rowHtml(r) {
     </div>
     <div class="r-side">
       ${typeof isLive === "function" && isLive(r)
-        ? `<span class="row-live"><i class="live-dot"></i>LIVE</span>`
+        ? `<span class="row-live"><i class="live-dot"></i>I DAG</span>`
         : r.dt && r.dt < iDagISO()
           ? `<div class="r-when r-afholdt">✓ Afholdt<br>${dateLabel(r)}</div>`
           : `<div class="r-price">${r.p ? priceLabel(r.p) : ""}</div><div class="r-when">${dateLabel(r)}</div>`}

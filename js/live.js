@@ -1,4 +1,4 @@
-/* Runnin LIVE - løb der er i gang lige nu.
+/* Runnin LIVE - løb der afholdes i DAG.
    ALT her er ægte: hvilke løb der er LIVE (dt == i dag), arrangørens officielle
    rute NÅR vi har den (data/ruter/), og resultater fra RunSignups åbne API.
    Ingen simulerede løbere, ingen illustrative ruter - vis kun hvad vi kan bevise. */
@@ -8,15 +8,14 @@ const todayISO = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
-// Vi kender ingen starttider, så "i gang" = løbsdag OG dagtimer (7-17) på løbsstedet.
-// Lokal klokketime estimeres fra længdegraden (15° ≈ 1 time) - så er US-løb live i
-// vores aften, og et dansk morgenløb står ikke som i gang ved midnat.
+// Vi kender IKKE starttiderne, så vi påstår aldrig "i gang lige nu" (det ville være
+// et gæt). Markøren betyder "afholdes i dag" - det kan vi bevise (dt == i dag).
 const stedTime = r => {
   const d = new Date();
   return (((d.getUTCHours() + d.getUTCMinutes() / 60 + r.lo / 15) % 24) + 24) % 24;
 };
 const erLøbsdag = r => r.dt === todayISO();
-const isLive = r => erLøbsdag(r) && stedTime(r) >= 7 && stedTime(r) < 17;
+const isLive = r => erLøbsdag(r); // = afholdes i dag (ingen starttid → ingen "i gang"-påstand)
 
 /* ---------- depoter/stationer på officielle ruter ---------- */
 window.visRuteStationer = function (rute) {
@@ -102,7 +101,7 @@ async function openLive(race) {
   live.officiel = null;
   detail.hidden = true; closePanel(); setTab("kort");
   livePanel.hidden = false;
-  livePanel.innerHTML = `<div class="live-head"><span class="live-badge"><i></i>LIVE</span><h2>${race.n}</h2></div><div class="feed-tom" style="padding:16px 0">Åbner løbet…</div>`;
+  livePanel.innerHTML = `<div class="live-head"><span class="live-badge"><i></i>I DAG</span><h2>${race.n}</h2></div><div class="feed-tom" style="padding:16px 0">Åbner løbet…</div>`;
 
   // officiel rute? kun hvis vi faktisk har den liggende
   try {
@@ -139,7 +138,7 @@ function buildLivePanel(race) {
   const o = live.officiel;
   livePanel.innerHTML = `
     <div class="live-head">
-      <span class="live-badge"><i></i>LIVE</span>
+      <span class="live-badge"><i></i>I DAG</span>
       <h2>${race.n}</h2>
       <button class="close" id="liveClose" aria-label="Luk">✕</button>
     </div>
@@ -156,7 +155,7 @@ function buildLivePanel(race) {
     <div class="live-sec">Resultater</div>
     <div id="liveResultater"><div class="feed-tom">${race.rsid ? "Henter resultater…" : "Live-resultater vises her, når arrangøren offentliggør dem."}</div></div>
     <a class="cta" href="${race.u}" target="_blank" rel="noopener">Se løbet hos arrangøren <span>→</span></a>
-    <p class="foto-note">LIVE-status er ægte: løbet afholdes i dag. ${o
+    <p class="foto-note">Løbet afholdes i dag. ${o
       ? `Ruten er arrangørens officielle. Kilde: ${o.kilde || "officiel"}.`
       : `Vi har ikke arrangørens officielle rutekort for dette løb - find det hos arrangøren.`}</p>`;
   document.getElementById("liveClose").onclick = closeLive;
@@ -233,7 +232,7 @@ function initLiveUI() {
   const pill = document.getElementById("livePill");
   if (liveRaces.length) {
     pill.hidden = false;
-    pill.innerHTML = `<i class="live-dot"></i> <strong>${liveRaces.length} løb</strong>&nbsp;i gang lige nu <span class="live-cta">Følg live →</span>`;
+    pill.innerHTML = `<i class="live-dot"></i> <strong>${liveRaces.length} løb</strong>&nbsp;i dag <span class="live-cta">Se dagens løb →</span>`;
     pill.onclick = () => (liveMenuEl ? lukLiveMenu() : åbnLiveMenu(pill));
     pill.onmouseenter = () => åbnLiveMenu(pill);
     pill.onmouseleave = e => {
@@ -295,7 +294,7 @@ function initLiveUI() {
     const races = leaves.map(l => RACES[l.properties.id]).filter(Boolean);
     const rest = f.properties.point_count - races.length;
     hoverCard.innerHTML =
-      `<div class="hc-name"><i class="live-dot"></i> ${f.properties.point_count} løb i gang</div>
+      `<div class="hc-name"><i class="live-dot"></i> ${f.properties.point_count} løb i dag</div>
        <div class="hc-liste">${races.map(r =>
          `<div><i style="background:#10B981"></i><span class="hc-l-navn">${r.n}</span><span class="hc-l-dato">${r.c} ${flag(r.cc)}</span></div>`).join("")}</div>
        ${rest > 0 ? `<div class="hc-meta">+ ${rest} flere</div>` : ""}
@@ -317,7 +316,7 @@ function initLiveUI() {
     const r = RACES[e.features[0].properties.id];
     map.getCanvas().style.cursor = "pointer";
     hc.innerHTML = `<div class="hc-name">${r.n}</div>
-      <div class="hc-meta">${r.d} · ${r.c}<br><span style="color:#059669;font-weight:700">● LIVE lige nu</span></div>
+      <div class="hc-meta">${r.d} · ${r.c}<br><span style="color:#059669;font-weight:700">● Afholdes i dag</span></div>
       <div class="hc-hint">Klik og følg løbet →</div>`;
     hc.hidden = false;
   });
