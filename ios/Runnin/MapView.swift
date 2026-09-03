@@ -6,6 +6,7 @@ import MapLibre
 /// genskabes via features:-init ved hver genberegning, fordi source.shape-
 /// opdatering ikke renderer i denne MapLibre-distributionsbuild.
 struct MapView: UIViewRepresentable {
+    @ObservedObject var store: RaceStore
     @Binding var selected: Race?
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -26,25 +27,29 @@ struct MapView: UIViewRepresentable {
         return mv
     }
 
-    func updateUIView(_ uiView: MLNMapView, context: Context) {}
+    func updateUIView(_ uiView: MLNMapView, context: Context) {
+        // genklynge når filtre/søgning ændrer resultatet
+        let sig = store.filterSignatur
+        if sig != context.coordinator.lastFilterSig, let style = uiView.style {
+            context.coordinator.lastFilterSig = sig
+            context.coordinator.lastZoomBucket = -999 // tving genberegning
+            context.coordinator.rebuildClusters(style: style)
+        }
+    }
 
     final class Coordinator: NSObject, MLNMapViewDelegate {
         let parent: MapView
         weak var mapView: MLNMapView?
-        private var races: [Race] = []
+        var lastZoomBucket: Int = -999
+        var lastFilterSig = ""
         private var racesById: [Int: Race] = [:]
-        private var lastZoomBucket: Int = -999
         private let ink = UIColor(red: 0.22, green: 0.14, blue: 0.05, alpha: 1)
 
         init(_ parent: MapView) {
             self.parent = parent
             super.init()
-            if let url = Bundle.main.url(forResource: "races", withExtension: "json"),
-               let data = try? Data(contentsOf: url),
-               let arr = try? JSONDecoder().decode([Race].self, from: data) {
-                races = arr
-                for r in arr { racesById[r.id] = r }
-            }
+            for r in parent.store.all { racesById[r.id] = r }
+            lastFilterSig = parent.store.filterSignatur
         }
 
         func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
@@ -60,7 +65,7 @@ struct MapView: UIViewRepresentable {
 
         // MARK: - klyngning + lag
 
-        private func rebuildClusters(style: MLNStyle) {
+        func rebuildClusters(style: MLNStyle) {
             guard let mv = mapView else { return }
             let z = mv.zoomLevel
 
@@ -113,12 +118,13 @@ struct MapView: UIViewRepresentable {
                 f.attributes = ["id": r.id, "t": r.t]
                 return f
             }
-            if z >= 11 { return (races.map(dot), []) }
+            let kilde = parent.store.filtered
+            if z >= 11 { return (kilde.map(dot), []) }
 
             let degPerPixel = 360.0 / (256.0 * pow(2.0, z))
             let cell = max(60.0 * degPerPixel, 0.0001)
             var buckets: [Int64: [Race]] = [:]
-            for r in races {
+            for r in kilde {
                 let gx = Int64((r.lo / cell).rounded(.down))
                 let gy = Int64((r.la / cell).rounded(.down))
                 buckets[gx &* 1_000_003 &+ gy, default: []].append(r)

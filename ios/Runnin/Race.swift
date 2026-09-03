@@ -10,6 +10,7 @@ struct Race: Decodable, Identifiable {
     let lo: Double     // længdegrad
     let t: String      // type: kort/half/marathon/ultra/tri
     let d: String      // distance-tekst
+    let co: String?    // kontinent (EU/NA/SA/AS/AF/OC)
     let u: String?     // tilmeldings-URL
     let m: String?     // næste udgave (YYYY-MM)
     let dt: String?    // eksakt dato (YYYY-MM-DD) hvis kendt
