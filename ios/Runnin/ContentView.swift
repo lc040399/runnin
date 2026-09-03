@@ -2,8 +2,11 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var store = RaceStore()
+    @StateObject private var auth = Auth()
     @State private var selected: Race?
     @State private var showFilters = false
+    @State private var showLogin = false
+    @State private var visProfil = false
     @State private var tab: Tab = .kort
     @FocusState private var searchFocused: Bool
 
@@ -26,6 +29,7 @@ struct ContentView: View {
         }
         .sheet(item: $selected) { RaceDetailView(race: $0) }
         .sheet(isPresented: $showFilters) { FilterSheet(store: store) }
+        .sheet(isPresented: $showLogin) { LoginView(auth: auth) }
     }
 
     @ViewBuilder private var tabContent: some View {
@@ -44,9 +48,11 @@ struct ContentView: View {
         case .top:
             KommerSnartView(titel: "Leaderboards", ikon: "trophy")
         case .mine:
-            KommerSnartView(titel: "Mine løb", ikon: "heart")
+            mineTab
         }
     }
+
+    // MARK: - header m. logo + profil/login
 
     private var header: some View {
         HStack(spacing: 9) {
@@ -55,9 +61,41 @@ struct ContentView: View {
             }
             Text("RUNNIN").font(.system(size: 15, weight: .heavy)).kerning(2.5).foregroundColor(ink)
             Spacer()
+            profilKnap
         }
         .padding(.top, 6)
     }
+
+    @ViewBuilder private var profilKnap: some View {
+        if let user = auth.user {
+            Button { visProfil = true } label: {
+                HStack(spacing: 7) {
+                    ZStack {
+                        Circle().fill(ink)
+                        Text(user.initialer).font(.system(size: 11, weight: .bold)).foregroundColor(paper)
+                    }
+                    .frame(width: 30, height: 30)
+                    Text(user.navn.split(separator: " ").first.map(String.init) ?? user.navn)
+                        .font(.system(size: 13, weight: .semibold)).foregroundColor(ink).lineLimit(1)
+                }
+                .padding(.leading, 4).padding(.trailing, 13).padding(.vertical, 4)
+                .background(paper).clipShape(Capsule())
+                .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+            }
+            .confirmationDialog(user.navn, isPresented: $visProfil, titleVisibility: .visible) {
+                Button("Log ud", role: .destructive) { auth.logout() }
+            }
+        } else {
+            Button { showLogin = true } label: {
+                Text("Log ind").font(.system(size: 13, weight: .semibold)).foregroundColor(ink)
+                    .padding(.horizontal, 16).padding(.vertical, 9)
+                    .background(paper).clipShape(Capsule())
+                    .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+            }
+        }
+    }
+
+    // MARK: - søgebar
 
     private var searchBar: some View {
         HStack(spacing: 10) {
@@ -66,6 +104,7 @@ struct ContentView: View {
                 .font(.system(size: 15)).foregroundColor(ink)
                 .focused($searchFocused)
                 .submitLabel(.search)
+                .onSubmit { searchFocused = false }
             if !store.search.isEmpty {
                 Button { store.search = "" } label: {
                     Image(systemName: "xmark.circle.fill").foregroundColor(Color.secondary.opacity(0.6))
@@ -92,6 +131,12 @@ struct ContentView: View {
         .clipShape(Capsule())
         .shadow(color: .black.opacity(0.06), radius: 10, y: 3)
         .animation(.easeOut(duration: 0.18), value: searchFocused)
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Færdig") { searchFocused = false }.fontWeight(.semibold)
+            }
+        }
     }
 
     private var counter: some View {
@@ -107,5 +152,28 @@ struct ContentView: View {
         .clipShape(Capsule())
         .overlay(Capsule().stroke(hairline))
         .shadow(color: .black.opacity(0.05), radius: 8, y: 2)
+    }
+
+    // MARK: - Mine løb (kræver login)
+
+    @ViewBuilder private var mineTab: some View {
+        if auth.user != nil {
+            KommerSnartView(titel: "Mine løb", ikon: "heart")
+        } else {
+            VStack(spacing: 16) {
+                Image(systemName: "heart").font(.system(size: 40, weight: .light)).foregroundColor(ink.opacity(0.5))
+                Text("Log ind for at gemme løb").font(.system(size: 20, weight: .bold)).foregroundColor(ink)
+                Text("Så følger dine gemte løb dig på tværs af enheder.")
+                    .multilineTextAlignment(.center).font(.system(size: 15)).foregroundColor(.secondary)
+                    .padding(.horizontal, 40)
+                Button { showLogin = true } label: {
+                    Text("Log ind eller opret konto").font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(.white).padding(.vertical, 14).padding(.horizontal, 26)
+                        .background(coral).clipShape(RoundedRectangle(cornerRadius: 14))
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(paper.ignoresSafeArea())
+        }
     }
 }

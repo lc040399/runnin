@@ -25,7 +25,7 @@ struct MapView: UIViewRepresentable {
         mv.styleURL = URL(string: "https://tiles.openfreemap.org/styles/positron")
         mv.setCenter(CLLocationCoordinate2D(latitude: 59.5, longitude: 13),
                      zoomLevel: 3.6, animated: false)
-        mv.minimumZoomLevel = 1.2
+        mv.minimumZoomLevel = 0.8
         mv.delegate = context.coordinator
         mv.logoView.isHidden = true
         mv.tintColor = UIColor(red: 0.75, green: 0.35, blue: 0.0, alpha: 1)
