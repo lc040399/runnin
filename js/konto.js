@@ -74,6 +74,16 @@ async function skyPush(raceN) {
 }
 window.skyPush = skyPush;
 
+// permanent konto-sletning (auth.users + user_races via SECURITY DEFINER-RPC, scoped til auth.uid())
+window.sletKonto = async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return true; // ingen konto at slette
+  const { error } = await sb.rpc("delete_own_account");
+  if (error) return false;
+  await sb.auth.signOut();
+  return true;
+};
+
 /* ---------- auth-links fra mails: fejl vises roligt, succes fejres ---------- */
 (function håndterAuthHash() {
   const h = new URLSearchParams(location.hash.slice(1));

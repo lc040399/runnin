@@ -19,7 +19,7 @@ Alt du skal bruge for at udfylde App Store Connect. Copy-paste felterne nedenfor
 | **Copyright** | `2026 Runnin` |
 | **Support-URL** | `https://runnin.org` |
 | **Marketing-URL** | `https://runnin.org` |
-| **Privatlivspolitik-URL** | `https://runnin.org/privatliv.html` |
+| **Privatlivspolitik-URL** | `https://runnin.org/privatliv` |
 | **Primærsprog** | Dansk |
 
 ---

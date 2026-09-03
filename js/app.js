@@ -1216,8 +1216,16 @@ function eksportData() {
   a.href = url; a.download = "runnin-data.json"; a.click();
   URL.revokeObjectURL(url);
 }
-function sletAlleData() {
-  if (!confirm("Slet alle dine Runnin-data i denne browser? Gemte løb, alarmer, profil - alt fjernes.")) return;
+async function sletAlleData() {
+  const bruger = typeof getUser === "function" && getUser();
+  const besked = bruger
+    ? "Slet din Runnin-konto og ALLE data permanent? Konto, gemte løb - alt fjernes hos os og kan ikke gendannes."
+    : "Slet alle dine Runnin-data i denne browser? Gemte løb, alarmer, profil - alt fjernes.";
+  if (!confirm(besked)) return;
+  if (bruger && typeof sletKonto === "function") {
+    const ok = await sletKonto();
+    if (!ok) { alert("Kunne ikke slette kontoen lige nu. Prøv igen om lidt."); return; }
+  }
   RUNNIN_KEYS.forEach(k => localStorage.removeItem(k));
   location.reload();
 }

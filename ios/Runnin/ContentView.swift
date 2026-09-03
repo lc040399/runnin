@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var showFilters = false
     @State private var showLogin = false
     @State private var visProfil = false
+    @State private var bekræftSlet = false
     @State private var tab: Tab = .kort
     @State private var didSetup = false
     @FocusState private var searchFocused: Bool
@@ -34,6 +35,14 @@ struct ContentView: View {
         .sheet(isPresented: $showLogin) { LoginView(auth: auth) }
         .onChange(of: auth.user?.id) { id in
             if id != nil { Task { await saved.syncMedSky(auth: auth) } } else { saved.ryd() }
+        }
+        .alert("Slet din konto?", isPresented: $bekræftSlet) {
+            Button("Slet permanent", role: .destructive) {
+                Task { try? await auth.deleteAccount(); saved.ryd() }
+            }
+            Button("Annullér", role: .cancel) {}
+        } message: {
+            Text("Din konto og alle gemte løb slettes permanent og kan ikke gendannes.")
         }
         .onAppear {
             guard !didSetup else { return }; didSetup = true
@@ -105,7 +114,8 @@ struct ContentView: View {
                 .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
             }
             .confirmationDialog(user.navn, isPresented: $visProfil, titleVisibility: .visible) {
-                Button("Log ud", role: .destructive) { auth.logout() }
+                Button("Log ud") { auth.logout() }
+                Button("Slet konto", role: .destructive) { bekræftSlet = true }
             }
         } else {
             Button { showLogin = true } label: {

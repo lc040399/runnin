@@ -89,6 +89,23 @@ final class Auth: ObservableObject {
         for k in ["runnin-user", "runnin-token", "runnin-refresh"] { defaults.removeObject(forKey: k) }
     }
 
+    /// sletter brugerens konto + data permanent (Apple-krav for konto-apps + GDPR)
+    func deleteAccount() async throws {
+        guard let tok = token else { throw AuthFejl(besked: "Ikke logget ind.") }
+        var req = URLRequest(url: URL(string: "\(Self.base)/rest/v1/rpc/delete_own_account")!)
+        req.httpMethod = "POST"
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.setValue(Self.anon, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(tok)", forHTTPHeaderField: "Authorization")
+        req.httpBody = "{}".data(using: .utf8)
+        let (_, resp) = try await URLSession.shared.data(for: req)
+        if let http = resp as? HTTPURLResponse, http.statusCode >= 400 {
+            throw AuthFejl(besked: "Kunne ikke slette kontoen. Prøv igen.")
+        }
+        logout()
+        for k in ["runnin-favs"] { defaults.removeObject(forKey: k) }
+    }
+
     private func gem(_ u: AuthUser, token tok: String?, refresh: String?) {
         user = u; token = tok
         if let d = try? JSONEncoder().encode(u) { defaults.set(d, forKey: "runnin-user") }
