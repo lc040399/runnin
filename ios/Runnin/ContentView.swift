@@ -9,6 +9,7 @@ struct ContentView: View {
     @State private var showLogin = false
     @State private var visProfil = false
     @State private var tab: Tab = .kort
+    @State private var didSetup = false
     @FocusState private var searchFocused: Bool
 
     private let paper = Color(red: 0.96, green: 0.953, blue: 0.933)
@@ -33,6 +34,17 @@ struct ContentView: View {
         .sheet(isPresented: $showLogin) { LoginView(auth: auth) }
         .onChange(of: auth.user?.id) { id in
             if id != nil { Task { await saved.syncMedSky(auth: auth) } } else { saved.ryd() }
+        }
+        .onAppear {
+            guard !didSetup else { return }; didSetup = true
+            switch ProcessInfo.processInfo.environment["SCREEN"] {   // kun til App Store-screenshots
+            case "liste": tab = .liste
+            case "top": tab = .top
+            case "mine": tab = .mine
+            case "detail": selected = store.all.first { $0.n == "Copenhagen Marathon" } ?? store.all.first
+            case "login": showLogin = true
+            default: break
+            }
         }
     }
 
