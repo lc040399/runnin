@@ -56,7 +56,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(paper.ignoresSafeArea())
         case .top:
-            KommerSnartView(titel: "Leaderboards", ikon: "trophy")
+            LeaderboardsView()
         case .mine:
             mineTab
         }
