@@ -3,11 +3,17 @@ options:
   bundleIdPrefix: dk.runnin
   deploymentTarget:
     iOS: "16.0"
+packages:
+  MapLibre:
+    url: https://github.com/maplibre/maplibre-gl-native-distribution
+    from: "6.0.0"
 targets:
   Runnin:
     type: application
     platform: iOS
     sources: [Runnin]
+    dependencies:
+      - package: MapLibre
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dk.runnin.app
