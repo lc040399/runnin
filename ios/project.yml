@@ -16,13 +16,15 @@ targets:
       - package: MapLibre
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dk.runnin.app
+        PRODUCT_BUNDLE_IDENTIFIER: dk.runnin.ap
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_CFBundleDisplayName: Runnin
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: "64R255UR26"
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: "NO"
