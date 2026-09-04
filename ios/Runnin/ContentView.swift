@@ -63,8 +63,11 @@ struct ContentView: View {
         }
         .onAppear {
             guard !didSetup else { return }; didSetup = true
+            #if DEBUG
+            // Kun til udvikling/screenshots (fjernes i Release-builds) - forudfyld søgning
+            // eller spring til en bestemt skærm via miljøvariabler.
             if let q = ProcessInfo.processInfo.environment["SEARCH"] { store.search = q; tab = .kort }
-            switch ProcessInfo.processInfo.environment["SCREEN"] {   // kun til App Store-screenshots
+            switch ProcessInfo.processInfo.environment["SCREEN"] {
             case "liste": tab = .liste
             case "top": tab = .top
             case "mine": tab = .mine
@@ -72,6 +75,7 @@ struct ContentView: View {
             case "login": showLogin = true
             default: break
             }
+            #endif
         }
     }
 
