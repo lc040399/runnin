@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 
 /// Detalje-ark for ét løb - navn, distance, sted, dato, pris + tilmeldingslink.
 struct RaceDetailView: View {
@@ -46,6 +47,22 @@ struct RaceDetailView: View {
                 .foregroundColor(muted)
                 .padding(.top, 3)
 
+            Button {
+                åbnIKort()
+            } label: {
+                HStack(spacing: 7) {
+                    Image(systemName: "map")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Åbn i Kort")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundColor(coral)
+                .padding(.vertical, 9).padding(.horizontal, 14)
+                .overlay(RoundedRectangle(cornerRadius: 11).stroke(hairline, lineWidth: 1))
+            }
+            .buttonStyle(PressableStyle())
+            .padding(.top, 14)
+
             Spacer(minLength: 20)
 
             HStack(spacing: 10) {
@@ -88,8 +105,16 @@ struct RaceDetailView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 20)
-        .presentationDetents([.height(340)])
+        .presentationDetents([.height(400)])
         .presentationDragIndicator(.hidden)
+    }
+
+    /// launcher Apples native Kort-app på løbets placering (Guideline 4 - Design)
+    private func åbnIKort() {
+        let coord = CLLocationCoordinate2D(latitude: race.la, longitude: race.lo)
+        let item = MKMapItem(placemark: MKPlacemark(coordinate: coord))
+        item.name = race.n
+        item.openInMaps(launchOptions: [MKLaunchOptionsMapCenterKey: NSValue(mkCoordinate: coord)])
     }
 
     /// anonym tælling af tilmeldings-klik (kun løbsnavn + platform, ingen bruger-/enheds-id)
