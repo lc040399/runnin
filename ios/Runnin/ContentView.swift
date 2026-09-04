@@ -29,6 +29,9 @@ struct ContentView: View {
 
     private var mineKilde: [Race] { store.all.filter { saved.erGemt($0.n) } }
 
+    /// (gen)planlæg lokale påmindelser for de gemte løb
+    private func planlægNotifikationer() { Notifikationer.shared.planlæg(for: mineKilde) }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             tabContent
@@ -39,7 +42,10 @@ struct ContentView: View {
                 .padding(.horizontal, 22)
                 .padding(.bottom, 2)
         }
-        .sheet(item: $selected) { RaceDetailView(race: $0, saved: saved, auth: auth) }
+        .sheet(item: $selected) { race in
+            RaceDetailView(race: race, saved: saved, auth: auth,
+                           efterGem: { Notifikationer.shared.bedOmLov(så: planlægNotifikationer) })
+        }
         .sheet(item: Binding(get: { stak.map(StakBox.init) }, set: { stak = $0?.løb })) { box in
             StakSheet(løb: box.løb) { r in stak = nil; selected = r }
         }
@@ -48,6 +54,8 @@ struct ContentView: View {
         .onChange(of: auth.user?.id) { id in
             if id != nil { Task { await saved.syncMedSky(auth: auth) } } else { saved.ryd() }
         }
+        .onChange(of: saved.navne) { _ in planlægNotifikationer() }     // gem/fjern → opdatér påmindelser
+        .onChange(of: store.dataVersion) { _ in planlægNotifikationer() } // nye datoer via remote → opdatér
         .alert(lang.t("Slet din konto?", "Delete your account?"), isPresented: $bekræftSlet) {
             Button(lang.t("Slet permanent", "Delete permanently"), role: .destructive) {
                 Task { try? await auth.deleteAccount(); saved.ryd() }

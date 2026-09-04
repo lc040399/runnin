@@ -7,6 +7,7 @@ struct RaceDetailView: View {
     @ObservedObject var saved: Saved
     @ObservedObject private var lang = Lang.shared
     var auth: Auth
+    var efterGem: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
 
     private let ink = Color(red: 0.22, green: 0.14, blue: 0.05)
@@ -73,6 +74,7 @@ struct RaceDetailView: View {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                         saved.toggle(race.n, auth: auth)
                     }
+                    if saved.erGemt(race.n) { efterGem() }   // netop gemt → bed om notifikations-lov
                 } label: {
                     HStack(spacing: 7) {
                         Image(systemName: gemt ? "heart.fill" : "heart")
