@@ -10,6 +10,7 @@ struct ContentView: View {
     @StateObject private var store = RaceStore()
     @StateObject private var auth = Auth()
     @StateObject private var saved = Saved()
+    @StateObject private var mapCtrl = MapController()
     @ObservedObject private var lang = Lang.shared
     @State private var selected: Race?
     @State private var stak: [Race]?
@@ -36,7 +37,13 @@ struct ContentView: View {
         ZStack(alignment: .bottom) {
             tabContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(MapView(store: store, selected: $selected, stak: $stak).ignoresSafeArea())
+                .background(MapView(store: store, selected: $selected, stak: $stak, ctrl: mapCtrl).ignoresSafeArea())
+
+            if tab == .kort && store.search.trimmingCharacters(in: .whitespaces).isEmpty {
+                findMigKnap
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .padding(.trailing, 18).padding(.bottom, 150)
+            }
 
             BottomNav(tab: $tab, badges: saved.navne.isEmpty ? [:] : [.mine: saved.navne.count])
                 .padding(.horizontal, 22)
@@ -196,6 +203,19 @@ struct ContentView: View {
             Spacer(minLength: 0)
         }
         .padding(.bottom, 74)
+    }
+
+    /// "find mig" - centrér kortet på brugerens placering
+    private var findMigKnap: some View {
+        Button { mapCtrl.centrérPåMig() } label: {
+            Image(systemName: "location.fill")
+                .font(.system(size: 16, weight: .semibold)).foregroundColor(ink)
+                .frame(width: 44, height: 44)
+                .background(paper).clipShape(Circle())
+                .overlay(Circle().stroke(hairline))
+                .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
+        }
+        .buttonStyle(PressableStyle())
     }
 
     private var counter: some View {

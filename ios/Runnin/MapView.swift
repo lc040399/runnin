@@ -14,26 +14,40 @@ extension UIColor {
 /// brand-farver som web. Klyngning beregnes i Swift (grid pr. zoom); kilden
 /// genskabes via features:-init ved hver genberegning, fordi source.shape-
 /// opdatering ikke renderer i denne MapLibre-distributionsbuild.
+/// Lader SwiftUI-knappen "find mig" styre kortet uden at bryde UIViewRepresentable-mønstret.
+final class MapController: ObservableObject {
+    fileprivate weak var mapView: MLNMapView?
+    /// centrér på brugerens placering (gør intet uden fix/tilladelse)
+    func centrérPåMig() {
+        guard let mv = mapView, let loc = mv.userLocation?.location else { return }
+        mv.setCenter(loc.coordinate, zoomLevel: max(mv.zoomLevel, 8), animated: true)
+    }
+}
+
 struct MapView: UIViewRepresentable {
     @ObservedObject var store: RaceStore
     @Binding var selected: Race?
     @Binding var stak: [Race]?      // flere løb på samme punkt (tap → liste)
+    var ctrl: MapController
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeUIView(context: Context) -> MLNMapView {
         let mv = MLNMapView(frame: .zero)
         mv.styleURL = URL(string: "https://tiles.openfreemap.org/styles/positron")
+        // fallback-visning indtil brugerens placering lander (ved afvist tilladelse bliver den stående)
         mv.setCenter(CLLocationCoordinate2D(latitude: 59.5, longitude: 13),
                      zoomLevel: 3.6, animated: false)
         mv.minimumZoomLevel = 0.8
         mv.delegate = context.coordinator
         mv.logoView.isHidden = true
+        mv.showsUserLocation = true   // blå prik + udløser lokations-tilladelse
         mv.tintColor = UIColor(red: 0.75, green: 0.35, blue: 0.0, alpha: 1)
         let tap = UITapGestureRecognizer(target: context.coordinator,
                                          action: #selector(Coordinator.handleTap(_:)))
         mv.addGestureRecognizer(tap)
         context.coordinator.mapView = mv
+        ctrl.mapView = mv
         return mv
     }
 
@@ -54,6 +68,7 @@ struct MapView: UIViewRepresentable {
         var lastFilterSig = ""
         private var racesById: [Int: Race] = [:]
         private var lastDataVersion = -1
+        private var harCentreretPåBruger = false
         private let ink = UIColor(red: 0.22, green: 0.14, blue: 0.05, alpha: 1)
 
         init(_ parent: MapView) {
@@ -93,6 +108,15 @@ struct MapView: UIViewRepresentable {
                 .lineColor = NSExpression(forConstantValue: UIColor(hex: "#B7CFD8"))
         }
 
+        /// centrér kortet på brugeren ved første placerings-fix (kun én gang - så kan man panorere frit bagefter)
+        func mapView(_ mapView: MLNMapView, didUpdate userLocation: MLNUserLocation?) {
+            guard !harCentreretPåBruger, let loc = userLocation?.location,
+                  CLLocationCoordinate2DIsValid(loc.coordinate),
+                  !(loc.coordinate.latitude == 0 && loc.coordinate.longitude == 0) else { return }
+            harCentreretPåBruger = true
+            mapView.setCenter(loc.coordinate, zoomLevel: 8, animated: true)
+        }
+
         func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) {
             let bucket = Int((mapView.zoomLevel * 2).rounded())
             if bucket != lastZoomBucket, let style = mapView.style {
@@ -102,8 +126,12 @@ struct MapView: UIViewRepresentable {
 
         // MARK: - klyngning + lag
 
+        private var byggerNu = false
+
         func rebuildClusters(style: MLNStyle) {
-            guard let mv = mapView else { return }
+            guard let mv = mapView, !byggerNu else { return }   // re-entrancy-vagt (showsUserLocation kan udløse midt i)
+            byggerNu = true
+            defer { byggerNu = false }
             genopbygRacesById()
             let z = mv.zoomLevel
 
@@ -117,11 +145,21 @@ struct MapView: UIViewRepresentable {
 
             let (dots, clusters) = buildFeatures(zoom: z)
 
+            // idempotent tilføjelse - fjern altid en evt. rest med samme id lige før (mod MLNRedundant*-crash)
+            func tilføjKilde(_ src: MLNSource) {
+                if let old = style.source(withIdentifier: src.identifier) { style.removeSource(old) }
+                style.addSource(src)
+            }
+            func tilføjLag(_ layer: MLNStyleLayer) {
+                if let old = style.layer(withIdentifier: layer.identifier) { style.removeLayer(old) }
+                style.addLayer(layer)
+            }
+
             // TO separate, homogene kilder (én til prikker, én til klynger)
             let dotsSrc = MLNShapeSource(identifier: "dots-src", features: dots, options: nil)
             let clustersSrc = MLNShapeSource(identifier: "clusters-src", features: clusters, options: nil)
-            style.addSource(clustersSrc)
-            style.addSource(dotsSrc)
+            tilføjKilde(clustersSrc)
+            tilføjKilde(dotsSrc)
 
             let dotsLayer = MLNCircleStyleLayer(identifier: "race-dots", source: dotsSrc)
             dotsLayer.circleColor = NSExpression(mglJSONObject: [
@@ -133,7 +171,7 @@ struct MapView: UIViewRepresentable {
             dotsLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
             // stak-prikker (flere løb på samme punkt) lidt større, så tal-badge kan ses
             dotsLayer.circleRadius = NSExpression(mglJSONObject: ["case", [">", ["get", "antal"], 1], 9, 6])
-            style.addLayer(dotsLayer)
+            tilføjLag(dotsLayer)
 
             // tal på prikker der repræsenterer flere løb på samme punkt
             let dotCount = MLNSymbolStyleLayer(identifier: "dot-count", source: dotsSrc)
@@ -142,21 +180,21 @@ struct MapView: UIViewRepresentable {
             dotCount.textColor = NSExpression(forConstantValue: UIColor.white)
             dotCount.textFontSize = NSExpression(forConstantValue: 10)
             dotCount.textFontNames = NSExpression(forConstantValue: ["Noto Sans Regular"])
-            style.addLayer(dotCount)
+            tilføjLag(dotCount)
 
             let clustersLayer = MLNCircleStyleLayer(identifier: "clusters", source: clustersSrc)
             clustersLayer.circleColor = NSExpression(forConstantValue: ink)
             clustersLayer.circleRadius = NSExpression(mglJSONObject: ["step", ["get", "antal"], 14, 15, 17, 60, 20, 250, 24])
             clustersLayer.circleStrokeWidth = NSExpression(forConstantValue: 3)
             clustersLayer.circleStrokeColor = NSExpression(forConstantValue: ink.withAlphaComponent(0.15))
-            style.addLayer(clustersLayer)
+            tilføjLag(clustersLayer)
 
             let count = MLNSymbolStyleLayer(identifier: "cluster-count", source: clustersSrc)
             count.text = NSExpression(forKeyPath: "label")
             count.textColor = NSExpression(forConstantValue: UIColor.white)
             count.textFontSize = NSExpression(forConstantValue: 12)
             count.textFontNames = NSExpression(forConstantValue: ["Noto Sans Regular"]) // Positron-glyf-sæt
-            style.addLayer(count)
+            tilføjLag(count)
         }
 
         private func buildFeatures(zoom z: Double) -> (dots: [MLNPointFeature], clusters: [MLNPointFeature]) {
