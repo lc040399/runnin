@@ -42,6 +42,7 @@ final class RaceStore: ObservableObject {
     var filtered: [Race] {
         let q = search.trimmingCharacters(in: .whitespaces).lowercased()
         return all.filter { r in
+            if !r.erKommende { return false }   // vis aldrig afholdte løb (matcher web)
             if let type, r.t != type { return false }
             if let month {
                 let mm = Int((r.dt ?? r.m ?? "").dropFirst(5).prefix(2))

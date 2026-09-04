@@ -50,6 +50,30 @@ struct Race: Decodable, Identifiable {
         return ""
     }
 
+    /// distance-tekst på appens sprog (d-feltet er dansk data: "Løb", "Triatlon" m.m.)
+    var distLabel: String {
+        if Lang.shared.erDansk { return d }
+        switch d {
+        case "Løb": return "Race"
+        case "Triatlon": return "Triathlon"
+        default: return d.replacingOccurrences(of: " bjerg", with: " mountain")
+        }
+    }
+
+    /// dato i lokal tid som YYYY-MM-DD (til kommende-filtrering)
+    static var iDagISO: String {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; f.timeZone = .current
+        return f.string(from: Date())
+    }
+
+    /// er løbet endnu ikke afholdt? (matcher web's erKommende: skjul kun rene fortids-løb)
+    var erKommende: Bool {
+        let iDag = Race.iDagISO
+        if let dt, dt.count == 10, dt >= iDag { return true }   // kendt fremtidig dato
+        if let m, m.count == 7, m + "-31" >= iDag { return true } // måned ikke helt forbi
+        return dt == nil && m == nil                             // helt udateret → vis; ellers fortid → skjul
+    }
+
     static func color(_ t: String) -> (r: Double, g: Double, b: Double) {
         switch t {
         case "kort":     return (0.42, 0.45, 0.50)

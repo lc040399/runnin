@@ -31,7 +31,7 @@ struct RaceDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.top, 5)
 
-            Text("\(race.d) · \(race.c) \(race.flag)")
+            Text("\(race.distLabel) · \(race.c) \(race.flag)")
                 .font(.system(size: 15))
                 .foregroundColor(muted)
                 .padding(.top, 10)

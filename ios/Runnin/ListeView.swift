@@ -65,7 +65,7 @@ struct ListeView: View {
             Circle().fill(r.typeColor).frame(width: 9, height: 9)
             VStack(alignment: .leading, spacing: 2) {
                 Text(r.n).font(.system(size: 14, weight: .semibold)).foregroundColor(ink).lineLimit(1)
-                Text("\(r.d) · \(r.c) \(r.flag)").font(.system(size: 12)).foregroundColor(muted).lineLimit(1)
+                Text("\(r.distLabel) · \(r.c) \(r.flag)").font(.system(size: 12)).foregroundColor(muted).lineLimit(1)
             }
             Spacer(minLength: 8)
             if saved.erGemt(r.n) {

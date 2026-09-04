@@ -143,8 +143,10 @@ struct LeaderboardsView: View {
     }
 
     private func kortDato(_ iso: String) -> String {
-        let mdr = ["", "jan","feb","mar","apr","maj","jun","jul","aug","sep","okt","nov","dec"]
+        let mdr = lang.erDansk
+            ? ["", "jan","feb","mar","apr","maj","jun","jul","aug","sep","okt","nov","dec"]
+            : ["", "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
         guard iso.count == 10, let mm = Int(iso.dropFirst(5).prefix(2)), let dd = Int(iso.suffix(2)) else { return iso }
-        return "\(dd). \(mdr[mm])"
+        return lang.erDansk ? "\(dd). \(mdr[mm])" : "\(mdr[mm]) \(dd)"
     }
 }

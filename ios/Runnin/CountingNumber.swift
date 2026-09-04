@@ -10,7 +10,9 @@ struct CountingNumber: View, Animatable {
     }
 
     var body: some View {
-        Text(Int(value.rounded()).formatted(.number.grouping(.automatic)))
+        // tusindtalsseparator følger appens sprog (da: 6.658 · en: 6,658)
+        let loc = Locale(identifier: Lang.shared.erDansk ? "da_DK" : "en_US")
+        Text(Int(value.rounded()).formatted(.number.grouping(.automatic).locale(loc)))
             .monospacedDigit()
     }
 }
