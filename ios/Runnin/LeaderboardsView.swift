@@ -19,8 +19,22 @@ struct Toplister: Codable {
     let nordisk: [String: [TopEntry]]
 }
 
+/// Toplister-store: cache/bundle straks + remote-refresh fra runnin.org (OTA for data).
+final class TopStore: ObservableObject {
+    @Published var data: Toplister?
+    init() {
+        if let d = RemoteData.loadLocal("toplister.json") {
+            data = try? JSONDecoder().decode(Toplister.self, from: d)
+        }
+        RemoteData.refresh("toplister.json", minBytes: 500) { [weak self] d in
+            if let t = try? JSONDecoder().decode(Toplister.self, from: d) { self?.data = t }
+        }
+    }
+}
+
 /// Native leaderboards - verden (RunSignup) / nordisk (EQ Timing), pr. distance.
 struct LeaderboardsView: View {
+    @StateObject private var store = TopStore()
     @State private var region = "nordisk"
     @State private var kategori = "marathon"
 
@@ -32,14 +46,8 @@ struct LeaderboardsView: View {
 
     private let kategorier = [("marathon", "Marathon"), ("half", "Half"), ("10k", "10K"), ("5k", "5K")]
 
-    private static let data: Toplister? = {
-        guard let url = Bundle.main.url(forResource: "toplister", withExtension: "json"),
-              let d = try? Data(contentsOf: url) else { return nil }
-        return try? JSONDecoder().decode(Toplister.self, from: d)
-    }()
-
     private var entries: [TopEntry] {
-        guard let t = Self.data else { return [] }
+        guard let t = store.data else { return [] }
         return (region == "nordisk" ? t.nordisk : t.boards)[kategori] ?? []
     }
 
@@ -48,7 +56,7 @@ struct LeaderboardsView: View {
             HStack(alignment: .firstTextBaseline) {
                 Text("Leaderboards").font(.system(size: 24, weight: .bold)).foregroundColor(ink)
                 Spacer()
-                if let d = Self.data?.opdateret {
+                if let d = store.data?.opdateret {
                     Text("opdateret \(kortDato(d))").font(.system(size: 11.5)).foregroundColor(muted)
                 }
             }
@@ -103,7 +111,7 @@ struct LeaderboardsView: View {
 
     /// undgå at lande på en tom kategori - hop til den første med resultater
     private func vælgFørsteMedData() {
-        guard let t = Self.data else { return }
+        guard let t = store.data else { return }
         let board = region == "nordisk" ? t.nordisk : t.boards
         if (board[kategori] ?? []).isEmpty {
             kategori = kategorier.first { !(board[$0.0] ?? []).isEmpty }?.0 ?? kategori

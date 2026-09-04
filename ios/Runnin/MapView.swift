@@ -52,13 +52,22 @@ struct MapView: UIViewRepresentable {
         var lastZoomBucket: Int = -999
         var lastFilterSig = ""
         private var racesById: [Int: Race] = [:]
+        private var lastDataVersion = -1
         private let ink = UIColor(red: 0.22, green: 0.14, blue: 0.05, alpha: 1)
 
         init(_ parent: MapView) {
             self.parent = parent
             super.init()
-            for r in parent.store.all { racesById[r.id] = r }
+            genopbygRacesById()
             lastFilterSig = parent.store.filterSignatur
+        }
+
+        /// genopbyg id→løb-opslag når data er skiftet (remote-refresh)
+        private func genopbygRacesById() {
+            guard parent.store.dataVersion != lastDataVersion else { return }
+            racesById.removeAll(keepingCapacity: true)
+            for r in parent.store.all { racesById[r.id] = r }
+            lastDataVersion = parent.store.dataVersion
         }
 
         func mapView(_ mapView: MLNMapView, didFinishLoading style: MLNStyle) {
@@ -94,6 +103,7 @@ struct MapView: UIViewRepresentable {
 
         func rebuildClusters(style: MLNStyle) {
             guard let mv = mapView else { return }
+            genopbygRacesById()
             let z = mv.zoomLevel
 
             // ryd gamle lag + kilder

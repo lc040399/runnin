@@ -9,14 +9,25 @@ final class RaceStore: ObservableObject {
     @Published var month: Int? = nil        // 1-12, nil = når som helst
     @Published var type: String? = nil      // kort/half/marathon/ultra/tri, nil = alle
 
-    let all: [Race]
+    /// løbene - loades fra cache/bundle straks, opdateres når remote-refresh lander
+    @Published private(set) var all: [Race] = []
+    /// øges ved hvert data-refresh, så kortet ved at genklynge på nye data
+    @Published private(set) var dataVersion = 0
 
     init() {
-        if let url = Bundle.main.url(forResource: "races", withExtension: "json"),
-           let data = try? Data(contentsOf: url),
-           let arr = try? JSONDecoder().decode([Race].self, from: data) {
+        let local = RemoteData.loadLocal("races.json")
+        if let d = local, let arr = try? JSONDecoder().decode([Race].self, from: d) {
             all = arr
-        } else { all = [] }
+        }
+        // hent frisk data fra runnin.org i baggrunden (OTA for data)
+        RemoteData.refresh("races.json", minBytes: 200_000) { [weak self] d in
+            guard let self else { return }
+            if d == local { return } // identisk → ingen grund til at gentegne
+            guard let arr = try? JSONDecoder().decode([Race].self, from: d),
+                  arr.count > 500 else { return } // krympe-vagt mod dårligt svar
+            self.all = arr
+            self.dataVersion += 1
+        }
     }
 
     var aktiveFiltre: Int {
@@ -24,7 +35,7 @@ final class RaceStore: ObservableObject {
     }
 
     /// signatur der ændrer sig når resultatet ændrer sig (så kortet ved at genklynge)
-    var filterSignatur: String { "\(search)|\(region ?? "-")|\(month ?? 0)|\(type ?? "-")" }
+    var filterSignatur: String { "\(search)|\(region ?? "-")|\(month ?? 0)|\(type ?? "-")|\(dataVersion)" }
 
     private static let nordiske: Set<String> = ["DK", "NO", "SE", "FI", "IS", "FO", "GL"]
 
