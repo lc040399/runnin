@@ -3,6 +3,7 @@ import SwiftUI
 /// Login / opret-konto-ark - to tilstande, pw-øje, "tjek din indbakke"-succes.
 struct LoginView: View {
     @ObservedObject var auth: Auth
+    @ObservedObject private var lang = Lang.shared
     @Environment(\.dismiss) private var dismiss
 
     @State private var opretMode = false
@@ -50,19 +51,19 @@ struct LoginView: View {
 
     private var form: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("RUNNIN-PROFIL").font(.system(size: 11, weight: .bold)).kerning(1.2).foregroundColor(coral)
+            Text(lang.t("RUNNIN-PROFIL", "RUNNIN PROFILE")).font(.system(size: 11, weight: .bold)).kerning(1.2).foregroundColor(coral)
                 .padding(.top, 6)
-            Text(opretMode ? "Opret konto" : "Log ind")
+            Text(opretMode ? lang.t("Opret konto", "Create account") : lang.t("Log ind", "Sign in"))
                 .font(.system(size: 30, weight: .bold)).foregroundColor(ink).padding(.top, 4)
-            Text(opretMode ? "Gem løb og find dem på tværs af dine enheder."
-                           : "Velkommen tilbage - dine gemte løb venter.")
+            Text(opretMode ? lang.t("Gem løb og find dem på tværs af dine enheder.", "Save races and find them across your devices.")
+                           : lang.t("Velkommen tilbage - dine gemte løb venter.", "Welcome back - your saved races are waiting."))
                 .font(.system(size: 15)).foregroundColor(muted).padding(.top, 8)
 
             VStack(spacing: 12) {
                 if opretMode {
-                    felt("Navn", tekst: $navn, felt: .navn, autocap: .words)
+                    felt(lang.t("Navn", "Name"), tekst: $navn, felt: .navn, autocap: .words)
                 }
-                felt("E-mail", tekst: $email, felt: .email, keyboard: .emailAddress, autocap: .never)
+                felt(lang.t("E-mail", "Email"), tekst: $email, felt: .email, keyboard: .emailAddress, autocap: .never)
                 pwFelt
             }
             .padding(.top, 22)
@@ -75,7 +76,7 @@ struct LoginView: View {
                 HStack {
                     if auth.loading { ProgressView().tint(.white) }
                     else {
-                        Text(opretMode ? "Opret konto" : "Log ind").font(.system(size: 16, weight: .semibold))
+                        Text(opretMode ? lang.t("Opret konto", "Create account") : lang.t("Log ind", "Sign in")).font(.system(size: 16, weight: .semibold))
                         Text("→").font(.system(size: 16, weight: .semibold))
                     }
                 }
@@ -86,15 +87,16 @@ struct LoginView: View {
             .padding(.top, 20)
 
             HStack(spacing: 5) {
-                Text(opretMode ? "Har du en konto?" : "Ny her?").foregroundColor(muted)
-                Button(opretMode ? "Log ind" : "Opret en konto") {
+                Text(opretMode ? lang.t("Har du en konto?", "Already have an account?") : lang.t("Ny her?", "New here?")).foregroundColor(muted)
+                Button(opretMode ? lang.t("Log ind", "Sign in") : lang.t("Opret en konto", "Create one")) {
                     withAnimation(.easeOut(duration: 0.2)) { opretMode.toggle(); fejl = nil }
                 }
                 .foregroundColor(coral).fontWeight(.semibold)
             }
             .font(.system(size: 14)).frame(maxWidth: .infinity).padding(.top, 18)
 
-            Text("Konto og gemte løb opbevares sikkert hos Supabase (EU) og følger dig på tværs af enheder.")
+            Text(lang.t("Konto og gemte løb opbevares sikkert hos Supabase (EU) og følger dig på tværs af enheder.",
+                        "Your account and saved races are stored securely with Supabase (EU) and follow you across devices."))
                 .font(.system(size: 12)).foregroundColor(muted).padding(.top, 22)
         }
     }
@@ -106,15 +108,15 @@ struct LoginView: View {
                 Image(systemName: "checkmark").font(.system(size: 26, weight: .bold)).foregroundColor(coral)
             }
             .padding(.top, 30)
-            Text("Tjek din indbakke").font(.system(size: 24, weight: .bold)).foregroundColor(ink)
-            Text("Vi har sendt et bekræftelses-link til\n\(mail)")
+            Text(lang.t("Tjek din indbakke", "Check your inbox")).font(.system(size: 24, weight: .bold)).foregroundColor(ink)
+            Text(lang.t("Vi har sendt et bekræftelses-link til\n\(mail)", "We've sent a confirmation link to\n\(mail)"))
                 .multilineTextAlignment(.center).font(.system(size: 15)).foregroundColor(muted)
-            Text("Ikke modtaget? Kig i spam - eller prøv igen om lidt.")
+            Text(lang.t("Ikke modtaget? Kig i spam - eller prøv igen om lidt.", "Didn't get it? Check spam - or try again shortly."))
                 .font(.system(size: 12)).foregroundColor(muted)
             Button {
                 bekraeftEmail = nil; opretMode = false
             } label: {
-                Text("Til log ind →").font(.system(size: 15, weight: .semibold)).foregroundColor(.white)
+                Text(lang.t("Til log ind →", "To sign in →")).font(.system(size: 15, weight: .semibold)).foregroundColor(.white)
                     .frame(maxWidth: .infinity).padding(.vertical, 14)
                     .background(coral).clipShape(RoundedRectangle(cornerRadius: 14))
             }
@@ -142,7 +144,7 @@ struct LoginView: View {
 
     private var pwFelt: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Adgangskode").font(.system(size: 12, weight: .semibold)).foregroundColor(muted)
+            Text(lang.t("Adgangskode", "Password")).font(.system(size: 12, weight: .semibold)).foregroundColor(muted)
             HStack {
                 Group {
                     if visPw { TextField("", text: $pw) } else { SecureField("", text: $pw) }
@@ -173,7 +175,7 @@ struct LoginView: View {
                     dismiss()
                 }
             } catch {
-                fejl = (error as? Auth.AuthFejl)?.besked ?? "Noget gik galt. Prøv igen."
+                fejl = (error as? Auth.AuthFejl)?.besked ?? lang.t("Noget gik galt. Prøv igen.", "Something went wrong. Please try again.")
             }
         }
     }

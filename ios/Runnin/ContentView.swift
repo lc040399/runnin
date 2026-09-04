@@ -4,10 +4,12 @@ struct ContentView: View {
     @StateObject private var store = RaceStore()
     @StateObject private var auth = Auth()
     @StateObject private var saved = Saved()
+    @ObservedObject private var lang = Lang.shared
     @State private var selected: Race?
     @State private var showFilters = false
     @State private var showLogin = false
     @State private var visProfil = false
+    @State private var visSprog = false
     @State private var bekræftSlet = false
     @State private var tab: Tab = .kort
     @State private var didSetup = false
@@ -36,13 +38,18 @@ struct ContentView: View {
         .onChange(of: auth.user?.id) { id in
             if id != nil { Task { await saved.syncMedSky(auth: auth) } } else { saved.ryd() }
         }
-        .alert("Slet din konto?", isPresented: $bekræftSlet) {
-            Button("Slet permanent", role: .destructive) {
+        .alert(lang.t("Slet din konto?", "Delete your account?"), isPresented: $bekræftSlet) {
+            Button(lang.t("Slet permanent", "Delete permanently"), role: .destructive) {
                 Task { try? await auth.deleteAccount(); saved.ryd() }
             }
-            Button("Annullér", role: .cancel) {}
+            Button(lang.t("Annullér", "Cancel"), role: .cancel) {}
         } message: {
-            Text("Din konto og alle gemte løb slettes permanent og kan ikke gendannes.")
+            Text(lang.t("Din konto og alle gemte løb slettes permanent og kan ikke gendannes.",
+                        "Your account and all saved races will be permanently deleted and cannot be recovered."))
+        }
+        .confirmationDialog(lang.t("Sprog", "Language"), isPresented: $visSprog, titleVisibility: .visible) {
+            Button("Dansk") { lang.code = "da" }
+            Button("English") { lang.code = "en" }
         }
         .onAppear {
             guard !didSetup else { return }; didSetup = true
@@ -92,9 +99,23 @@ struct ContentView: View {
             }
             Text("RUNNIN").font(.system(size: 15, weight: .heavy)).kerning(2.5).foregroundColor(ink)
             Spacer()
+            sprogKnap
             profilKnap
         }
         .padding(.top, 6)
+    }
+
+    private var sprogKnap: some View {
+        Button { visSprog = true } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "globe").font(.system(size: 12, weight: .semibold))
+                Text(lang.code.uppercased()).font(.system(size: 12, weight: .bold))
+            }
+            .foregroundColor(ink)
+            .padding(.horizontal, 11).padding(.vertical, 8)
+            .background(paper).clipShape(Capsule())
+            .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+        }
     }
 
     @ViewBuilder private var profilKnap: some View {
@@ -114,12 +135,12 @@ struct ContentView: View {
                 .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
             }
             .confirmationDialog(user.navn, isPresented: $visProfil, titleVisibility: .visible) {
-                Button("Log ud") { auth.logout() }
-                Button("Slet konto", role: .destructive) { bekræftSlet = true }
+                Button(lang.t("Log ud", "Sign out")) { auth.logout() }
+                Button(lang.t("Slet konto", "Delete account"), role: .destructive) { bekræftSlet = true }
             }
         } else {
             Button { showLogin = true } label: {
-                Text("Log ind").font(.system(size: 13, weight: .semibold)).foregroundColor(ink)
+                Text(lang.t("Log ind", "Sign in")).font(.system(size: 13, weight: .semibold)).foregroundColor(ink)
                     .padding(.horizontal, 16).padding(.vertical, 9)
                     .background(paper).clipShape(Capsule())
                     .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
@@ -130,7 +151,7 @@ struct ContentView: View {
     private var counter: some View {
         HStack(spacing: 3) {
             CountingNumber(value: Double(store.filtered.count))
-            Text("løb på kortet")
+            Text(lang.t("løb på kortet", "races on the map"))
         }
         .animation(.easeOut(duration: 0.5), value: store.filtered.count)
         .font(.system(size: 12)).foregroundColor(.secondary)
@@ -146,11 +167,12 @@ struct ContentView: View {
         VStack(spacing: 10) {
             header
             ListeView(store: store, saved: saved, selected: $selected,
-                      kilde: mineKilde, titel: "Mine løb",
-                      tomTekst: "Ingen gemte løb endnu.\nTryk hjertet på et løb for at gemme det.")
+                      kilde: mineKilde, titel: lang.t("Mine løb", "My races"),
+                      tomTekst: lang.t("Ingen gemte løb endnu.\nTryk hjertet på et løb for at gemme det.",
+                                       "No saved races yet.\nTap the heart on a race to save it."))
             if auth.user == nil {
                 Button { showLogin = true } label: {
-                    Text("Log ind for at synke på tværs af enheder")
+                    Text(lang.t("Log ind for at synke på tværs af enheder", "Sign in to sync across devices"))
                         .font(.system(size: 13, weight: .semibold)).foregroundColor(coral)
                 }
                 .padding(.bottom, 82)

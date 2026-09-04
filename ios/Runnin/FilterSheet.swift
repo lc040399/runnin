@@ -3,6 +3,7 @@ import SwiftUI
 /// Bund-ark med alle filtre - Hvor / Når / Distance som chips, plus Nulstil/Vis.
 struct FilterSheet: View {
     @ObservedObject var store: RaceStore
+    @ObservedObject private var lang = Lang.shared
     @Environment(\.dismiss) private var dismiss
 
     private let ink = Color(red: 0.22, green: 0.14, blue: 0.05)
@@ -12,7 +13,7 @@ struct FilterSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Text("Filtre").font(.system(size: 22, weight: .bold)).foregroundColor(ink)
+                Text(lang.t("Filtre", "Filters")).font(.system(size: 22, weight: .bold)).foregroundColor(ink)
                 Spacer()
                 Button { dismiss() } label: {
                     Image(systemName: "xmark").font(.system(size: 13, weight: .semibold))
@@ -24,15 +25,15 @@ struct FilterSheet: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    gruppe("Hvor") {
+                    gruppe(lang.t("Hvor", "Where")) {
                         chips(Filtre.regioner.map { ($0.key, $0.label) },
                               valgt: store.region) { store.region = $0 }
                     }
-                    gruppe("Når") {
-                        chips([(nil, "Når som helst")] + Filtre.måneder.enumerated().map { (String($0.offset + 1), $0.element) },
+                    gruppe(lang.t("Når", "When")) {
+                        chips([(nil, lang.t("Når som helst", "Anytime"))] + Filtre.måneder.enumerated().map { (String($0.offset + 1), $0.element) },
                               valgt: store.month.map(String.init)) { store.month = $0.flatMap { Int($0) } }
                     }
-                    gruppe("Distance") {
+                    gruppe(lang.t("Distance", "Distance")) {
                         chips(Filtre.typer.map { ($0.key, $0.label) },
                               valgt: store.type) { store.type = $0 }
                     }
@@ -44,7 +45,7 @@ struct FilterSheet: View {
                 Button {
                     store.region = nil; store.month = nil; store.type = nil
                 } label: {
-                    Text("Nulstil").font(.system(size: 14, weight: .semibold))
+                    Text(lang.t("Nulstil", "Reset")).font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.secondary)
                         .padding(.vertical, 13).padding(.horizontal, 20)
                         .overlay(RoundedRectangle(cornerRadius: 14).stroke(hairline))
@@ -54,9 +55,9 @@ struct FilterSheet: View {
 
                 Button { dismiss() } label: {
                     HStack(spacing: 4) {
-                        Text("Vis")
+                        Text(lang.t("Vis", "Show"))
                         CountingNumber(value: Double(store.filtered.count))
-                        Text("løb")
+                        Text(lang.t("løb", "races"))
                     }
                     .animation(.easeOut(duration: 0.45), value: store.filtered.count)
                     .font(.system(size: 15, weight: .bold)).foregroundColor(.white)

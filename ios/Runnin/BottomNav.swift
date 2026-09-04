@@ -14,12 +14,22 @@ enum Tab: String, CaseIterable {
         case .mine:  return "heart.fill"
         }
     }
+
+    var label: String {
+        switch self {
+        case .kort:  return T("Kort", "Map")
+        case .liste: return T("Liste", "List")
+        case .top:   return "Leaderboards"
+        case .mine:  return T("Mine løb", "My races")
+        }
+    }
 }
 
 /// Farverig bund-nav: chokolade-bar, caramel aktiv-fane (matcher web's mørke chrome).
 struct BottomNav: View {
     @Binding var tab: Tab
     var badges: [Tab: Int] = [:]
+    @ObservedObject private var lang = Lang.shared
     @Namespace private var ns
 
     private let ink = Color(red: 0.22, green: 0.14, blue: 0.05)
@@ -46,7 +56,7 @@ struct BottomNav: View {
                                     .offset(x: 13, y: -8)
                             }
                         }
-                        Text(t.rawValue).font(.system(size: 9.5, weight: .semibold))
+                        Text(t.label).font(.system(size: 9.5, weight: .semibold))
                             .lineLimit(1).minimumScaleFactor(0.8)
                     }
                     .foregroundColor(on ? .white : cream.opacity(0.6))

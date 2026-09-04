@@ -35,6 +35,7 @@ final class TopStore: ObservableObject {
 /// Native leaderboards - verden (RunSignup) / nordisk (EQ Timing), pr. distance.
 struct LeaderboardsView: View {
     @StateObject private var store = TopStore()
+    @ObservedObject private var lang = Lang.shared
     @State private var region = "nordisk"
     @State private var kategori = "marathon"
 
@@ -57,14 +58,14 @@ struct LeaderboardsView: View {
                 Text("Leaderboards").font(.system(size: 24, weight: .bold)).foregroundColor(ink)
                 Spacer()
                 if let d = store.data?.opdateret {
-                    Text("opdateret \(kortDato(d))").font(.system(size: 11.5)).foregroundColor(muted)
+                    Text(lang.t("opdateret \(kortDato(d))", "updated \(kortDato(d))")).font(.system(size: 11.5)).foregroundColor(muted)
                 }
             }
             .padding(.horizontal, 4).padding(.bottom, 10)
 
             Picker("", selection: $region) {
-                Text("Nordisk").tag("nordisk")
-                Text("Verden").tag("verden")
+                Text(lang.t("Nordisk", "Nordic")).tag("nordisk")
+                Text(lang.t("Verden", "World")).tag("verden")
             }
             .pickerStyle(.segmented)
             .padding(.bottom, 10)
@@ -87,7 +88,7 @@ struct LeaderboardsView: View {
             if entries.isEmpty {
                 VStack(spacing: 8) {
                     Image(systemName: "trophy").font(.system(size: 30, weight: .light)).foregroundColor(ink.opacity(0.4))
-                    Text("Ingen resultater i denne kategori endnu.").font(.system(size: 14)).foregroundColor(muted)
+                    Text(lang.t("Ingen resultater i denne kategori endnu.", "No results in this category yet.")).font(.system(size: 14)).foregroundColor(muted)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

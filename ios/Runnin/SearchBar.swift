@@ -3,6 +3,7 @@ import SwiftUI
 /// Genbrugelig søgebar (Kort + Liste) med premium fokus-animation + filter-knap.
 struct SearchBar: View {
     @ObservedObject var store: RaceStore
+    @ObservedObject private var lang = Lang.shared
     @FocusState.Binding var focused: Bool
     var onFilter: () -> Void
 
@@ -16,7 +17,7 @@ struct SearchBar: View {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 15, weight: focused ? .semibold : .regular))
                 .foregroundColor(focused ? ink : .secondary)
-            TextField("Søg løb eller by…", text: $store.search)
+            TextField(lang.t("Søg løb eller by…", "Search race or city…"), text: $store.search)
                 .font(.system(size: 15)).foregroundColor(ink)
                 .focused($focused)
                 .submitLabel(.search)
@@ -43,7 +44,7 @@ struct SearchBar: View {
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
-                Button("Færdig") { focused = false }.fontWeight(.semibold)
+                Button(lang.t("Færdig", "Done")) { focused = false }.fontWeight(.semibold)
             }
         }
     }

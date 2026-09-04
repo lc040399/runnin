@@ -50,19 +50,19 @@ final class Auth: ObservableObject {
     }
 
     private func dansk(_ raw: String?) -> String {
-        guard let r = raw?.lowercased() else { return "Noget gik galt. Prøv igen." }
-        if r.contains("invalid login") || r.contains("credentials") { return "Forkert e-mail eller adgangskode." }
-        if r.contains("already registered") || r.contains("already been") { return "Der findes allerede en konto med den e-mail." }
-        if r.contains("password") && r.contains("6") { return "Adgangskoden skal være mindst 6 tegn." }
-        if r.contains("email") && r.contains("valid") { return "Skriv en gyldig e-mail." }
-        return "Noget gik galt. Prøv igen."
+        guard let r = raw?.lowercased() else { return T("Noget gik galt. Prøv igen.", "Something went wrong. Please try again.") }
+        if r.contains("invalid login") || r.contains("credentials") { return T("Forkert e-mail eller adgangskode.", "Wrong email or password.") }
+        if r.contains("already registered") || r.contains("already been") { return T("Der findes allerede en konto med den e-mail.", "An account with that email already exists.") }
+        if r.contains("password") && r.contains("6") { return T("Adgangskoden skal være mindst 6 tegn.", "Password must be at least 6 characters.") }
+        if r.contains("email") && r.contains("valid") { return T("Skriv en gyldig e-mail.", "Enter a valid email.") }
+        return T("Noget gik galt. Prøv igen.", "Something went wrong. Please try again.")
     }
 
     func login(email: String, pw: String) async throws {
         loading = true; defer { loading = false }
         let json = try await request("/auth/v1/token?grant_type=password",
                                      body: ["email": email, "password": pw])
-        guard json["access_token"] != nil else { throw AuthFejl(besked: "Forkert e-mail eller adgangskode.") }
+        guard json["access_token"] != nil else { throw AuthFejl(besked: T("Forkert e-mail eller adgangskode.", "Wrong email or password.")) }
         let u = json["user"] as? [String: Any]
         let meta = u?["user_metadata"] as? [String: Any]
         let navn = (meta?["navn"] as? String) ?? (meta?["name"] as? String) ?? String(email.split(separator: "@").first ?? "")
@@ -91,7 +91,7 @@ final class Auth: ObservableObject {
 
     /// sletter brugerens konto + data permanent (Apple-krav for konto-apps + GDPR)
     func deleteAccount() async throws {
-        guard let tok = token else { throw AuthFejl(besked: "Ikke logget ind.") }
+        guard let tok = token else { throw AuthFejl(besked: T("Ikke logget ind.", "Not signed in.")) }
         var req = URLRequest(url: URL(string: "\(Self.base)/rest/v1/rpc/delete_own_account")!)
         req.httpMethod = "POST"
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -100,7 +100,7 @@ final class Auth: ObservableObject {
         req.httpBody = "{}".data(using: .utf8)
         let (_, resp) = try await URLSession.shared.data(for: req)
         if let http = resp as? HTTPURLResponse, http.statusCode >= 400 {
-            throw AuthFejl(besked: "Kunne ikke slette kontoen. Prøv igen.")
+            throw AuthFejl(besked: T("Kunne ikke slette kontoen. Prøv igen.", "Couldn't delete the account. Please try again."))
         }
         logout()
         for k in ["runnin-favs"] { defaults.removeObject(forKey: k) }

@@ -63,16 +63,24 @@ final class RaceStore: ObservableObject {
     }
 }
 
-/// filter-valgmuligheder (matcher web)
+/// filter-valgmuligheder (matcher web) - labels på appens sprog
 enum Filtre {
-    static let regioner: [(key: String?, label: String)] = [
-        (nil, "Hvor som helst"), ("dk", "Danmark"), ("norden", "Norden"), ("EU", "Europa"),
-        ("NA", "Nordamerika"), ("SA", "Sydamerika"), ("AS", "Asien"), ("AF", "Afrika"), ("OC", "Oceanien"),
-    ]
-    static let måneder = ["Januar","Februar","Marts","April","Maj","Juni",
-                          "Juli","August","September","Oktober","November","December"]
-    static let typer: [(key: String?, label: String)] = [
-        (nil, "Alle distancer"), ("kort", "Kort løb"), ("half", "Halvmarathon"),
-        ("marathon", "Marathon"), ("ultra", "Ultraløb"), ("tri", "Triatlon"),
-    ]
+    static var regioner: [(key: String?, label: String)] {
+        [(nil, T("Hvor som helst", "Anywhere")), ("dk", T("Danmark", "Denmark")),
+         ("norden", T("Norden", "Nordics")), ("EU", T("Europa", "Europe")),
+         ("NA", T("Nordamerika", "North America")), ("SA", T("Sydamerika", "South America")),
+         ("AS", T("Asien", "Asia")), ("AF", T("Afrika", "Africa")), ("OC", T("Oceanien", "Oceania"))]
+    }
+    static var måneder: [String] {
+        Lang.shared.erDansk
+            ? ["Januar","Februar","Marts","April","Maj","Juni",
+               "Juli","August","September","Oktober","November","December"]
+            : ["January","February","March","April","May","June",
+               "July","August","September","October","November","December"]
+    }
+    static var typer: [(key: String?, label: String)] {
+        [(nil, T("Alle distancer", "All distances")), ("kort", T("Kort løb", "Short race")),
+         ("half", T("Halvmarathon", "Half marathon")), ("marathon", "Marathon"),
+         ("ultra", T("Ultraløb", "Ultra")), ("tri", T("Triatlon", "Triathlon"))]
+    }
 }

@@ -20,11 +20,11 @@ struct Race: Decodable, Identifiable {
 
     var typeLabel: String {
         switch t {
-        case "kort": return "Kort løb"
-        case "half": return "Halvmarathon"
+        case "kort": return T("Kort løb", "Short race")
+        case "half": return T("Halvmarathon", "Half marathon")
         case "marathon": return "Marathon"
-        case "ultra": return "Ultraløb"
-        case "tri": return "Triatlon"
+        case "ultra": return T("Ultraløb", "Ultra")
+        case "tri": return T("Triatlon", "Triathlon")
         default: return t.capitalized
         }
     }
@@ -33,12 +33,16 @@ struct Race: Decodable, Identifiable {
         let c = Race.color(t); return Color(red: c.r, green: c.g, blue: c.b)
     }
 
-    /// dansk dato-label: eksakt dato hvis kendt, ellers måned
+    /// dato-label: eksakt dato hvis kendt, ellers måned - på appens sprog
     var datoLabel: String {
-        let mdr = ["", "januar","februar","marts","april","maj","juni",
-                   "juli","august","september","oktober","november","december"]
+        let mdr = Lang.shared.erDansk
+            ? ["", "januar","februar","marts","april","maj","juni",
+               "juli","august","september","oktober","november","december"]
+            : ["", "January","February","March","April","May","June",
+               "July","August","September","October","November","December"]
         if let dt, dt.count == 10, let mm = Int(dt.dropFirst(5).prefix(2)), let dd = Int(dt.suffix(2)) {
-            return "\(dd). \(mdr[mm]) \(dt.prefix(4))"
+            return Lang.shared.erDansk ? "\(dd). \(mdr[mm]) \(dt.prefix(4))"
+                                       : "\(mdr[mm]) \(dd), \(dt.prefix(4))"
         }
         if let m, m.count == 7, let mm = Int(m.suffix(2)) {
             return "\(mdr[mm].capitalized) \(m.prefix(4))"

@@ -5,6 +5,7 @@ import MapKit
 struct RaceDetailView: View {
     let race: Race
     @ObservedObject var saved: Saved
+    @ObservedObject private var lang = Lang.shared
     var auth: Auth
     @Environment(\.dismiss) private var dismiss
 
@@ -42,7 +43,8 @@ struct RaceDetailView: View {
                     .padding(.top, 3)
             }
 
-            Text(race.p != nil ? "Startgebyr: fra \(Int(race.p!)) kr" : "Pris: se tilmeldingssiden")
+            Text(race.p != nil ? lang.t("Startgebyr: fra \(Int(race.p!)) kr", "Entry fee: from \(Int(race.p!)) DKK")
+                               : lang.t("Pris: se tilmeldingssiden", "Price: see registration page"))
                 .font(.system(size: 15))
                 .foregroundColor(muted)
                 .padding(.top, 3)
@@ -53,7 +55,7 @@ struct RaceDetailView: View {
                 HStack(spacing: 7) {
                     Image(systemName: "map")
                         .font(.system(size: 14, weight: .semibold))
-                    Text("Åbn i Kort")
+                    Text(lang.t("Åbn i Kort", "Open in Maps"))
                         .font(.system(size: 14, weight: .semibold))
                 }
                 .foregroundColor(coral)
@@ -75,7 +77,7 @@ struct RaceDetailView: View {
                     HStack(spacing: 7) {
                         Image(systemName: gemt ? "heart.fill" : "heart")
                             .font(.system(size: 15, weight: .semibold))
-                        Text(gemt ? "Gemt" : "Gem")
+                        Text(gemt ? lang.t("Gemt", "Saved") : lang.t("Gem", "Save"))
                             .font(.system(size: 15, weight: .semibold))
                     }
                     .foregroundColor(gemt ? .white : ink)
@@ -89,7 +91,7 @@ struct RaceDetailView: View {
                 if let u = race.u, let url = URL(string: u) {
                     Link(destination: url) {
                         HStack {
-                            Text("Tilmeld på officiel side").font(.system(size: 16, weight: .semibold))
+                            Text(lang.t("Tilmeld på officiel side", "Register on official site")).font(.system(size: 16, weight: .semibold))
                             Spacer()
                             Text("→").font(.system(size: 16, weight: .semibold))
                         }
