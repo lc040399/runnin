@@ -1,11 +1,18 @@
 import SwiftUI
 
+/// gør [Race] Identifiable så stak-arket kan bruge .sheet(item:)
+private struct StakBox: Identifiable {
+    let løb: [Race]
+    var id: String { løb.first.map { "\($0.la),\($0.lo)" } ?? "-" }
+}
+
 struct ContentView: View {
     @StateObject private var store = RaceStore()
     @StateObject private var auth = Auth()
     @StateObject private var saved = Saved()
     @ObservedObject private var lang = Lang.shared
     @State private var selected: Race?
+    @State private var stak: [Race]?
     @State private var showFilters = false
     @State private var showLogin = false
     @State private var visProfil = false
@@ -26,13 +33,16 @@ struct ContentView: View {
         ZStack(alignment: .bottom) {
             tabContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(MapView(store: store, selected: $selected).ignoresSafeArea())
+                .background(MapView(store: store, selected: $selected, stak: $stak).ignoresSafeArea())
 
             BottomNav(tab: $tab, badges: saved.navne.isEmpty ? [:] : [.mine: saved.navne.count])
                 .padding(.horizontal, 22)
                 .padding(.bottom, 2)
         }
         .sheet(item: $selected) { RaceDetailView(race: $0, saved: saved, auth: auth) }
+        .sheet(item: Binding(get: { stak.map(StakBox.init) }, set: { stak = $0?.løb })) { box in
+            StakSheet(løb: box.løb) { r in stak = nil; selected = r }
+        }
         .sheet(isPresented: $showFilters) { FilterSheet(store: store) }
         .sheet(isPresented: $showLogin) { LoginView(auth: auth) }
         .onChange(of: auth.user?.id) { id in
@@ -53,6 +63,7 @@ struct ContentView: View {
         }
         .onAppear {
             guard !didSetup else { return }; didSetup = true
+            if let q = ProcessInfo.processInfo.environment["SEARCH"] { store.search = q; tab = .kort }
             switch ProcessInfo.processInfo.environment["SCREEN"] {   // kun til App Store-screenshots
             case "liste": tab = .liste
             case "top": tab = .top
@@ -70,8 +81,12 @@ struct ContentView: View {
             VStack(spacing: 10) {
                 header
                 SearchBar(store: store, focused: $searchFocused) { searchFocused = false; showFilters = true }
-                Spacer()
-                counter.padding(.bottom, 74)
+                if !store.search.trimmingCharacters(in: .whitespaces).isEmpty {
+                    søgeResultater
+                } else {
+                    Spacer()
+                    counter.padding(.bottom, 74)
+                }
             }
             .padding(.horizontal, 16).padding(.top, 6)
         case .liste:
@@ -146,6 +161,29 @@ struct ContentView: View {
                     .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
             }
         }
+    }
+
+    // MARK: - søge-resultater (kompakt liste under søgefeltet)
+
+    private var søgeResultater: some View {
+        let hits = store.filtered.sorted { ($0.dt ?? $0.m ?? "9999") < ($1.dt ?? $1.m ?? "9999") }
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 4) {
+                Text("\(hits.count)").font(.system(size: 13, weight: .bold)).foregroundColor(ink)
+                Text(lang.t(hits.count == 1 ? "resultat" : "resultater", hits.count == 1 ? "result" : "results"))
+                    .font(.system(size: 13)).foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 4)
+            if hits.isEmpty {
+                Text(lang.t("Ingen løb matcher.", "No races match."))
+                    .font(.system(size: 14)).foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center).padding(.top, 30)
+            } else {
+                KompaktListe(løb: Array(hits.prefix(60))) { r in searchFocused = false; selected = r }
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.bottom, 74)
     }
 
     private var counter: some View {

@@ -17,6 +17,7 @@ extension UIColor {
 struct MapView: UIViewRepresentable {
     @ObservedObject var store: RaceStore
     @Binding var selected: Race?
+    @Binding var stak: [Race]?      // flere løb på samme punkt (tap → liste)
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
@@ -107,7 +108,7 @@ struct MapView: UIViewRepresentable {
             let z = mv.zoomLevel
 
             // ryd gamle lag + kilder
-            for id in ["clusters", "cluster-count", "race-dots"] {
+            for id in ["clusters", "cluster-count", "race-dots", "dot-count"] {
                 if let l = style.layer(withIdentifier: id) { style.removeLayer(l) }
             }
             for id in ["dots-src", "clusters-src"] {
@@ -128,10 +129,20 @@ struct MapView: UIViewRepresentable {
                 "kort", "#6B7280", "half", "#268C6B",
                 "marathon", "#C05800", "ultra", "#8C388C", "#3373B3"
             ])
-            dotsLayer.circleRadius = NSExpression(forConstantValue: 6)
             dotsLayer.circleStrokeWidth = NSExpression(forConstantValue: 1.5)
             dotsLayer.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
+            // stak-prikker (flere løb på samme punkt) lidt større, så tal-badge kan ses
+            dotsLayer.circleRadius = NSExpression(mglJSONObject: ["case", [">", ["get", "antal"], 1], 9, 6])
             style.addLayer(dotsLayer)
+
+            // tal på prikker der repræsenterer flere løb på samme punkt
+            let dotCount = MLNSymbolStyleLayer(identifier: "dot-count", source: dotsSrc)
+            dotCount.predicate = NSPredicate(format: "antal > 1")
+            dotCount.text = NSExpression(format: "CAST(antal, 'NSString')")
+            dotCount.textColor = NSExpression(forConstantValue: UIColor.white)
+            dotCount.textFontSize = NSExpression(forConstantValue: 10)
+            dotCount.textFontNames = NSExpression(forConstantValue: ["Noto Sans Regular"])
+            style.addLayer(dotCount)
 
             let clustersLayer = MLNCircleStyleLayer(identifier: "clusters", source: clustersSrc)
             clustersLayer.circleColor = NSExpression(forConstantValue: ink)
@@ -149,14 +160,22 @@ struct MapView: UIViewRepresentable {
         }
 
         private func buildFeatures(zoom z: Double) -> (dots: [MLNPointFeature], clusters: [MLNPointFeature]) {
-            func dot(_ r: Race) -> MLNPointFeature {
+            func nøgle(_ r: Race) -> Int64 {
+                Int64((r.la * 10000).rounded()) &* 4_000_000 &+ Int64((r.lo * 10000).rounded())
+            }
+            func dot(_ r: Race, antal: Int = 1) -> MLNPointFeature {
                 let f = MLNPointFeature()
                 f.coordinate = CLLocationCoordinate2D(latitude: r.la, longitude: r.lo)
-                f.attributes = ["id": r.id, "t": r.t]
+                f.attributes = ["id": r.id, "t": r.t, "antal": antal]
                 return f
             }
             let kilde = parent.store.filtered
-            if z >= 11 { return (kilde.map(dot), []) }
+            if z >= 11 {
+                // gruppér løb på præcis samme punkt (ellers ligger de usynligt oven på hinanden)
+                var stakke: [Int64: [Race]] = [:]
+                for r in kilde { stakke[nøgle(r), default: []].append(r) }
+                return (stakke.values.map { dot($0[0], antal: $0.count) }, [])
+            }
 
             let degPerPixel = 360.0 / (256.0 * pow(2.0, z))
             let cell = max(60.0 * degPerPixel, 0.0001)
@@ -195,7 +214,10 @@ struct MapView: UIViewRepresentable {
             let dots = mv.visibleFeatures(in: rect, styleLayerIdentifiers: ["race-dots"])
             if let f = dots.first, let idVal = (f.attribute(forKey: "id") as? NSNumber)?.intValue,
                let race = racesById[idVal] {
-                parent.selected = race
+                // saml alle løb på præcis samme punkt (stak) - ellers kunne kun det øverste nås
+                let key = { (r: Race) in "\(Int((r.la*10000).rounded()))_\(Int((r.lo*10000).rounded()))" }
+                let stak = parent.store.filtered.filter { key($0) == key(race) }
+                if stak.count > 1 { parent.stak = stak } else { parent.selected = race }
                 return
             }
             let clusters = mv.visibleFeatures(in: rect, styleLayerIdentifiers: ["clusters"])
