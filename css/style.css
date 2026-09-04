@@ -18,6 +18,11 @@
   --serif: "Inter Tight", -apple-system, sans-serif; /* display */
   --sans: "Inter Tight", -apple-system, sans-serif;
 }
+
+/* alle klikbare elementer viser klik-hånd ved hover (specifikke cursor:default-regler vinder pga. højere specificitet) */
+button, a, label[for], summary, [role="button"], [tabindex]:not([tabindex="-1"]) { cursor: pointer; }
+button:disabled, .disabled, [aria-disabled="true"] { cursor: not-allowed; }
+
 /* mørk tilstand: alt med blæk-baggrund skal have papir-tekst, ikke hvid-på-cream */
 html[data-tema="mørk"] .tab.active,
 html[data-tema="mørk"] .pill.on,
