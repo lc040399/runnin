@@ -23,6 +23,16 @@ const datoTekst = r => r.dt
 const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
 const iDag = new Date().toISOString().slice(0, 10);
+// intern link til den mest relevante guide pr. løb (SEO: 1.400+ interne links)
+const NORDEN_CC = new Set(["DK", "NO", "SE", "FI", "IS", "FO", "GL"]);
+function guideFor(r) {
+  if (r.cc === "DK" && r.t === "marathon") return ["/guide/marathon-danmark/", "Marathon i Danmark"];
+  if (r.cc === "DK" && r.t === "half") return ["/guide/halvmarathon-danmark/", "Halvmarathon i Danmark"];
+  if (r.cc === "DK" && r.t === "ultra") return ["/guide/trail-og-ultra-danmark/", "Trail- og ultraløb i Danmark"];
+  if (r.cc === "DK") return ["/guide/running-races-in-denmark/", "Running races in Denmark"];
+  if (NORDEN_CC.has(r.cc) && r.t === "marathon") return ["/guide/marathon-norden/", "Marathon i Norden"];
+  return ["/guide/", "Guides"];
+}
 const urls = [];
 const seteSlugs = new Set();
 for (const r of RACES) {
@@ -65,7 +75,7 @@ for (const r of RACES) {
 <body>
 <h1>${esc(r.n)}</h1>
 <p>${esc(besk)}</p>
-<p><a href="/#${sl}">Se ${esc(r.n)} på Runnin-kortet</a> · <a href="${esc(r.u)}" rel="nofollow">Officiel tilmelding</a></p>
+<p><a href="/#${sl}">Se ${esc(r.n)} på Runnin-kortet</a> · <a href="${esc(r.u)}" rel="nofollow">Officiel tilmelding</a> · <a href="${guideFor(r)[0]}">${guideFor(r)[1]}</a></p>
 </body>
 </html>
 `);

@@ -88,7 +88,7 @@ const map = new maplibregl.Map({
   zoom: 4.1,
   minZoom: 1.2,
   renderWorldCopies: false, // én verden - ingen gentagne kontinenter/prikker
-  attributionControl: { compact: true },
+  attributionControl: { compact: true, customAttribution: '<a href="/guide/" target="_blank" rel="noopener">Guides</a>' },
   fadeDuration: 0, // INGEN cross-fade: fliser byttes øjeblikkeligt uden grå gennemblink ved zoom
   refreshExpiredTiles: false, // fliserne har 10-års cache - genhent dem aldrig unødigt
   maxTileCacheSize: 512, // hold flere fliser i hukommelsen, så zoom-ud-tilbage ikke genhenter
