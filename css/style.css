@@ -1209,3 +1209,5 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 @media (max-width: 720px) { .aktive-filtre { bottom: calc(150px + env(safe-area-inset-bottom)); } }
 /* usynlig bro mellem fane og dropdown, så musen ikke "falder ud" i mellemrummet */
 .tab-menu::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; height: 12px; }
+.counter-guides { color: var(--muted); text-decoration: none; }
+.counter-guides:hover { color: var(--coral); }

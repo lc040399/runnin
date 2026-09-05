@@ -566,7 +566,7 @@ function opdateretLabel() {
   if (!iso) return "";
   const d = new Date(iso + "T00:00:00");
   if (isNaN(d)) return "";
-  return ` <span class="counter-opd">· opdateret ${d.toLocaleDateString("da-DK", { day: "numeric", month: "short" }).replace(".", "")}</span>`;
+  return ` <span class="counter-opd">· opdateret ${d.toLocaleDateString("da-DK", { day: "numeric", month: "short" }).replace(".", "")}</span> <a class="counter-guides" href="/guide/" target="_blank" rel="noopener">· Guides</a>`;
 }
 function updateCounter(list) {
   const n = (list || filtered()).length;
