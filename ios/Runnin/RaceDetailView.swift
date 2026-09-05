@@ -50,20 +50,35 @@ struct RaceDetailView: View {
                 .foregroundColor(muted)
                 .padding(.top, 3)
 
-            Button {
-                åbnIKort()
-            } label: {
-                HStack(spacing: 7) {
-                    Image(systemName: "map")
-                        .font(.system(size: 14, weight: .semibold))
-                    Text(lang.t("Åbn i Kort", "Open in Maps"))
-                        .font(.system(size: 14, weight: .semibold))
+            HStack(spacing: 9) {
+                Button {
+                    åbnIKort()
+                } label: {
+                    HStack(spacing: 7) {
+                        Image(systemName: "map")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(lang.t("Åbn i Kort", "Open in Maps"))
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(coral)
+                    .padding(.vertical, 9).padding(.horizontal, 14)
+                    .overlay(RoundedRectangle(cornerRadius: 11).stroke(hairline, lineWidth: 1))
                 }
-                .foregroundColor(coral)
-                .padding(.vertical, 9).padding(.horizontal, 14)
-                .overlay(RoundedRectangle(cornerRadius: 11).stroke(hairline, lineWidth: 1))
+                .buttonStyle(PressableStyle())
+
+                ShareLink(item: race.delLink,
+                          message: Text(lang.t("Skal vi løbe \(race.n)?", "Want to run \(race.n)?"))) {
+                    HStack(spacing: 7) {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(lang.t("Del", "Share"))
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(coral)
+                    .padding(.vertical, 9).padding(.horizontal, 14)
+                    .overlay(RoundedRectangle(cornerRadius: 11).stroke(hairline, lineWidth: 1))
+                }
             }
-            .buttonStyle(PressableStyle())
             .padding(.top, 14)
 
             Spacer(minLength: 20)

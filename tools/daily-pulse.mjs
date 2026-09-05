@@ -83,6 +83,8 @@ const linjer = [
   ``,
   `I alt: ${puls?.brugere_total ?? "–"} brugere · ${puls?.klik_total ?? "–"} klik`,
 ];
+// crashes nævnes kun når der ER nogen - stilhed = sundt
+if (puls?.crashes > 0) linjer.splice(5, 0, `💥 ${puls.crashes} crash${puls.crashes === 1 ? "" : "es"} (native)`);
 if (downloads == null && (!ASC_KEY_ID || !ASC_VENDOR))
   linjer.push(``, `(downloads afventer App Store-nøgle + vendor-nr.)`);
 

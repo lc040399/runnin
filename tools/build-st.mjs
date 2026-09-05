@@ -70,6 +70,31 @@ const COORD_OVERRIDE = {
   "Søby Ærø": { la: 54.939, lo: 10.260, cc: "DK" },
 };
 
+// median af rigtige adresser i postnummeret = garanteret PÅ LAND.
+// (postnumres visueltcenter ligger i havet for kyst-distrikter - Thisted lå 46 km ude
+// i Skagerrak; bugklassen fanget 4/9-2026, deraf denne metode.)
+const med = arr => { const s = [...arr].sort((x, y) => x - y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+async function medianAdresse(postnr) {
+  const r = await fetch(`https://api.dataforsyningen.dk/adgangsadresser?postnr=${postnr}&per_side=100&struktur=mini`);
+  const a = await r.json();
+  if (!Array.isArray(a) || !a.length) return null;
+  return { la: +med(a.map(x => x.y)).toFixed(4), lo: +med(a.map(x => x.x)).toFixed(4), cc: "DK" };
+}
+
+// land-validering: afstand til nærmeste adresse; >4 km ≈ punktet er i havet → snap til adressen
+function kmMellem(lo1, la1, lo2, la2) {
+  const R = 6371, d = x => x * Math.PI / 180;
+  const a = Math.sin(d(la2 - la1) / 2) ** 2 + Math.cos(d(la1)) * Math.cos(d(la2)) * Math.sin(d(lo2 - lo1) / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+async function sikrLand(hit) {
+  const r = await fetch(`https://api.dataforsyningen.dk/adgangsadresser/reverse?x=${hit.lo}&y=${hit.la}&srid=4326&struktur=mini`);
+  if (!r.ok) return hit;
+  const j = await r.json();
+  if (!j || j.x == null) return hit;
+  return kmMellem(hit.lo, hit.la, j.x, j.y) > 4 ? { la: +j.y.toFixed(4), lo: +j.x.toFixed(4), cc: "DK" } : hit;
+}
+
 const cityCache = new Map();
 async function geocode(cityRaw) {
   let city = cityRaw.replace(/\(.*?\)/g, "").replace(/ Kommune$/i, "").trim();
@@ -82,15 +107,15 @@ async function geocode(cityRaw) {
     const r = await fetch("https://api.dataforsyningen.dk/postnumre?q=" + encodeURIComponent(city));
     const arr = await r.json();
     if (arr.length) {
-      const [lo, la] = arr[0].visueltcenter;
-      hit = { la, lo, cc: "DK" };
+      hit = await medianAdresse(arr[0].nr);        // adresse-median = på land
+      if (!hit) { const [lo, la] = arr[0].visueltcenter; hit = await sikrLand({ la, lo, cc: "DK" }); }
     } else {
-      // fallback: stednavne
+      // fallback: stednavne (visueltcenter KAN ligge i vand → land-validér)
       const r2 = await fetch("https://api.dataforsyningen.dk/stednavne2?q=" + encodeURIComponent(city) + "&hovedtype=Bebyggelse&per_side=1");
       const a2 = await r2.json();
       if (a2.length && a2[0].sted?.visueltcenter) {
         const [lo, la] = a2[0].sted.visueltcenter;
-        hit = { la, lo, cc: "DK" };
+        hit = await sikrLand({ la, lo, cc: "DK" });
       }
     }
   } catch (e) { /* netværk - spring over */ }

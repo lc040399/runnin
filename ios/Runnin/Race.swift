@@ -83,6 +83,23 @@ struct Race: Decodable, Identifiable {
         return dt == nil && m == nil                             // helt udateret → vis; ellers fortid → skjul
     }
 
+    /// slug præcis som web (tools/build-seo.mjs): NFD-strip af kombinerende tegn
+    /// (æøå BEHOLDES og bliver til "-"), ikke-[a-z0-9] → "-". Deep link = runnin.org/#slug.
+    var slug: String {
+        let lower = n.lowercased().decomposedStringWithCanonicalMapping
+        let stripped = lower.unicodeScalars.filter { !(0x300...0x36F).contains(Int($0.value)) }
+        var out = ""; var dash = false
+        for u in stripped {
+            if (97...122).contains(Int(u.value)) || (48...57).contains(Int(u.value)) {
+                out.unicodeScalars.append(u); dash = false
+            } else if !dash { out.append("-"); dash = true }
+        }
+        return out.trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+    }
+
+    /// delbart link til løbet på runnin.org
+    var delLink: URL { URL(string: "https://runnin.org/#\(slug)")! }
+
     static func color(_ t: String) -> (r: Double, g: Double, b: Double) {
         switch t {
         case "kort":     return (0.42, 0.45, 0.50)
