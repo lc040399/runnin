@@ -72,7 +72,8 @@ struct ContentView: View {
         }
         .sheet(item: $selected) { race in
             RaceDetailView(race: race, saved: saved, auth: auth,
-                           efterGem: { Notifikationer.shared.bedOmLov(så: planlægNotifikationer) })
+                           efterGem: { Notifikationer.shared.bedOmLov(så: planlægNotifikationer) },
+                           kræverLogin: { selected = nil; showLogin = true })
         }
         .sheet(item: Binding(get: { stak.map(StakBox.init) }, set: { stak = $0?.løb })) { box in
             StakSheet(løb: box.løb) { r in stak = nil; selected = r }

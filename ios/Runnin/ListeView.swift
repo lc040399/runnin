@@ -68,7 +68,9 @@ struct ListeView: View {
                 Text("\(r.distLabel) · \(r.c) \(r.flag)").font(.system(size: 12)).foregroundColor(muted).lineLimit(1)
             }
             Spacer(minLength: 8)
-            if saved.erGemt(r.n) {
+            if saved.erTilmeldt(r.n) {
+                Image(systemName: "checkmark.seal.fill").font(.system(size: 12)).foregroundColor(coral)
+            } else if saved.erGemt(r.n) {
                 Image(systemName: "heart.fill").font(.system(size: 12)).foregroundColor(coral)
             }
             Text(r.datoLabel).font(.system(size: 11.5)).foregroundColor(muted).lineLimit(1).fixedSize()

@@ -8,6 +8,7 @@ struct RaceDetailView: View {
     @ObservedObject private var lang = Lang.shared
     var auth: Auth
     var efterGem: () -> Void = {}
+    var kræverLogin: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
 
     private let ink = Color(red: 0.22, green: 0.14, blue: 0.05)
@@ -63,6 +64,27 @@ struct RaceDetailView: View {
                     .foregroundColor(coral)
                     .padding(.vertical, 9).padding(.horizontal, 14)
                     .overlay(RoundedRectangle(cornerRadius: 11).stroke(hairline, lineWidth: 1))
+                }
+                .buttonStyle(PressableStyle())
+
+                Button {
+                    if auth.user == nil { kræverLogin(); return }
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        saved.toggleTilmeldt(race.n, auth: auth)
+                    }
+                } label: {
+                    let er = saved.erTilmeldt(race.n)
+                    HStack(spacing: 7) {
+                        Image(systemName: er ? "checkmark.seal.fill" : "ticket")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(er ? lang.t("Tilmeldt", "Registered") : lang.t("Er tilmeldt?", "Registered?"))
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundColor(er ? .white : coral)
+                    .padding(.vertical, 9).padding(.horizontal, 14)
+                    .background(er ? coral : Color.clear)
+                    .overlay(RoundedRectangle(cornerRadius: 11).stroke(er ? Color.clear : hairline, lineWidth: 1))
+                    .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
                 }
                 .buttonStyle(PressableStyle())
 
