@@ -36,6 +36,9 @@ function guideFor(r) {
   if (r.cc === "US" && r.t === "ultra") return ["/guide/trail-and-ultra-in-the-usa/", "Trail & ultra in the USA"];
   if (r.cc === "GB" && r.t === "marathon") return ["/guide/marathons-in-the-uk/", "Marathons in the UK"];
   if (r.cc === "DE" && r.t === "marathon") return ["/guide/marathons-in-germany/", "Marathons in Germany"];
+  if (r.cc === "FR") return ["/guide/running-races-in-france/", "Running races in France"];
+  if (r.cc === "ES") return ["/guide/running-races-in-spain/", "Running races in Spain"];
+  if (r.cc === "AU") return ["/guide/running-races-in-australia/", "Running races in Australia"];
   if (r.co === "EU" && r.t === "marathon") return ["/guide/marathons-in-europe/", "Marathons in Europe"];
   if (r.co === "AS" && r.t === "marathon") return ["/guide/marathons-in-asia/", "Marathons in Asia"];
   if (r.t === "marathon") return ["/guide/marathons-around-the-world/", "Marathons around the world"];
@@ -91,6 +94,12 @@ for (const r of RACES) {
 
 /* ---------- data-drevne guides (SEO/GEO): tal og lister beregnes fra datasættet
    ved hvert byg - den ugentlige refresh holder dem sande, de rådner aldrig. ---------- */
+// Guides tæller på HELE datasættet inkl. USA (races-rsu) - /lob/-siderne genereres
+// bevidst kun for de kuraterede kilder, så RSU-løb i tabellerne linker til /#slug (appen).
+try {
+  const rsuSrc = readFileSync("data/races-rsu.js", "utf8").replace("const RACES = [", "RACES.push(...[").replace(/^\];$/m, "]);");
+  eval(rsuSrc);
+} catch (e) { console.warn("races-rsu.js kunne ikke indlæses - guides tæller uden USA:", e.message); }
 const NORDEN = new Set(["DK", "NO", "SE", "FI", "IS", "FO", "GL"]);
 const kommende = RACES.filter(r => (r.dt ? r.dt >= iDag : (r.m || "0") >= iDag.slice(0, 7)));
 const guideDato = new Date().toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
@@ -99,7 +108,7 @@ const KREDIT = JSON.parse(readFileSync("assets/guides/kredit.json", "utf8"));
 
 const GUIDES = [
   {
-    sl: "marathon-danmark", lang: "da", hero: "marathon-dk",
+    sl: "marathon-danmark", gruppe: "Danmark & Norden", lang: "da", hero: "marathon-dk",
     titel: "Marathon i Danmark: den komplette kalender",
     sektioner: [
       ["De store klassikere", "Copenhagen Marathon i maj er Danmarks største marathon med en flad byrute gennem alle Københavns brokvarterer og målstregen i hjertet af byen. HCA Marathon i Odense i efteråret er landets næststørste og kendt for en hurtig, flad rute i H.C. Andersens fodspor - mange danske personlige rekorder er sat her. Dertil kommer kystklassikere som Skagen Marathon, hvor ruten går helt ud mod Grenen."],
@@ -114,7 +123,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "halvmarathon-danmark", lang: "da", hero: "half-dk",
+    sl: "halvmarathon-danmark", gruppe: "Danmark & Norden", lang: "da", hero: "half-dk",
     titel: "Halvmarathon i Danmark: kommende løb",
     sektioner: [
       ["Danmarks halvmarathon-landskab", "Copenhagen Half Marathon i september er Danmarks største løb på distancen og blandt Europas hurtigste - en flad byrute med tæt publikum hele vejen. Rundt om i landet ligger der halvmarathonløb næsten hver weekend: byløb, skovløb og kystruter, mange arrangeret af lokale atletik- og motionsklubber til startgebyrer langt under storbyløbenes."],
@@ -128,7 +137,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "trail-og-ultra-danmark", lang: "da", hero: "trail",
+    sl: "trail-og-ultra-danmark", gruppe: "Danmark & Norden", lang: "da", hero: "trail",
     titel: "Trail- og ultraløb i Danmark",
     sektioner: [
       ["Trail i et fladt land", "Danmark har ingen bjerge, men masser af terræn: kystskrænter, klitplantager, morænebakker og skove med rødder og mudder nok til at gøre enhver kilometer ærlig. Løbene samler sig om naturperlerne - Møns Klint, Silkeborg-søhøjlandet, Mols Bjerge og den jyske vestkyst - og flere af dem har distancer fra 10 km helt op over 100 km på samme dag."],
@@ -143,7 +152,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "marathon-norden", lang: "da", hero: "norden",
+    sl: "marathon-norden", gruppe: "Danmark & Norden", lang: "da", hero: "norden",
     titel: "Marathon i Norden: Danmark, Norge, Sverige m.fl.",
     sektioner: [
       ["Fra storby til fjeld", "Norden byder på hele spektret: Stockholm Marathon og Oslo Maraton er klassiske storbyløb med publikum og pacere, mens løb som Midnight Sun Marathon i Tromsø byder på marathon ved midnatssol nord for polarcirklen. Island og Færøerne har små løb i landskaber, der føles som en anden planet - vulkansk klippe, fjorde og vejr, der skifter på minutter."],
@@ -157,7 +166,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "marathons-in-the-nordics", lang: "en", hero: "norden",
+    sl: "marathons-in-the-nordics", gruppe: "Europe", lang: "en", hero: "norden",
     titel: "Marathons in the Nordics: the complete calendar",
     sektioner: [
       ["From big cities to the Arctic", "The Nordics cover the whole spectrum: Stockholm Marathon and Oslo Maraton are classic big-city races with crowds and pacers, while the Midnight Sun Marathon in Tromsø takes you above the Arctic Circle for a marathon in 24-hour daylight. Iceland and the Faroe Islands host small races in landscapes that feel like another planet - volcanic rock, fjords and weather that changes by the minute."],
@@ -171,7 +180,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "running-races-in-denmark", lang: "en", hero: "marathon-dk",
+    sl: "running-races-in-denmark", gruppe: "Europe", lang: "en", hero: "marathon-dk",
     titel: "Running races in Denmark: upcoming events",
     sektioner: [
       ["Why race in Denmark", "Denmark is flat, compact and race-mad: nearly every weekend offers races within an hour of Copenhagen or Aarhus, and even the biggest events feel friendly and well organised. Copenhagen Half Marathon in September is among Europe's fastest half marathons, and Copenhagen Marathon in May is the country's biggest 42.2 km race."],
@@ -185,7 +194,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "marathons-in-the-usa", lang: "en", hero: "usa",
+    sl: "marathons-in-the-usa", gruppe: "North America", lang: "en", hero: "usa",
     titel: "Marathons in the USA: the complete calendar",
     filter: r => r.cc === "US" && r.t === "marathon",
     intro: n => `${n} upcoming marathons across the United States, sorted by date and updated weekly from public race calendars - from the World Marathon Majors to small-town races with a few hundred finishers.`,
@@ -200,7 +209,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "half-marathons-in-the-usa", lang: "en", hero: "usa",
+    sl: "half-marathons-in-the-usa", gruppe: "North America", lang: "en", hero: "usa",
     titel: "Half marathons in the USA: upcoming races",
     filter: r => r.cc === "US" && r.t === "half",
     intro: n => `${n} upcoming half marathons across the United States - America's most popular race distance, with events nearly every weekend of the year. Sorted by date, updated weekly.`,
@@ -214,7 +223,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "trail-and-ultra-in-the-usa", lang: "en", hero: "trail",
+    sl: "trail-and-ultra-in-the-usa", gruppe: "North America", lang: "en", hero: "trail",
     titel: "Trail and ultra running in the USA",
     filter: r => r.cc === "US" && r.t === "ultra",
     intro: n => `${n} upcoming trail and ultra races across the United States - from forest 50Ks to the mountain hundred-milers that defined the sport. Sorted by date, updated weekly.`,
@@ -228,7 +237,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "marathons-in-the-uk", lang: "en", hero: "uk",
+    sl: "marathons-in-the-uk", gruppe: "Europe", lang: "en", hero: "uk",
     titel: "Marathons in the UK: upcoming races",
     filter: r => r.cc === "GB" && r.t === "marathon",
     intro: n => `${n} upcoming marathons across the United Kingdom, sorted by date and updated weekly - from the London Marathon to trail marathons in the national parks.`,
@@ -242,7 +251,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "marathons-in-germany", lang: "en", hero: "de",
+    sl: "marathons-in-germany", gruppe: "Europe", lang: "en", hero: "de",
     titel: "Marathons in Germany: upcoming races",
     filter: r => r.cc === "DE" && r.t === "marathon",
     intro: n => `${n} upcoming marathons across Germany, sorted by date and updated weekly - anchored by Berlin, the fastest marathon course on earth.`,
@@ -256,7 +265,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "marathons-in-europe", lang: "en", hero: "de",
+    sl: "marathons-in-europe", gruppe: "Europe", lang: "en", hero: "de",
     titel: "Marathons in Europe: the complete calendar",
     filter: r => r.co === "EU" && r.t === "marathon",
     intro: n => `${n} upcoming marathons across Europe in one list, sorted by date and updated weekly - from the Majors in Berlin and London to alpine trail marathons and Mediterranean winter races.`,
@@ -270,7 +279,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "marathons-in-asia", lang: "en", hero: "asien",
+    sl: "marathons-in-asia", gruppe: "Asia & Oceania", lang: "en", hero: "asien",
     titel: "Marathons in Asia: upcoming races",
     filter: r => r.co === "AS" && r.t === "marathon",
     intro: n => `${n} upcoming marathons across Asia, sorted by date and updated weekly - home of the Tokyo Marathon and the fastest-growing running scene in the world.`,
@@ -284,7 +293,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "marathons-around-the-world", lang: "en", hero: "verden",
+    sl: "marathons-around-the-world", gruppe: "World", lang: "en", hero: "verden",
     titel: "Marathons around the world: the global calendar",
     filter: r => r.t === "marathon",
     intro: n => `${n} upcoming marathons across the world in one list, sorted by date and updated weekly - the World Marathon Majors, national classics and races at the edge of the map.`,
@@ -297,6 +306,48 @@ const GUIDES = [
       ["What are the World Marathon Majors?", "Seven races - Tokyo, Boston, London, Berlin, Chicago, New York and Sydney - linked in a series for elites and age-groupers, with six-star (now seven-star) medals for completing them all."],
     ],
   },
+  {
+    sl: "running-races-in-france", lang: "en", hero: "fr", gruppe: "Europe",
+    titel: "Running races in France: marathons, trails and more",
+    filter: r => r.cc === "FR",
+    intro: n => `${n} upcoming running races across France, sorted by date and updated weekly - from the Paris Marathon down the Champs-Élysées to the trail races of the Alps and Provence.`,
+    sektioner: [
+      ["Paris and the classics", "The Paris Marathon is one of the world's biggest, starting on the Champs-Élysées and passing the Louvre, Bastille and the Eiffel Tower - a sightseeing tour at race pace. France also hosts one of running's most storied races in the Ultra-Trail du Mont-Blanc, whose finish line in Chamonix is the sport's Wembley."],
+      ["A nation of trail runners", "France arguably has the deepest trail-running culture in the world: alpine ultras, Provençal hill races and coastal paths in Brittany. Note that French races traditionally require a medical certificate or licence - check the organiser's page for current requirements before you register."],
+    ],
+    faq: n => [
+      ["How many running races are there in France?", `Runnin currently lists ${n} upcoming races across France. The calendar refreshes weekly.`],
+      ["Do I need a medical certificate to race in France?", "Historically yes for competitive events; rules have been evolving. Check the organiser's registration page - the links on this list go straight there."],
+    ],
+  },
+  {
+    sl: "running-races-in-spain", lang: "en", hero: "es", gruppe: "Europe",
+    titel: "Running races in Spain: marathons, trails and more",
+    filter: r => r.cc === "ES",
+    intro: n => `${n} upcoming running races across Spain, sorted by date and updated weekly - home of Valencia, the fastest marathon city in southern Europe, and winter racing while the rest of the continent hibernates.`,
+    sektioner: [
+      ["Valencia and the fast courses", "Valencia has built itself into a temple of fast running: a flat course, December conditions and a finish over the water in the City of Arts and Sciences. Madrid, Barcelona and Sevilla fill out a calendar of big-city marathons with Mediterranean crowds."],
+      ["Winter is the season", "Spain races when northern Europe cannot: the biggest events run October through March, making Spain the classic winter marathon destination. Summer racing moves to the cooler north coast and the mountains - or to dawn starts."],
+    ],
+    faq: n => [
+      ["How many running races are there in Spain?", `Runnin currently lists ${n} upcoming races across Spain. The calendar refreshes weekly.`],
+      ["When is the best time to race in Spain?", "October to March for the big city races - Valencia in December is the flagship. Summer races start early to beat the heat."],
+    ],
+  },
+  {
+    sl: "running-races-in-australia", lang: "en", hero: "au", gruppe: "Asia & Oceania",
+    titel: "Running races in Australia: marathons, trails and more",
+    filter: r => r.cc === "AU",
+    intro: n => `${n} upcoming running races across Australia, sorted by date and updated weekly - anchored by the Sydney Marathon, the newest World Marathon Major.`,
+    sektioner: [
+      ["Sydney joins the Majors", "The Sydney Marathon became a World Marathon Major in 2025 - the first in the southern hemisphere - with a course over the Harbour Bridge and a finish by the Opera House. Melbourne, the Gold Coast and Perth carry the rest of the big-city calendar."],
+      ["Racing upside down", "The Australian season is the northern hemisphere's mirror: the big races cluster in the southern winter, May through October, when temperatures are kind. For European and American runners, that makes Australia the perfect place to keep a marathon year alive through the northern summer."],
+    ],
+    faq: n => [
+      ["How many running races are there in Australia?", `Runnin currently lists ${n} upcoming races across Australia. The calendar refreshes weekly.`],
+      ["Is the Sydney Marathon really a Major?", "Yes - it was added to the World Marathon Majors in 2025 as the seventh race, the first outside the northern hemisphere."],
+    ],
+  },
 ];
 
 const guideUrls = [];
@@ -304,7 +355,7 @@ for (const gd of GUIDES) {
   const liste = kommende.filter(gd.filter).sort((a, b) => (a.dt || a.m + "-28") < (b.dt || b.m + "-28") ? -1 : 1);
   if (!liste.length) continue; // udgiv aldrig en tom guide
   const url = `${BASE}/guide/${gd.sl}/`;
-  guideUrls.push({ url, titel: gd.titel, lang: gd.lang, antal: liste.length });
+  guideUrls.push({ url, titel: gd.titel, lang: gd.lang, antal: liste.length, gruppe: gd.gruppe || "World" });
   const da = gd.lang === "da";
   const MAKS_RÆKKER = 120;
   const vis = liste.slice(0, MAKS_RÆKKER);
@@ -434,7 +485,12 @@ if (guideUrls.length) {
 <div class="brand op" style="animation-delay:.05s"><a href="/"><img src="/assets/mark.png" alt="">R U N N I N</a><span style="margin-left:auto;font-weight:600;font-size:13px;letter-spacing:0"><a href="/" style="color:#7E6A50;text-decoration:none">← Til kortet</a></span></div>
 <h1 class="op" style="animation-delay:.12s">Guides</h1>
 <div class="sub op" style="animation-delay:.12s">Data-drevne kalendere - opdateres automatisk hver uge.</div>
-${guideUrls.map((g, i) => `<a class="kort op" style="animation-delay:${(0.2 + i * 0.07).toFixed(2)}s" href="${g.url}"><b>${esc(g.titel)}</b><span>${g.antal} ${g.lang === "da" ? "løb" : "races"} · ${g.lang.toUpperCase()}</span></a>`).join("\n")}
+${["Danmark & Norden", "Europe", "North America", "Asia & Oceania", "World"].map(gr => {
+    const i = guideUrls.filter(g => g.gruppe === gr);
+    if (!i.length) return "";
+    return `<h2 style="font-size:17px;font-weight:800;margin:26px 0 4px;color:#38240D">${gr}</h2>` +
+      i.map((g, ix) => `<a class="kort op" style="animation-delay:${(0.2 + ix * 0.06).toFixed(2)}s" href="${g.url}"><b>${esc(g.titel)}</b><span>${g.antal} ${g.lang === "da" ? "løb" : "races"} · ${g.lang.toUpperCase()}</span></a>`).join("\n");
+  }).join("\n")}
 </main></body></html>
 `);
 }
