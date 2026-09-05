@@ -93,6 +93,11 @@ const GUIDES = [
   {
     sl: "marathon-danmark", lang: "da", hero: "marathon-dk",
     titel: "Marathon i Danmark: den komplette kalender",
+    sektioner: [
+      ["De store klassikere", "Copenhagen Marathon i maj er Danmarks største marathon med en flad byrute gennem alle Københavns brokvarterer og målstregen i hjertet af byen. HCA Marathon i Odense i efteråret er landets næststørste og kendt for en hurtig, flad rute i H.C. Andersens fodspor - mange danske personlige rekorder er sat her. Dertil kommer kystklassikere som Skagen Marathon, hvor ruten går helt ud mod Grenen."],
+      ["Sæsonen i Danmark", "Den danske marathonsæson topper i maj og igen fra september til oktober, hvor vejret er koldt nok til hurtige tider. Sommermånederne byder typisk på mindre, lokale marathonløb - flere af dem i parker og skove med flere omgange på samme rute. Vinterens få løb er små og stemningsfulde med garvede gengangere."],
+      ["Sådan vælger du dit marathon", "Går du efter en hurtig tid, så vælg de flade byruter i København eller Odense, hvor der er fart, publikum og officielle pacere. Vil du hellere have en oplevelse, så kig på kystløbene - de er mindre, billigere og nemmere at komme ind til, men vind og underlag kan koste minutter. Tjek altid arrangørens side for tidsgrænser og depoter, før du tilmelder dig."],
+    ],
     filter: r => r.cc === "DK" && r.t === "marathon",
     intro: n => `Der er lige nu ${n} kommende marathonløb i Danmark i kalenderen - fra de store bybegivenheder til små lokale løb. Listen er sorteret efter dato og opdateres automatisk hver uge fra arrangørernes offentlige kalendere.`,
     faq: n => [
@@ -103,6 +108,10 @@ const GUIDES = [
   {
     sl: "halvmarathon-danmark", lang: "da", hero: "half-dk",
     titel: "Halvmarathon i Danmark: kommende løb",
+    sektioner: [
+      ["Danmarks halvmarathon-landskab", "Copenhagen Half Marathon i september er Danmarks største løb på distancen og blandt Europas hurtigste - en flad byrute med tæt publikum hele vejen. Rundt om i landet ligger der halvmarathonløb næsten hver weekend: byløb, skovløb og kystruter, mange arrangeret af lokale atletik- og motionsklubber til startgebyrer langt under storbyløbenes."],
+      ["Sådan vælger du", "Distancen er den samme, men oplevelsen er vidt forskellig: byløbene giver fart, pacere og stemning; de små klubløb giver ro, natur og kortere kø ved startlinjen. Kig på højdeprofilen og underlaget, hvis tiden betyder noget - og på datoen i forhold til dit øvrige program, hvis halvmarathonen er generalprøve før et helt marathon."],
+    ],
     filter: r => r.cc === "DK" && r.t === "half",
     intro: n => `${n} kommende halvmarathonløb i Danmark, sorteret efter dato. 21,1 km er en af de mest populære konkurrencedistancer herhjemme, og der er løb næsten hver weekend året rundt. Listen opdateres automatisk hver uge.`,
     faq: n => [
@@ -113,6 +122,11 @@ const GUIDES = [
   {
     sl: "trail-og-ultra-danmark", lang: "da", hero: "trail",
     titel: "Trail- og ultraløb i Danmark",
+    sektioner: [
+      ["Trail i et fladt land", "Danmark har ingen bjerge, men masser af terræn: kystskrænter, klitplantager, morænebakker og skove med rødder og mudder nok til at gøre enhver kilometer ærlig. Løbene samler sig om naturperlerne - Møns Klint, Silkeborg-søhøjlandet, Mols Bjerge og den jyske vestkyst - og flere af dem har distancer fra 10 km helt op over 100 km på samme dag."],
+      ["Backyard og de skæve formater", "Danmark har taget backyard-formatet til sig: alle løber samme 6,7 km-sløjfe hver time, og sidste løber på benene vinder. Det lyder fredeligt og bliver brutalt. Dertil kommer natløb med pandelampe og etapeløb over flere dage - formater, hvor oplevelsen fylder mere end sluttiden."],
+      ["Udstyr og tidsgrænser", "Danske trail-løb kræver sjældent obligatorisk udstyr ud over væske, men læs altid arrangørens krav - især på ultradistancerne, hvor depotafstand og tidsgrænser afgør, om dagen bliver lang eller umulig. Trail-sko er et krav for komforten de fleste steder, men på tørre sommerruter kan landevejssko sagtens klare det."],
+    ],
     filter: r => r.cc === "DK" && r.t === "ultra",
     intro: n => `${n} kommende trail- og ultraløb i Danmark - fra kystspor og bakket skov til backyard-formater, hvor den sidste løber på benene vinder. Sorteret efter dato, opdateret ugentligt.`,
     faq: n => [
@@ -123,6 +137,10 @@ const GUIDES = [
   {
     sl: "marathon-norden", lang: "da", hero: "norden",
     titel: "Marathon i Norden: Danmark, Norge, Sverige m.fl.",
+    sektioner: [
+      ["Fra storby til fjeld", "Norden byder på hele spektret: Stockholm Marathon og Oslo Maraton er klassiske storbyløb med publikum og pacere, mens løb som Midnight Sun Marathon i Tromsø byder på marathon ved midnatssol nord for polarcirklen. Island og Færøerne har små løb i landskaber, der føles som en anden planet - vulkansk klippe, fjorde og vejr, der skifter på minutter."],
+      ["Planlægning på tværs af grænser", "De nordiske lande er tæt forbundet med fly og tog, og startgebyrerne er sjældent det dyre - det er overnatningen. Book tidligt til de store løb, hvor byens hoteller fyldes af løbere samme weekend. Og husk at tjekke startgebyret i lokal valuta: norske og islandske løb prissættes i NOK og ISK."],
+    ],
     filter: r => NORDEN.has(r.cc) && r.t === "marathon",
     intro: n => `${n} kommende marathonløb i Norden - Danmark, Norge, Sverige, Finland, Island og Færøerne - samlet ét sted og sorteret efter dato. Fra storbyklassikerne til fjeld- og kystmarathon.`,
     faq: n => [
@@ -133,6 +151,10 @@ const GUIDES = [
   {
     sl: "marathons-in-the-nordics", lang: "en", hero: "norden",
     titel: "Marathons in the Nordics: the complete calendar",
+    sektioner: [
+      ["From big cities to the Arctic", "The Nordics cover the whole spectrum: Stockholm Marathon and Oslo Maraton are classic big-city races with crowds and pacers, while the Midnight Sun Marathon in Tromsø takes you above the Arctic Circle for a marathon in 24-hour daylight. Iceland and the Faroe Islands host small races in landscapes that feel like another planet - volcanic rock, fjords and weather that changes by the minute."],
+      ["Planning across borders", "The Nordic countries are tightly connected by air and rail, and entry fees are rarely the expensive part - accommodation is. Book early for the big races, when the host city's hotels fill with runners on the same weekend. Note that Norwegian and Icelandic races are priced in NOK and ISK."],
+    ],
     filter: r => NORDEN.has(r.cc) && r.t === "marathon",
     intro: n => `${n} upcoming marathons across Denmark, Norway, Sweden, Finland, Iceland and the Faroe Islands - in one list, sorted by date. From big-city classics to fell and coastal marathons. Updated automatically every week from the organisers' public calendars.`,
     faq: n => [
@@ -143,6 +165,10 @@ const GUIDES = [
   {
     sl: "running-races-in-denmark", lang: "en", hero: "marathon-dk",
     titel: "Running races in Denmark: upcoming events",
+    sektioner: [
+      ["Why race in Denmark", "Denmark is flat, compact and race-mad: nearly every weekend offers races within an hour of Copenhagen or Aarhus, and even the biggest events feel friendly and well organised. Copenhagen Half Marathon in September is among Europe's fastest half marathons, and Copenhagen Marathon in May is the country's biggest 42.2 km race."],
+      ["Practical notes for visitors", "Registration is online and in English for most bigger races, payment by international card is standard, and bib pickup usually happens on race day or the day before. Public transport reaches most start lines - and in Copenhagen, a rental bike does too."],
+    ],
     filter: r => r.cc === "DK",
     intro: n => `${n} upcoming running races in Denmark - from 5Ks and half marathons to trail ultras - sorted by date and updated weekly. Denmark has races nearly every weekend, most of them small, friendly and open to visitors.`,
     faq: n => [
@@ -197,6 +223,11 @@ for (const gd of GUIDES) {
   .accent{width:56px;height:5px;border-radius:3px;background:var(--caramel);margin:14px 0 18px}
   .hero{width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:16px;border:1px solid var(--hairline);box-shadow:0 12px 32px rgba(56,36,13,.14);margin:4px 0 18px}
   p.intro{font-size:16.5px;max-width:64ch}
+  section h2,h2{font-size:21px;font-weight:800;letter-spacing:-.01em;margin:30px 0 6px}
+  section p{margin:0;max-width:66ch;color:#4a3a26}
+  .nav-links{margin-left:auto;font-weight:600;font-size:13px;letter-spacing:0}
+  .nav-links a{color:var(--muted)}
+  .nav-links a:hover{color:var(--caramel);text-decoration:none}
   table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;font-size:14.5px;box-shadow:0 2px 10px rgba(56,36,13,.06)}
   th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--hairline)}
   th{font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);background:#FBFAF7}
@@ -205,7 +236,6 @@ for (const gd of GUIDES) {
   td:last-child{color:var(--muted);white-space:nowrap}
   a{color:var(--caramel);text-decoration:none}
   a:hover{text-decoration:underline}
-  .faq h2{font-size:20px;font-weight:800;margin-top:36px}
   .faq h3{font-size:16px;margin:18px 0 4px}
   .faq p{margin:0;color:#5b4a33;max-width:64ch}
   .cta{display:inline-block;margin-top:28px;background:var(--caramel);color:#fff;padding:13px 22px;border-radius:12px;text-decoration:none;font-weight:700;box-shadow:0 8px 20px rgba(192,88,0,.28);transition:transform .15s,box-shadow .15s}
@@ -220,12 +250,14 @@ for (const gd of GUIDES) {
 </head>
 <body>
 <main>
-<div class="brand op op1"><a href="/"><img src="/assets/mark.png" alt="">R U N N I N</a></div>
+<div class="brand op op1"><a href="/"><img src="/assets/mark.png" alt="">R U N N I N</a><span class="nav-links"><a href="/guide/">${da ? "← Alle guides" : "← All guides"}</a> · <a href="/">${da ? "Kortet" : "The map"}</a></span></div>
 <h1 class="op op2">${esc(gd.titel)}</h1>
 <div class="meta op op2">${liste.length} ${da ? "løb" : "races"} · ${da ? "opdateret" : "updated"} ${guideDato}</div>
 <div class="accent op op2"></div>
 <img class="hero op op3" src="/assets/guides/${gd.hero}.jpg" alt="${esc(gd.titel)}" width="1200" height="600">
 <p class="intro op op4">${esc(gd.intro(liste.length))}</p>
+${(gd.sektioner || []).map(([h, p]) => `<section class="op op4"><h2>${esc(h)}</h2><p>${esc(p)}</p></section>`).join("\n")}
+<h2 class="op op5">${da ? "Kalenderen" : "The calendar"}</h2>
 <table class="op op5">
 <thead><tr><th>${da ? "Løb" : "Race"}</th><th>${da ? "By" : "City"}</th><th>${da ? "Dato" : "Date"}</th></tr></thead>
 <tbody>
@@ -275,7 +307,7 @@ if (guideUrls.length) {
 </style>
 </head>
 <body><main>
-<div class="brand op" style="animation-delay:.05s"><a href="/"><img src="/assets/mark.png" alt="">R U N N I N</a></div>
+<div class="brand op" style="animation-delay:.05s"><a href="/"><img src="/assets/mark.png" alt="">R U N N I N</a><span style="margin-left:auto;font-weight:600;font-size:13px;letter-spacing:0"><a href="/" style="color:#7E6A50;text-decoration:none">← Til kortet</a></span></div>
 <h1 class="op" style="animation-delay:.12s">Guides</h1>
 <div class="sub op" style="animation-delay:.12s">Data-drevne kalendere - opdateres automatisk hver uge.</div>
 ${guideUrls.map((g, i) => `<a class="kort op" style="animation-delay:${(0.2 + i * 0.07).toFixed(2)}s" href="${g.url}"><b>${esc(g.titel)}</b><span>${g.antal} ${g.lang === "da" ? "løb" : "races"} · ${g.lang.toUpperCase()}</span></a>`).join("\n")}
