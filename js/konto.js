@@ -105,12 +105,13 @@ sb.auth.onAuthStateChange((event, session) => {
   if (!session?.user) return;
   const u = session.user;
   const eksisterende = getUser() || {};
+  const varLoggetInd = !!eksisterende.email; // Supabase fyrer SIGNED_IN v. token-refresh/tab-fokus - kun ÆGTE nyt login skal fejres
   const navn = u.user_metadata?.navn || eksisterende.navn || u.email.split("@")[0];
   localStorage.setItem("runnin-user", JSON.stringify({ ...eksisterende, navn, email: u.email }));
   updateAuthUI();
   if (event === "SIGNED_IN" || event === "INITIAL_SESSION") skyHent();
   if (event === "SIGNED_IN" && location.hash.includes("access_token")) history.replaceState(null, "", location.pathname);
-  if (event === "SIGNED_IN" && typeof visToast === "function") visToast(`✓ Velkommen, ${navn.split(" ")[0]} - dine løb følger dig nu på tværs af enheder.`);
+  if (event === "SIGNED_IN" && !varLoggetInd && typeof visToast === "function") visToast(`✓ Velkommen, ${navn.split(" ")[0]} - dine løb følger dig nu på tværs af enheder.`);
 });
 
 window.kontoLogUd = async () => {
