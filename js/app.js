@@ -1154,12 +1154,8 @@ function toggleProfileMenu() {
   const dage = next ? Math.max(0, Math.ceil((new Date(next.dt) - new Date()) / 86400000)) : null;
 
   profileMenu.innerHTML = `
-    <div class="pm-head">
-      <span class="user-avatar">${avatarHtml(user)}</span>
-      <div>
-        <div class="pm-navn">${user.navn}</div>
-        <div class="pm-sub">${user.email || "Runnin-profil"}</div>
-      </div>
+    <div class="pm-head pm-slank">
+      <div class="pm-sub">${user.email || "Runnin-profil"}</div>
     </div>
     ${next ? `<div class="pm-next"><span class="countdown">${dage === 0 ? "I DAG" : dage + " dage"}</span> ${dage === 0 ? "-" : "til"} ${next.n}</div>` : ""}
     <div class="pm-items">

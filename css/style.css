@@ -130,6 +130,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
   transform-origin: top right; animation: foldDown .34s cubic-bezier(.22,1.4,.36,1) both;
 }
 .pm-head { display: flex; align-items: center; gap: 11px; padding-bottom: 12px; border-bottom: 1px solid var(--hairline); }
+.pm-slank { padding-bottom: 9px; } /* chippen viser allerede foto+navn - menuen viser kun e-mailen */
 .pm-navn { font-weight: 700; font-size: 14.5px; }
 .pm-sub { font-size: 11.5px; color: var(--muted); margin-top: 1px; }
 .pm-next {
