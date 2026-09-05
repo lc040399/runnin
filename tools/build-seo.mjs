@@ -31,6 +31,14 @@ function guideFor(r) {
   if (r.cc === "DK" && r.t === "ultra") return ["/guide/trail-og-ultra-danmark/", "Trail- og ultraløb i Danmark"];
   if (r.cc === "DK") return ["/guide/running-races-in-denmark/", "Running races in Denmark"];
   if (NORDEN_CC.has(r.cc) && r.t === "marathon") return ["/guide/marathon-norden/", "Marathon i Norden"];
+  if (r.cc === "US" && r.t === "marathon") return ["/guide/marathons-in-the-usa/", "Marathons in the USA"];
+  if (r.cc === "US" && r.t === "half") return ["/guide/half-marathons-in-the-usa/", "Half marathons in the USA"];
+  if (r.cc === "US" && r.t === "ultra") return ["/guide/trail-and-ultra-in-the-usa/", "Trail & ultra in the USA"];
+  if (r.cc === "GB" && r.t === "marathon") return ["/guide/marathons-in-the-uk/", "Marathons in the UK"];
+  if (r.cc === "DE" && r.t === "marathon") return ["/guide/marathons-in-germany/", "Marathons in Germany"];
+  if (r.co === "EU" && r.t === "marathon") return ["/guide/marathons-in-europe/", "Marathons in Europe"];
+  if (r.co === "AS" && r.t === "marathon") return ["/guide/marathons-in-asia/", "Marathons in Asia"];
+  if (r.t === "marathon") return ["/guide/marathons-around-the-world/", "Marathons around the world"];
   return ["/guide/", "Guides"];
 }
 const urls = [];
@@ -176,6 +184,119 @@ const GUIDES = [
       ["Can foreigners join Danish races?", "Yes - nearly all Danish races are open to everyone. Registration links on this list go straight to the organiser's official page."],
     ],
   },
+  {
+    sl: "marathons-in-the-usa", lang: "en", hero: "usa",
+    titel: "Marathons in the USA: the complete calendar",
+    filter: r => r.cc === "US" && r.t === "marathon",
+    intro: n => `${n} upcoming marathons across the United States, sorted by date and updated weekly from public race calendars - from the World Marathon Majors to small-town races with a few hundred finishers.`,
+    sektioner: [
+      ["The Majors and the icons", "Boston, Chicago and New York anchor the American marathon year. Boston is the one you qualify for - its qualifying standards define ambition for marathoners worldwide - while Chicago's flat, fast loop and New York's five-borough tour fill by lottery. Beyond the Majors, races like the Marine Corps Marathon in Washington D.C. and Grandma's Marathon in Minnesota draw tens of thousands."],
+      ["Seasons and geography", "The American marathon calendar peaks in October and November, with a second wave in spring. Summer marathons cluster in the mountain states and the Pacific Northwest, where altitude and cool mornings make 42.2 km survivable; winter racing moves south to Florida, Texas, Arizona and California."],
+      ["Practical notes", "Most US races sell out or close registration weeks ahead, and prices rise in tiers - registering early can save 30-50%. Nearly every race publishes pace groups, and finisher medals, chip timing and closed roads are standard even at mid-size events."],
+    ],
+    faq: n => [
+      ["How many marathons are there in the USA?", `Runnin currently lists ${n} upcoming marathons across the United States. The calendar refreshes weekly.`],
+      ["How do I get into the World Marathon Majors?", "Boston requires a qualifying time from a certified marathon; Chicago and New York run lotteries alongside time qualification and charity entries. Registration links on this list go to the official organisers."],
+    ],
+  },
+  {
+    sl: "half-marathons-in-the-usa", lang: "en", hero: "usa",
+    titel: "Half marathons in the USA: upcoming races",
+    filter: r => r.cc === "US" && r.t === "half",
+    intro: n => `${n} upcoming half marathons across the United States - America's most popular race distance, with events nearly every weekend of the year. Sorted by date, updated weekly.`,
+    sektioner: [
+      ["The most popular distance", "The half marathon is the sweet spot of American road racing: long enough to demand training, short enough to race often. Big-city halves fill fast, while thousands of local races welcome runners of every pace with the same chip timing and closed-road treatment."],
+      ["Choosing your race", "If you are chasing a time, look for flat courses in cool months - October through December and March through May dominate the fast lists. If you are running for the experience, the national park and coastal races trade a few minutes for scenery you will remember longer than the splits."],
+    ],
+    faq: n => [
+      ["How many half marathons are there in the USA?", `Runnin currently lists ${n} upcoming half marathons across the United States.`],
+      ["How do I register?", "Every race links directly to the organiser's official registration page - Runnin is free and sells nothing."],
+    ],
+  },
+  {
+    sl: "trail-and-ultra-in-the-usa", lang: "en", hero: "trail",
+    titel: "Trail and ultra running in the USA",
+    filter: r => r.cc === "US" && r.t === "ultra",
+    intro: n => `${n} upcoming trail and ultra races across the United States - from forest 50Ks to the mountain hundred-milers that defined the sport. Sorted by date, updated weekly.`,
+    sektioner: [
+      ["Where American ultrarunning lives", "The United States is the birthplace of the modern trail ultra: Western States 100, the oldest 100-mile trail race in the world, still fills its start list by lottery years deep. Around it has grown a calendar of hundreds of races - desert canyons in Utah and Arizona, Appalachian forest, Rocky Mountain altitude and Pacific Northwest rainforest."],
+      ["Formats and entry", "Expect everything from timed backyard ultras to point-to-point hundred-milers with pacers and drop bags. The famous races fill by lottery or qualification, but the vast majority of American ultras are simply first-come, first-served - and far cheaper than their European equivalents."],
+    ],
+    faq: n => [
+      ["How many trail and ultra races are there in the USA?", `Runnin currently lists ${n} upcoming trail and ultra races across the United States.`],
+      ["Do I need qualifiers?", "Only for a handful of iconic races. Most American ultras are open entry - check each organiser's page for cutoffs and mandatory gear."],
+    ],
+  },
+  {
+    sl: "marathons-in-the-uk", lang: "en", hero: "uk",
+    titel: "Marathons in the UK: upcoming races",
+    filter: r => r.cc === "GB" && r.t === "marathon",
+    intro: n => `${n} upcoming marathons across the United Kingdom, sorted by date and updated weekly - from the London Marathon to trail marathons in the national parks.`,
+    sektioner: [
+      ["London and beyond", "The London Marathon is the country's flagship and one of the World Marathon Majors - entry runs through a heavily oversubscribed ballot, good-for-age times and charity places. Beyond London, Manchester and Edinburgh offer fast spring courses, while Brighton brings seaside crowds to race weekend."],
+      ["The British racing culture", "The UK squeezes remarkable variety into a small island: flat city marathons, hilly trail races in the Lake District and Snowdonia, and a deep club culture that keeps entry fees modest. Autumn and spring dominate the calendar - summer marathons are rare for good meteorological reasons."],
+    ],
+    faq: n => [
+      ["How many marathons are there in the UK?", `Runnin currently lists ${n} upcoming marathons across the United Kingdom.`],
+      ["How do I get into the London Marathon?", "Through the public ballot, a good-for-age qualifying time, or a charity place. The ballot opens shortly after each year's race - the link on this list goes to the official site."],
+    ],
+  },
+  {
+    sl: "marathons-in-germany", lang: "en", hero: "de",
+    titel: "Marathons in Germany: upcoming races",
+    filter: r => r.cc === "DE" && r.t === "marathon",
+    intro: n => `${n} upcoming marathons across Germany, sorted by date and updated weekly - anchored by Berlin, the fastest marathon course on earth.`,
+    sektioner: [
+      ["Berlin: where records fall", "The Berlin Marathon has hosted more marathon world records than any other race - a pancake-flat course, cool late-September weather and flawless organisation make it the bucket-list race for anyone chasing a time. Entry runs through a lottery."],
+      ["A dense, well-run calendar", "Beyond Berlin, Germany offers city marathons in Hamburg, Frankfurt, Munich and Cologne - all flat, well-organised and cheaper than the Majors - plus forest and vineyard races that show a quieter side of German running. Spring and autumn dominate; German efficiency at bib pickup is not a stereotype, it is a fact."],
+    ],
+    faq: n => [
+      ["How many marathons are there in Germany?", `Runnin currently lists ${n} upcoming marathons across Germany.`],
+      ["Is Berlin really the fastest course?", "Its flat profile and September conditions have produced multiple world records. Frankfurt and Hamburg are also known as fast courses."],
+    ],
+  },
+  {
+    sl: "marathons-in-europe", lang: "en", hero: "de",
+    titel: "Marathons in Europe: the complete calendar",
+    filter: r => r.co === "EU" && r.t === "marathon",
+    intro: n => `${n} upcoming marathons across Europe in one list, sorted by date and updated weekly - from the Majors in Berlin and London to alpine trail marathons and Mediterranean winter races.`,
+    sektioner: [
+      ["A continent of contrasts", "Europe packs more marathon variety per kilometre than anywhere else: world-record courses in Berlin, historic streets in Rome and Athens, midnight sun in the Nordics and winter racing in Valencia, Sevilla and Malta while the north hibernates. High-speed rail makes race-cation logistics simple."],
+      ["When to race where", "Spring (March-May) and autumn (September-November) carry the big city races. Chase warm-weather winter marathons in Spain and Portugal, and summer trail marathons in the Alps - where the distance is the same but the finishing times are not."],
+    ],
+    faq: n => [
+      ["How many marathons are there in Europe?", `Runnin currently lists ${n} upcoming marathons across Europe. The calendar refreshes weekly.`],
+      ["Which European marathons are World Marathon Majors?", "Berlin and London. Both fill via ballot/lottery systems alongside qualifying times and charity entries."],
+    ],
+  },
+  {
+    sl: "marathons-in-asia", lang: "en", hero: "asien",
+    titel: "Marathons in Asia: upcoming races",
+    filter: r => r.co === "AS" && r.t === "marathon",
+    intro: n => `${n} upcoming marathons across Asia, sorted by date and updated weekly - home of the Tokyo Marathon and the fastest-growing running scene in the world.`,
+    sektioner: [
+      ["Tokyo and the giants", "The Tokyo Marathon is Asia's World Marathon Major - meticulous organisation, enormous crowds and an entry lottery among the toughest anywhere. Around it, races in Osaka, Seoul, Singapore, Bangkok and Mumbai have grown into six-figure-applicant events of their own."],
+      ["Racing in Asian conditions", "Climate shapes the calendar: Southeast Asian races start before dawn to beat the heat, Japanese and Korean marathons cluster in the cool months, and the Indian season runs through winter. Expect early alarm clocks - and some of the most enthusiastic spectator cultures in world running."],
+    ],
+    faq: n => [
+      ["How many marathons are there in Asia?", `Runnin currently lists ${n} upcoming marathons across Asia. The calendar refreshes weekly.`],
+      ["How do I enter the Tokyo Marathon?", "Through the public lottery, semi-elite qualifying times, or charity places. The link on this list goes to the official organiser."],
+    ],
+  },
+  {
+    sl: "marathons-around-the-world", lang: "en", hero: "verden",
+    titel: "Marathons around the world: the global calendar",
+    filter: r => r.t === "marathon",
+    intro: n => `${n} upcoming marathons across the world in one list, sorted by date and updated weekly - the World Marathon Majors, national classics and races at the edge of the map.`,
+    sektioner: [
+      ["The Majors and the map", "The World Marathon Majors - Tokyo, Boston, London, Berlin, Chicago, New York and Sydney - are the sport's grand tour, each filling through lotteries and qualifying times. But the global calendar is far bigger: polar marathons, desert races, midnight sun starts above the Arctic Circle and city races on every continent."],
+      ["Building a marathon year", "Serious marathoners typically race the distance two or three times a year. A common pattern: a spring race for a time, an autumn race for the experience - or the reverse. Wherever you point the map, registration on this list always goes straight to the official organiser."],
+    ],
+    faq: n => [
+      ["How many marathons are there in the world?", `Runnin currently lists ${n} upcoming marathons worldwide. The real number is larger - the calendar grows weekly as sources refresh.`],
+      ["What are the World Marathon Majors?", "Seven races - Tokyo, Boston, London, Berlin, Chicago, New York and Sydney - linked in a series for elites and age-groupers, with six-star (now seven-star) medals for completing them all."],
+    ],
+  },
 ];
 
 const guideUrls = [];
@@ -185,7 +306,9 @@ for (const gd of GUIDES) {
   const url = `${BASE}/guide/${gd.sl}/`;
   guideUrls.push({ url, titel: gd.titel, lang: gd.lang, antal: liste.length });
   const da = gd.lang === "da";
-  const rows = liste.map(r => {
+  const MAKS_RÆKKER = 120;
+  const vis = liste.slice(0, MAKS_RÆKKER);
+  const rows = vis.map(r => {
     const rsl = slug(r.n);
     const side = seteSlugs.has(rsl) ? `/lob/${rsl}/` : `/#${rsl}`;
     return `<tr><td><a href="${side}">${esc(r.n)}</a></td><td>${esc(r.c)}</td><td>${datoTekst(r)}</td></tr>`;
@@ -264,6 +387,7 @@ ${(gd.sektioner || []).map(([h, p]) => `<section class="op op4"><h2>${esc(h)}</h
 ${rows}
 </tbody>
 </table>
+${liste.length > MAKS_RÆKKER ? `<p style="color:var(--muted);font-size:13.5px">+ ${liste.length - MAKS_RÆKKER} ${da ? "flere - se dem alle på" : "more - see them all on"} <a href="/">${da ? "kortet" : "the map"}</a>.</p>` : ""}
 <div class="faq">
 <h2>${da ? "Ofte stillede spørgsmål" : "Frequently asked questions"}</h2>
 ${gd.faq(liste.length).map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join("\n")}

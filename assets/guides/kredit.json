@@ -18,5 +18,30 @@
   "artist": "Jonas Tisell",
   "lic": "CC BY 4.0",
   "side": "https://commons.wikimedia.org/wiki/File:Streets_of_Oslo_during_the_BMW_Oslo_Maraton.jpg"
+ },
+ "usa": {
+  "artist": "kizzzbeth",
+  "lic": "CC BY-SA 2.0",
+  "side": "https://commons.wikimedia.org/wiki/File:2013_New_York_City_Marathon_(11018265463).jpg"
+ },
+ "de": {
+  "artist": "Denis Barthel",
+  "lic": "CC BY-SA 4.0",
+  "side": "https://commons.wikimedia.org/wiki/File:Berlin-Marathon_2015_Runners_33.jpg"
+ },
+ "verden": {
+  "artist": "nakashi from Chofu, Tokyo, JAPAN",
+  "lic": "CC BY-SA 2.0",
+  "side": "https://commons.wikimedia.org/wiki/File:Tokyo_Marathon_2019_Runner_(32321717927).jpg"
+ },
+ "uk": {
+  "artist": "Basher Eyre",
+  "lic": "CC BY-SA 2.0",
+  "side": "https://commons.wikimedia.org/wiki/File:London_Marathon_runners_on_Victoria_Embankment_-_geograph.org.uk_-_765008.jpg"
+ },
+ "asien": {
+  "artist": "Ogiyoshisan",
+  "lic": "CC BY-SA 3.0",
+  "side": "https://commons.wikimedia.org/wiki/File:Osaka_International_Ladies_Marathon_2013_Part_1_IMG_0862-1_20130127.JPG"
  }
 }
