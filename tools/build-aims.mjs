@@ -84,13 +84,24 @@ const geoCache = new Map();
 async function geokod(by, cc) {
   const nøgle = by + "|" + cc;
   if (geoCache.has(nøgle)) return geoCache.get(nøgle);
+  let res = null;
   try {
     const d = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(by)}&count=5&language=en`)).json();
     const hit = (d.results || []).find(x => x.country_code === cc) || null;
-    const res = hit ? [+hit.latitude.toFixed(4), +hit.longitude.toFixed(4)] : null;
-    geoCache.set(nøgle, res);
-    return res;
-  } catch (_) { geoCache.set(nøgle, null); return null; }
+    if (hit) res = [+hit.latitude.toFixed(4), +hit.longitude.toFixed(4)];
+  } catch (_) {}
+  // fallback: Nominatim (OSM) m. land-hint - langt stærkere på asiatiske/afrikanske
+  // bynavne. Usage policy: maks 1 req/s + identificerende User-Agent.
+  if (!res) {
+    try {
+      await new Promise(r => setTimeout(r, 1100));
+      const u = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=${cc.toLowerCase()}&q=${encodeURIComponent(by)}`;
+      const d2 = await (await fetch(u, { headers: { "User-Agent": "Runnin/1.0 (https://runnin.org; hello@runnin.org)" } })).json();
+      if (d2[0]) res = [+(+d2[0].lat).toFixed(4), +(+d2[0].lon).toFixed(4)];
+    } catch (_) {}
+  }
+  geoCache.set(nøgle, res);
+  return res;
 }
 
 const alle = [];
@@ -114,10 +125,24 @@ for (const e of valgte) {
   const dtSide = side.match(/<time datetime="(\d{4}-\d{2}-\d{2})" class="dtstart/)?.[1];
   const dt = e.dt || dtSide || null;
   const { cc, co } = iocMap.get(e.ioc);
-  const koord = by ? await geokod(by, cc) : null;
+  let koord = by ? await geokod(by, cc) : null;
+  let visBy = by;
+  // sidste udvej: byen gemmer sig ofte i løbets navn ("Kigali International Peace
+  // Marathon") - strip løbs-ord og geokod resten m. land-hint (cc afgrænser fejlskud)
+  if (!koord) {
+    const kandidat = e.navn
+      .replace(/\b(international|marathon|maraton|maratón|half|semi|ultra|trail|race|run|city|grand|prix|festival|des?|de la|the|el|la)\b/gi, " ")
+      .replace(/\d+\s?(k|km|miles?)?/gi, " ")
+      .replace(/[^\p{L}\s'-]/gu, " ")
+      .replace(/\s+/g, " ").trim();
+    if (kandidat.length >= 3) {
+      koord = await geokod(kandidat, cc);
+      if (koord) visBy = kandidat;
+    }
+  }
   if (!koord) { dropped.push([e.navn, "geokode: " + (by || "ingen by")]); continue; }
   const [t, d] = klassificer(e.navn);
-  alle.push([e.navn.slice(0, 80), by, cc, co, koord[0], koord[1], t, d, dt ? dt.slice(0, 7) : e.m, dt, site.slice(0, 160)]);
+  alle.push([e.navn.slice(0, 80), visBy, cc, co, koord[0], koord[1], t, d, dt ? dt.slice(0, 7) : e.m, dt, site.slice(0, 160)]);
 }
 console.log(`færdig: ${alle.length} løb, droppet ${dropped.length}`);
 const årsager = {};
