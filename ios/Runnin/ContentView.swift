@@ -86,7 +86,16 @@ struct ContentView: View {
             case "liste": tab = .liste
             case "top": tab = .top
             case "mine": tab = .mine
-            case "detail": selected = store.all.first { $0.n == "Copenhagen Marathon" } ?? store.all.first
+            case "detail":
+                // data loader async - prøv igen til den er der (kun DEBUG/screenshots)
+                func vælgDetail(_ forsøg: Int = 0) {
+                    if let r = store.all.first(where: { $0.n == "Copenhagen Marathon" }) ?? store.all.first {
+                        selected = r
+                    } else if forsøg < 20 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { vælgDetail(forsøg + 1) }
+                    }
+                }
+                vælgDetail()
             case "login": showLogin = true
             default: break
             }
@@ -150,6 +159,7 @@ struct ContentView: View {
             .background(paper).clipShape(Capsule())
             .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
         }
+        .accessibilityLabel(lang.t("Skift sprog", "Change language"))
     }
 
     @ViewBuilder private var profilKnap: some View {
@@ -216,6 +226,7 @@ struct ContentView: View {
                 .shadow(color: .black.opacity(0.12), radius: 8, y: 3)
         }
         .buttonStyle(PressableStyle())
+        .accessibilityLabel(lang.t("Find min placering", "Find my location"))
     }
 
     private var counter: some View {

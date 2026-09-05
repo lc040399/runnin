@@ -32,6 +32,7 @@ struct SearchBar: View {
             }
             Button { focused = false; onFilter() } label: { filterIkon }
                 .buttonStyle(PressableStyle())
+                .accessibilityLabel(lang.t("Filtre", "Filters"))
         }
         .padding(.leading, 16).padding(.trailing, 6).padding(.vertical, 7)
         .background(paper)

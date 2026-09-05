@@ -27,7 +27,8 @@ final class TopStore: ObservableObject {
             data = try? JSONDecoder().decode(Toplister.self, from: d)
         }
         RemoteData.refresh("toplister.json", minBytes: 500) { [weak self] d in
-            if let t = try? JSONDecoder().decode(Toplister.self, from: d) { self?.data = t }
+            guard let t = try? JSONDecoder().decode(Toplister.self, from: d) else { return }
+            DispatchQueue.main.async { self?.data = t }
         }
     }
 }

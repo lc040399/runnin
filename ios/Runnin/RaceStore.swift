@@ -15,18 +15,27 @@ final class RaceStore: ObservableObject {
     @Published private(set) var dataVersion = 0
 
     init() {
-        let local = RemoteData.loadLocal("races.json")
-        if let d = local, let arr = try? JSONDecoder().decode([Race].self, from: d) {
-            all = arr
-        }
-        // hent frisk data fra runnin.org i baggrunden (OTA for data)
-        RemoteData.refresh("races.json", minBytes: 200_000) { [weak self] d in
-            guard let self else { return }
-            if d == local { return } // identisk → ingen grund til at gentegne
-            guard let arr = try? JSONDecoder().decode([Race].self, from: d),
-                  arr.count > 500 else { return } // krympe-vagt mod dårligt svar
-            self.all = arr
-            self.dataVersion += 1
+        // dekodning af ~1,7 MB JSON foregår PÅ BAGGRUNDSTRÅD - blokerede før
+        // app-opstarten på main; kortet viser sig straks og data lander lige efter
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let local = RemoteData.loadLocal("races.json")
+            let arr = local.flatMap { try? JSONDecoder().decode([Race].self, from: $0) } ?? []
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.all = arr
+                self.dataVersion += 1
+            }
+            // hent frisk data fra runnin.org (OTA for data) - callback på baggrundstråd
+            RemoteData.refresh("races.json", minBytes: 200_000) { [weak self] d in
+                if d == local { return } // identisk → ingen grund til at gentegne
+                guard let nye = try? JSONDecoder().decode([Race].self, from: d),
+                      nye.count > 500 else { return } // krympe-vagt mod dårligt svar
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    self.all = nye
+                    self.dataVersion += 1
+                }
+            }
         }
     }
 

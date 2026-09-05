@@ -76,6 +76,8 @@ struct MapView: UIViewRepresentable {
     }
 
     final class Coordinator: NSObject, MLNMapViewDelegate {
+        /// over dette zoom-niveau bygges kun features i det synlige udsnit
+        private let CULL_ZOOM = 6.0
         let parent: MapView
         weak var mapView: MLNMapView?
         var lastZoomBucket: Int = -999
@@ -140,10 +142,23 @@ struct MapView: UIViewRepresentable {
             omKlyngNødvendigt(mapView)
         }
 
+        private var sidsteCullCenter = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+
         private func omKlyngNødvendigt(_ mapView: MLNMapView) {
             let bucket = Int((mapView.zoomLevel * 2).rounded())   // hver 0.5 zoom-niveau
-            if bucket != lastZoomBucket, let style = mapView.style {
+            guard let style = mapView.style else { return }
+            if bucket != lastZoomBucket {
                 rebuildClusters(style: style)   // sætter selv lastZoomBucket NÅR den kører (ikke ved skip)
+                return
+            }
+            // ved culling-zoom: gen-tegn også når man PANORERER ud af det byggede udsnit
+            if mapView.zoomLevel >= CULL_ZOOM {
+                let c = mapView.centerCoordinate
+                let spanLa = mapView.visibleCoordinateBounds.ne.latitude - mapView.visibleCoordinateBounds.sw.latitude
+                if abs(c.latitude - sidsteCullCenter.latitude) > spanLa * 0.5 ||
+                   abs(c.longitude - sidsteCullCenter.longitude) > spanLa * 0.9 {
+                    rebuildClusters(style: style)
+                }
             }
         }
 
@@ -231,7 +246,18 @@ struct MapView: UIViewRepresentable {
                 f.attributes = ["id": r.id, "t": r.t, "antal": antal]
                 return f
             }
-            let kilde = parent.store.filtered
+            // viewport-culling: zoomet ind bygger vi kun features for det synlige
+            // udsnit (+1 skærm i margin) - før byggede vi alle ~6.900 løb hver gang
+            var kilde = parent.store.filtered
+            if z >= CULL_ZOOM, let mv = mapView {
+                let b = mv.visibleCoordinateBounds
+                let mLa = (b.ne.latitude - b.sw.latitude)
+                let mLo = (b.ne.longitude - b.sw.longitude)
+                let laMin = b.sw.latitude - mLa, laMax = b.ne.latitude + mLa
+                let loMin = b.sw.longitude - mLo, loMax = b.ne.longitude + mLo
+                kilde = kilde.filter { $0.la >= laMin && $0.la <= laMax && $0.lo >= loMin && $0.lo <= loMax }
+                sidsteCullCenter = mv.centerCoordinate
+            }
             if z >= 11 {
                 // gruppér løb på præcis samme punkt (ellers ligger de usynligt oven på hinanden)
                 var stakke: [Int64: [Race]] = [:]

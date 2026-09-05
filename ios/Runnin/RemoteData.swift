@@ -29,20 +29,31 @@ enum RemoteData {
         return nil
     }
 
-    /// Henter `navn` fra runnin.org i baggrunden. Ved HTTP 200 + mindst `minBytes`
-    /// (krympe-vagt mod afkortede svar) gemmes svaret i cache og `done` kaldes på main.
-    /// Kalder aldrig `done` ved fejl/offline - så beholder appen den lokale kopi.
+    /// Henter `navn` fra runnin.org i baggrunden. ETag-betinget: er indholdet uændret
+    /// svarer CDN'en 304 og vi springer download over (sparer ~1,7 MB pr. app-åbning).
+    /// Ved HTTP 200 + mindst `minBytes` (krympe-vagt) gemmes svar + ETag, og `done`
+    /// kaldes PÅ BAGGRUNDSTRÅD (kalderen dekoder dér og publicerer selv på main).
+    /// Kalder aldrig `done` ved fejl/offline/304 - appen beholder den lokale kopi.
     static func refresh(_ navn: String, minBytes: Int, done: @escaping (Data) -> Void) {
         guard let url = URL(string: base + navn) else { return }
         var req = URLRequest(url: url)
         req.cachePolicy = .reloadIgnoringLocalCacheData
         req.timeoutInterval = 20
+        let etagNøgle = "runnin-etag-\(navn)"
+        // send kun If-None-Match når cachen faktisk findes (ellers 304 uden data at falde tilbage på)
+        if FileManager.default.fileExists(atPath: cacheDir.appendingPathComponent(navn).path),
+           let etag = UserDefaults.standard.string(forKey: etagNøgle) {
+            req.setValue(etag, forHTTPHeaderField: "If-None-Match")
+        }
         URLSession.shared.dataTask(with: req) { data, resp, _ in
-            guard let data,
-                  let http = resp as? HTTPURLResponse, http.statusCode == 200,
-                  data.count >= minBytes else { return }
+            guard let http = resp as? HTTPURLResponse else { return }
+            if http.statusCode == 304 { return }   // uændret - lokal kopi er aktuel
+            guard http.statusCode == 200, let data, data.count >= minBytes else { return }
             try? data.write(to: cacheDir.appendingPathComponent(navn), options: .atomic)
-            DispatchQueue.main.async { done(data) }
+            if let etag = http.value(forHTTPHeaderField: "Etag") {
+                UserDefaults.standard.set(etag, forKey: etagNøgle)
+            }
+            done(data)
         }.resume()
     }
 }
