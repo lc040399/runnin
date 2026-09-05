@@ -21,14 +21,21 @@ jobs:
         with:
           node-version: "22" # wrangler@latest kræver >=22
 
+      # GeoNames zip-database til US-geokodning (gratis, ~5 MB) - gør build-rsu CI-bar
+      - name: Hent GeoNames US.txt
+        continue-on-error: true
+        run: |
+          curl -sf -o /tmp/US.zip https://download.geonames.org/export/zip/US.zip \
+            && unzip -o -q /tmp/US.zip -d /tmp && ls -la /tmp/US.txt \
+            || echo "::warning::GeoNames-download fejlede - build-rsu springes over"
+
       # Kilderne kører hver for sig - én død kilde må ikke vælte de andre.
       # (De skriver kun deres egen data/*.js; fejler de, beholder git den gamle.)
       - name: Genimportér kilder
         continue-on-error: true
         run: |
           set +e
-          # per-kilde timeout: en hængende kilde dræbes efter 6 min, de andre kører videre
-          # (build-rsu udeladt: kræver /tmp/US.txt-geokoding der ikke findes i CI - US-refresh er manuel)
+          # per-kilde timeout: en hængende kilde dræbes, de andre kører videre
           for p in build-st build-rid build-kondis build-wm build-aims build-toplister build-eq-toplister; do
             echo "::group::$p"
             timeout 360 node "tools/$p.mjs"
@@ -37,6 +44,14 @@ jobs:
             [ $rc -ne 0 ] && [ $rc -ne 124 ] && echo "::warning::$p fejlede (exit $rc) - beholder eksisterende data"
             echo "::endgroup::"
           done
+          # US (5.200+ løb, langsommere kilde) - kun hvis GeoNames-databasen kom ned
+          if [ -f /tmp/US.txt ]; then
+            echo "::group::build-rsu"
+            timeout 900 node tools/build-rsu.mjs || echo "::warning::build-rsu fejlede/timeout - beholder eksisterende data"
+            echo "::endgroup::"
+          fi
+          # DK land-validering efter Sportstiming-høst (bælte & seler oven på adresse-median)
+          timeout 360 node tools/fix-coords.mjs || echo "::warning::fix-coords fejlede"
 
       - name: Valider parse (gendan sidste gode ved halvskrevet fil)
         run: |
@@ -61,6 +76,12 @@ jobs:
           done
           [ "$fejl" -eq 0 ] || exit 1
 
+      # races.json/geojson er appens OTA-data - SKAL genbygges, ellers rådner native-appen
+      - name: Byg delt datalag (races.json til app-OTA)
+        run: |
+          node tools/build-json.mjs
+          node -e "const a=JSON.parse(require('fs').readFileSync('data/races.json','utf8')); if(a.length<3000) { console.error('races.json kollapset:', a.length); process.exit(1); } console.log('races.json OK:', a.length, 'løb');"
+
       - name: Stempl sidst-opdateret
         run: node tools/build-meta.mjs
 
@@ -72,11 +93,13 @@ jobs:
           git commit -m "chore: ugentlig data-refresh [skip ci]" || { echo "ingen ændringer"; exit 0; }
           git push
 
+      # deploy via deploy.sh (bygger dist/ MED SEO-sider + functions - rå rod-deploy
+      # smed /lob/-siderne af sitet ved hver refresh)
       - name: Deploy til Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx --yes wrangler@latest pages deploy . --project-name=runnin --commit-dirty=true
+        run: bash tools/deploy.sh
 
 # ---------------------------------------------------------------------------
 # KRÆVER at Lasse lægger to repo-hemmeligheder ind (Settings → Secrets → Actions):
