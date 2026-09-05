@@ -202,11 +202,22 @@ async function tegnYearCard(gemte) {
   g.font = "500 34px Inter Tight, sans-serif"; g.fillStyle = "#7E6A50";
   const lande = new Set(gemte.map(r => r.cc)).size;
   const tilmeldt = gemte.filter(r => entries.has(r.n)).length;
-  g.fillText(`${gemte.length} løb · ${lande} ${lande === 1 ? "land" : "lande"}${tilmeldt ? ` · ${tilmeldt} tilmeldt` : ""}`, 70, 300);
+  // samlet planlagt distance når den kan læses af d-feltet ("21,1 km" osv.)
+  const kmSum = gemte.reduce((s, r) => {
+    const m2 = /([\d.,]+)\s*km/.exec(r.d || "");
+    if (m2) return s + parseFloat(m2[1].replace(",", "."));
+    // ellers: distancen ER kendt for half/marathon pr. definition
+    return s + ({ marathon: 42.2, half: 21.1 }[r.t] || 0);
+  }, 0);
+  g.fillText(`${gemte.length} løb · ${lande} ${lande === 1 ? "land" : "lande"}`
+    + (kmSum ? ` · ${kmSum >= 100 ? Math.round(kmSum) : kmSum.toLocaleString("da-DK")} km` : "")
+    + (tilmeldt ? ` · ${tilmeldt} tilmeldt 🎟` : ""), 70, 300);
+  // caramel accent-streg under statslinjen
+  g.fillStyle = "#C05800"; g.beginPath(); g.roundRect(70, 322, 64, 6, 3); g.fill();
 
   // kortflade zoomet til DINE løb (ikke hele verden) - equirektangulær med margen
   const mx = 70, my = 360, mw = 940, mh = 520;
-  g.fillStyle = "#DCE4E4"; // dæmpet hav
+  g.fillStyle = "#CBDEE5"; // varmt hav (matcher appens toning)
   g.beginPath(); g.roundRect(mx, my, mw, mh, 24); g.fill();
   let laMin = Math.min(...gemte.map(r => r.la)), laMax = Math.max(...gemte.map(r => r.la));
   let loMin = Math.min(...gemte.map(r => r.lo)), loMax = Math.max(...gemte.map(r => r.lo));
@@ -236,8 +247,8 @@ async function tegnYearCard(gemte) {
   const py = la => my + ((laMax - la) / (laMax - laMin)) * mh;
   g.save();
   g.beginPath(); g.roundRect(mx, my, mw, mh, 24); g.clip();
-  // landmasse: hav = kortfladen, land = svagt varmere tone m. blød kyststreg
-  g.fillStyle = "#F1EDE3"; g.strokeStyle = "rgba(56,36,13,.16)"; g.lineWidth = 1.5;
+  // landmasse: hav = kortfladen, land = varm papirtone m. blød kyststreg
+  g.fillStyle = "#F2EDE0"; g.strokeStyle = "rgba(56,36,13,.20)"; g.lineWidth = 2;
   for (const f of land.features) {
     const polys = f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
     for (const poly of polys) {
@@ -256,11 +267,18 @@ async function tegnYearCard(gemte) {
     }
   }
   for (const r of gemte) {
+    const x = px(r.lo), y = py(r.la);
+    // blød farvet halo giver prikken liv uden støj
+    g.fillStyle = TYPE_COLOR[r.t] + "33";
+    g.beginPath(); g.arc(x, y, 26, 0, 7); g.fill();
     g.fillStyle = TYPE_COLOR[r.t];
-    g.beginPath(); g.arc(px(r.lo), py(r.la), 12, 0, 7); g.fill();
+    g.beginPath(); g.arc(x, y, 12, 0, 7); g.fill();
     g.lineWidth = 4; g.strokeStyle = "#fff"; g.stroke();
   }
   g.restore();
+  // hårlinje-ramme om kortet
+  g.strokeStyle = "rgba(56,36,13,.13)"; g.lineWidth = 2;
+  g.beginPath(); g.roundRect(mx, my, mw, mh, 24); g.stroke();
 
   // løbsliste (kommende først)
   const sorteret = [...gemte].sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
@@ -276,8 +294,14 @@ async function tegnYearCard(gemte) {
     g.textAlign = "left"; g.font = "600 34px Inter Tight, sans-serif";
   });
   if (gemte.length > 6) { g.fillStyle = "#AE9C80"; g.font = "500 30px Inter Tight, sans-serif"; g.fillText(`+ ${gemte.length - 6} flere`, 115, 960 + 6 * 58); }
+  // footer: hårlinje + CTA venstre, runnin.org højre
+  g.strokeStyle = "rgba(56,36,13,.13)"; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(70, 1248); g.lineTo(1010, 1248); g.stroke();
   g.fillStyle = "#C05800"; g.font = "700 30px Inter Tight, sans-serif";
-  g.fillText("Find dit næste løb på Runnin", 70, 1290);
+  g.fillText("Find dit næste løb på Runnin", 70, 1300);
+  g.fillStyle = "#AE9C80"; g.font = "600 28px Inter Tight, sans-serif"; g.textAlign = "right";
+  g.fillText("runnin.org", 1010, 1300);
+  g.textAlign = "left";
   return c;
 }
 
@@ -299,10 +323,10 @@ async function openYearCard() {
   const kanDele = !!navigator.canShare;
   modal.innerHTML = `
     <div class="cal-head">
-      <h2 style="margin:0 auto">Mit løbs-år</h2>
+      <span style="margin:0 auto;font-size:12.5px;color:var(--muted)">Delbart billede - præcis som modtageren ser det</span>
       <button class="close" id="featClose" aria-label="Luk">✕</button>
     </div>
-    <img src="${url}" alt="Mit løbs-år" style="width:100%;border-radius:14px;border:1px solid var(--hairline);margin-top:10px">
+    <img src="${url}" alt="Mit løbs-år" style="width:100%;border-radius:14px;border:1px solid var(--hairline);margin-top:10px;box-shadow:var(--soft-shadow)">
     <div class="aar-knapper">
       ${kanDele ? `<button class="cta" id="aarDel">Del billedet <span>→</span></button>` : ""}
       <a class="${kanDele ? "save" : "cta"}" href="${url}" download="mit-loebs-aar.png">Download</a>

@@ -19,7 +19,7 @@ function openDashboard(fokus) {
   if (fokus === "indstillinger") setTimeout(() =>
     document.getElementById("dashSettings")?.scrollIntoView({ behavior: "smooth", block: "start" }), 350);
 }
-const closeDashboard = () => (dashOverlay.hidden = true);
+const closeDashboard = () => { dashOverlay.hidden = true; lukDashCalHover(); };
 
 let calAnimToken = 0;
 function dashShiftMonth(d) {
@@ -71,11 +71,45 @@ function dashCalCells() {
   return celler;
 }
 
+let dashCalHoverEl = null;
+const lukDashCalHover = () => { dashCalHoverEl?.remove(); dashCalHoverEl = null; };
+
 function bindCalCells() {
-  dashOverlay.querySelectorAll(".dash-cal .cal-cell.has").forEach(cell => cell.onclick = () => {
-    const d = dashMonth + "-" + String(cell.dataset.day).padStart(2, "0");
-    const r = RACES.find(x => favs.has(x.n) && x.dt === d);
-    if (r) { closeDashboard(); openDetail(r, true); }
+  const gemte = RACES.filter(r => favs.has(r.n));
+  dashOverlay.querySelectorAll(".dash-cal .cal-cell.has").forEach(cell => {
+    const dagens = gemte.filter(x => x.dt === dashMonth + "-" + String(cell.dataset.day).padStart(2, "0"));
+    cell.onclick = () => {
+      lukDashCalHover();
+      if (dagens[0]) { closeDashboard(); openDetail(dagens[0], true); }
+    };
+    // sneak-peek ved hover - samme mønster som hovedkalenderen (app.js)
+    cell.addEventListener("mouseenter", () => {
+      if (innerWidth <= 720 || !dagens.length) return;
+      lukDashCalHover();
+      const rect = cell.getBoundingClientRect();
+      const m = +dashMonth.split("-")[1];
+      dashCalHoverEl = document.createElement("div");
+      dashCalHoverEl.className = "live-menu cal-hover";
+      dashCalHoverEl.style.top = Math.min(rect.bottom + 8, innerHeight - 300) + "px";
+      dashCalHoverEl.style.left = Math.min(Math.max(12, rect.left - 30), innerWidth - 312) + "px";
+      dashCalHoverEl.innerHTML = `
+        <div class="tm-sek">${+cell.dataset.day}. ${MONTHS[m - 1]} · ${dagens.length === 1 ? "dit løb" : dagens.length + " løb"}</div>
+        ${dagens.slice(0, 7).map(r => `<button class="tm-række" data-id="${r.id}">
+          <i style="background:${TYPE_COLOR[r.t]}"></i>
+          <span class="lm-navn">${r.n}</span>
+          <span class="lm-sted">${r.c} ${flag(r.cc)}</span>
+        </button>`).join("")}`;
+      document.body.appendChild(dashCalHoverEl);
+      dashCalHoverEl.addEventListener("mouseleave", e => { if (!cell.contains(e.relatedTarget)) lukDashCalHover(); });
+      dashCalHoverEl.querySelectorAll(".tm-række").forEach(b => b.onclick = () => {
+        lukDashCalHover();
+        closeDashboard();
+        openDetail(RACES[+b.dataset.id], true);
+      });
+    });
+    cell.addEventListener("mouseleave", () => {
+      setTimeout(() => { if (dashCalHoverEl && !dashCalHoverEl.matches(":hover") && !cell.matches(":hover")) lukDashCalHover(); }, 120);
+    });
   });
 }
 
