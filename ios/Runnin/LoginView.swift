@@ -92,6 +92,29 @@ struct LoginView: View {
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .padding(.top, 22)
 
+            Button {
+                Task {
+                    do { try await auth.loginMedOAuth(provider: "facebook"); dismiss() }
+                    catch {
+                        let b = (error as? Auth.AuthFejl)?.besked ?? ""
+                        if !b.isEmpty { fejl = b }   // tom besked = brugeren annullerede
+                    }
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Text("f").font(.system(size: 20, weight: .heavy)).italic()
+                    Text(lang.t("Fortsæt med Facebook", "Continue with Facebook"))
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(Color(red: 0.09, green: 0.47, blue: 0.95))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+            }
+            .buttonStyle(PressableStyle())
+            .padding(.top, 10)
+
             HStack(spacing: 10) {
                 Rectangle().fill(hairline).frame(height: 1)
                 Text(lang.t("eller med e-mail", "or with email")).font(.system(size: 12)).foregroundColor(muted).fixedSize()

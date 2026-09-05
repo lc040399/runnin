@@ -14,6 +14,12 @@ targets:
     sources: [Runnin]
     dependencies:
       - package: MapLibre
+    info:
+      path: Runnin/Info.plist
+      properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: dk.runnin.auth
+            CFBundleURLSchemes: [runnin]
     entitlements:
       path: Runnin/Runnin.entitlements
       properties:

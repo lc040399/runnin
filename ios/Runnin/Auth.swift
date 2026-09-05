@@ -1,4 +1,5 @@
 import SwiftUI
+import AuthenticationServices
 
 struct AuthUser: Codable {
     let id: String
@@ -112,6 +113,54 @@ final class Auth: ObservableObject {
         }
     }
 
+    // MARK: - OAuth via web (Facebook/Google) - ingen tredjeparts-SDK
+
+    private var webSession: ASWebAuthenticationSession?
+    private let webPræsentation = WebAuthPræsentation()
+
+    /// Åbner Supabase OAuth-flowet for en provider (fx "facebook") i et sikkert
+    /// systemvindue; tokens kommer retur i runnin://auth-fragmentet.
+    func loginMedOAuth(provider: String) async throws {
+        let url = URL(string: "\(Self.base)/auth/v1/authorize?provider=\(provider)&redirect_to=runnin://auth")!
+        let callback: URL = try await withCheckedThrowingContinuation { cont in
+            let s = ASWebAuthenticationSession(url: url, callbackURLScheme: "runnin") { cb, err in
+                if let cb { cont.resume(returning: cb) }
+                else if (err as? ASWebAuthenticationSessionError)?.code == .canceledLogin {
+                    cont.resume(throwing: AuthFejl(besked: ""))   // stille v. annullering
+                } else {
+                    cont.resume(throwing: AuthFejl(besked: T("Login fejlede. Prøv igen.", "Sign-in failed. Please try again.")))
+                }
+            }
+            s.presentationContextProvider = webPræsentation
+            s.prefersEphemeralWebBrowserSession = false
+            webSession = s
+            s.start()
+        }
+        // tokens ligger i URL-fragmentet: runnin://auth#access_token=...&refresh_token=...
+        var frag = callback.fragment ?? ""
+        if frag.isEmpty, let q = callback.query { frag = q }
+        var tokens: [String: String] = [:]
+        for par in frag.split(separator: "&") {
+            let kv = par.split(separator: "=", maxSplits: 1)
+            if kv.count == 2 { tokens[String(kv[0])] = String(kv[1]).removingPercentEncoding }
+        }
+        guard let tok = tokens["access_token"] else {
+            throw AuthFejl(besked: T("Login fejlede. Prøv igen.", "Sign-in failed. Please try again."))
+        }
+        // hent brugerprofil (navn/e-mail fra provideren)
+        var req = URLRequest(url: URL(string: "\(Self.base)/auth/v1/user")!)
+        req.setValue(Self.anon, forHTTPHeaderField: "apikey")
+        req.setValue("Bearer \(tok)", forHTTPHeaderField: "Authorization")
+        let (data, _) = try await URLSession.shared.data(for: req)
+        let u = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
+        let meta = u["user_metadata"] as? [String: Any]
+        let email = (u["email"] as? String) ?? ""
+        let navn = (meta?["navn"] as? String) ?? (meta?["full_name"] as? String) ?? (meta?["name"] as? String)
+            ?? String(email.split(separator: "@").first ?? "Løber")
+        gem(AuthUser(id: (u["id"] as? String) ?? "", email: email, navn: navn),
+            token: tok, refresh: tokens["refresh_token"])
+    }
+
     func logout() {
         user = nil; token = nil
         for k in ["runnin-user", "runnin-token", "runnin-refresh"] { defaults.removeObject(forKey: k) }
@@ -139,5 +188,13 @@ final class Auth: ObservableObject {
         if let d = try? JSONEncoder().encode(u) { defaults.set(d, forKey: "runnin-user") }
         defaults.set(tok, forKey: "runnin-token")
         defaults.set(refresh, forKey: "runnin-refresh")
+    }
+}
+
+/// præsentations-anker til ASWebAuthenticationSession
+final class WebAuthPræsentation: NSObject, ASWebAuthenticationPresentationContextProviding {
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow }.first ?? ASPresentationAnchor()
     }
 }
