@@ -36,6 +36,10 @@ function guideFor(r) {
   if (r.cc === "US" && r.t === "ultra") return ["/guide/trail-and-ultra-in-the-usa/", "Trail & ultra in the USA"];
   if (r.cc === "GB" && r.t === "marathon") return ["/guide/marathons-in-the-uk/", "Marathons in the UK"];
   if (r.cc === "DE" && r.t === "marathon") return ["/guide/marathons-in-germany/", "Marathons in Germany"];
+  if (r.cc === "IT") return ["/guide/running-races-in-italy/", "Running races in Italy"];
+  if (r.cc === "CA") return ["/guide/running-races-in-canada/", "Running races in Canada"];
+  if (r.cc === "JP") return ["/guide/running-races-in-japan/", "Running races in Japan"];
+  if (r.cc === "NL") return ["/guide/running-races-in-the-netherlands/", "Running races in the Netherlands"];
   if (r.cc === "FR") return ["/guide/running-races-in-france/", "Running races in France"];
   if (r.cc === "ES") return ["/guide/running-races-in-spain/", "Running races in Spain"];
   if (r.cc === "AU") return ["/guide/running-races-in-australia/", "Running races in Australia"];
@@ -346,6 +350,62 @@ const GUIDES = [
     faq: n => [
       ["How many running races are there in Australia?", `Runnin currently lists ${n} upcoming races across Australia. The calendar refreshes weekly.`],
       ["Is the Sydney Marathon really a Major?", "Yes - it was added to the World Marathon Majors in 2025 as the seventh race, the first outside the northern hemisphere."],
+    ],
+  },
+  {
+    sl: "running-races-in-italy", lang: "en", hero: "it", gruppe: "Europe",
+    titel: "Running races in Italy: marathons, trails and more",
+    filter: r => r.cc === "IT",
+    intro: n => `${n} upcoming running races across Italy, sorted by date and updated weekly - from the Rome Marathon past the Colosseum to Dolomite trail races and lakeside runs in the north.`,
+    sektioner: [
+      ["Rome, and everything after", "The Rome Marathon is one of running's great sightseeing tours - cobblestones, the Colosseum and a finish by the Fori Imperiali. Milan and Venice carry the other big city races, while Florence's autumn marathon threads the Renaissance centre."],
+      ["Mountains and lakes", "Northern Italy is trail country: the Dolomites and the Alps host some of Europe's most dramatic skyraces and ultras, and the lake districts offer flat, scenic road races in spring and autumn. Summer racing at low altitude is rare - Italians sensibly move uphill when it gets hot."],
+    ],
+    faq: n => [
+      ["How many running races are there in Italy?", `Runnin currently lists ${n} upcoming races across Italy. The calendar refreshes weekly.`],
+      ["When is the best season?", "Spring and autumn for the city marathons; summer for the mountain trails."],
+    ],
+  },
+  {
+    sl: "running-races-in-canada", lang: "en", hero: "ca", gruppe: "North America",
+    titel: "Running races in Canada: marathons, trails and more",
+    filter: r => r.cc === "CA",
+    intro: n => `${n} upcoming running races across Canada, sorted by date and updated weekly - anchored by the Toronto Waterfront Marathon and Vancouver's spring classic.`,
+    sektioner: [
+      ["The big city races", "The Toronto Waterfront Marathon is Canada's fastest and biggest, a flat autumn course along Lake Ontario. Vancouver's marathon in May is the scenic counterweight - ocean, mountains and the Stanley Park seawall - while Ottawa hosts the country's largest race weekend."],
+      ["A short, intense season", "Canadian racing compresses into May-October; winters belong to indoor tracks and snowshoes. Book the big races early - Canadian fields fill months ahead - and pack for every kind of weather, sometimes in the same race."],
+    ],
+    faq: n => [
+      ["How many running races are there in Canada?", `Runnin currently lists ${n} upcoming races across Canada. The calendar refreshes weekly.`],
+      ["Which Canadian marathon is fastest?", "Toronto Waterfront is the usual answer - flat, cool October conditions and deep pacing."],
+    ],
+  },
+  {
+    sl: "running-races-in-japan", lang: "en", hero: "verden", gruppe: "Asia & Oceania",
+    titel: "Running races in Japan: marathons and more",
+    filter: r => r.cc === "JP",
+    intro: n => `${n} upcoming running races across Japan, sorted by date and updated weekly - home of the Tokyo Marathon and the deepest marathon culture in the world.`,
+    sektioner: [
+      ["The marathon nation", "Japan reveres the marathon like nowhere else: the Tokyo Marathon is a World Marathon Major with one of the world's toughest entry lotteries, the Hakone Ekiden relay stops the nation every New Year, and city marathons in Osaka, Kyoto and Nagoya draw six-figure applicant pools. Nagoya's women's marathon is the largest in the world."],
+      ["Racing season and entry", "The Japanese season runs October to March - summer is too hot and humid for road racing. Most big races use lotteries that close months in advance, so plan half a year out. Organisation, aid stations and crowd support are famously immaculate."],
+    ],
+    faq: n => [
+      ["How many running races are there in Japan?", `Runnin currently lists ${n} upcoming races across Japan. The calendar refreshes weekly.`],
+      ["How do I enter the Tokyo Marathon?", "Through the general entry lottery, semi-elite times or charity places - the link on this list goes to the official organiser."],
+    ],
+  },
+  {
+    sl: "running-races-in-the-netherlands", lang: "en", hero: "nl", gruppe: "Europe",
+    titel: "Running races in the Netherlands: marathons and more",
+    filter: r => r.cc === "NL",
+    intro: n => `${n} upcoming running races across the Netherlands, sorted by date and updated weekly - flat, fast and famously well organised.`,
+    sektioner: [
+      ["Flat and fast by design", "The Netherlands is built for personal bests: Rotterdam's spring marathon is one of the fastest courses in the world, and Amsterdam's autumn race finishes in the 1928 Olympic Stadium. Eindhoven and The Hague round out a calendar where hills simply do not exist."],
+      ["Bike-lane logistics", "Dutch races are compact and public-transport friendly - start lines are minutes from central stations, and the cycling culture means courses are wide, smooth and closed with practiced efficiency. Wind off the North Sea is the only opponent the profile can't remove."],
+    ],
+    faq: n => [
+      ["How many running races are there in the Netherlands?", `Runnin currently lists ${n} upcoming races across the Netherlands. The calendar refreshes weekly.`],
+      ["Rotterdam or Amsterdam?", "Rotterdam in April for the time; Amsterdam in October for the stadium finish and the city."],
     ],
   },
 ];
