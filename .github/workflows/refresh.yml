@@ -91,6 +91,8 @@ jobs:
           git config user.email "bot@runnin.org"
           git add data/
           git commit -m "chore: ugentlig data-refresh [skip ci]" || { echo "ingen ændringer"; exit 0; }
+          # main kan være rykket mens kilderne kørte (lang kørsel) - rebase før push
+          git pull --rebase origin main || { echo "::error::rebase fejlede"; exit 1; }
           git push
 
       # deploy via deploy.sh (bygger dist/ MED SEO-sider + functions - rå rod-deploy
