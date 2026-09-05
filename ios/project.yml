@@ -16,6 +16,9 @@ targets:
       - package: MapLibre
     entitlements:
       path: Runnin/Runnin.entitlements
+      properties:
+        com.apple.developer.applesignin: [Default]
+        com.apple.developer.associated-domains: ["applinks:runnin.org"]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dk.runnin.ap

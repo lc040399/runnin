@@ -3,7 +3,7 @@
 set -e
 cd "$(dirname "$0")/.."
 rm -rf dist && mkdir dist
-cp index.html manifest.webmanifest sw.js privatliv.html partner.html 404.html dist/ && cp -r css js data assets dist/
+cp index.html manifest.webmanifest sw.js privatliv.html partner.html 404.html _headers dist/ && cp -r css js data assets .well-known dist/
 cp -r functions dist/
 node tools/build-seo.mjs dist
 npx wrangler pages deploy dist --project-name=runnin --branch=main

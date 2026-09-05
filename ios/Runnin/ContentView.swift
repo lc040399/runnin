@@ -21,6 +21,7 @@ struct ContentView: View {
     @State private var bekræftSlet = false
     @State private var tab: Tab = .kort
     @State private var didSetup = false
+    @State private var ventendeSlug: String?
     @FocusState private var searchFocused: Bool
 
     private let paper = Color(red: 0.96, green: 0.953, blue: 0.933)
@@ -32,6 +33,26 @@ struct ContentView: View {
 
     /// (gen)planlæg lokale påmindelser for de gemte løb
     private func planlægNotifikationer() { Notifikationer.shared.planlæg(for: mineKilde) }
+
+    /// runnin.org/#slug eller /lob/slug/ → åbn løbets detalje (venter på data hvis nødvendigt)
+    private func håndtérLink(_ url: URL) {
+        var slug = url.fragment ?? ""
+        if slug.isEmpty, url.path.hasPrefix("/lob/") {
+            slug = url.path.replacingOccurrences(of: "/lob/", with: "").trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        }
+        guard !slug.isEmpty else { return }
+        ventendeSlug = slug
+        løsVentendeSlug()
+    }
+
+    private func løsVentendeSlug() {
+        guard let slug = ventendeSlug, !store.all.isEmpty else { return }
+        if let r = store.all.first(where: { $0.slug == slug }) {
+            ventendeSlug = nil
+            tab = .kort
+            selected = r
+        }
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -62,7 +83,16 @@ struct ContentView: View {
             if id != nil { Task { await saved.syncMedSky(auth: auth) } } else { saved.ryd() }
         }
         .onChange(of: saved.navne) { _ in planlægNotifikationer() }     // gem/fjern → opdatér påmindelser
-        .onChange(of: store.dataVersion) { _ in planlægNotifikationer() } // nye datoer via remote → opdatér
+        .onChange(of: store.dataVersion) { _ in
+            planlægNotifikationer()   // nye datoer via remote → opdatér
+            løsVentendeSlug()
+        }
+        // universal links: runnin.org/#slug og runnin.org/lob/slug/ åbner løbet direkte
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+            guard let url = activity.webpageURL else { return }
+            håndtérLink(url)
+        }
+        .onOpenURL { håndtérLink($0) }
         .alert(lang.t("Slet din konto?", "Delete your account?"), isPresented: $bekræftSlet) {
             Button(lang.t("Slet permanent", "Delete permanently"), role: .destructive) {
                 Task { try? await auth.deleteAccount(); saved.ryd() }

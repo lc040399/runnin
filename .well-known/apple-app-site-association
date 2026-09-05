@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["64R255UR26.dk.runnin.ap"],
+        "components": [
+          { "/": "/", "#": "*", "comment": "deep links = runnin.org/#slug" },
+          { "/": "/lob/*", "comment": "SEO-løbssider åbner appen" }
+        ]
+      }
+    ]
+  }
+}
