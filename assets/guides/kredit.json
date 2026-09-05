@@ -1,0 +1,22 @@
+{
+ "marathon-dk": {
+  "artist": "Leif Jørgensen",
+  "lic": "CC BY-SA 4.0",
+  "side": "https://commons.wikimedia.org/wiki/File:Copenhagen_Marathon_2024_at_R%C3%A5dhuspladsen_08.jpg"
+ },
+ "half-dk": {
+  "artist": "Guillaume Baviere from Copenhagen, Denmark",
+  "lic": "CC BY-SA 2.0",
+  "side": "https://commons.wikimedia.org/wiki/File:2015_Copenhagen_Half_Marathon_runners.jpg"
+ },
+ "trail": {
+  "artist": "Czech Wikipedia user Packa",
+  "lic": "CC BY-SA 2.5",
+  "side": "https://commons.wikimedia.org/wiki/File:Velk%C3%A1_kunratick%C3%A1_2nd_hill,_Prague.jpg"
+ },
+ "norden": {
+  "artist": "Jonas Tisell",
+  "lic": "CC BY 4.0",
+  "side": "https://commons.wikimedia.org/wiki/File:Streets_of_Oslo_during_the_BMW_Oslo_Maraton.jpg"
+ }
+}

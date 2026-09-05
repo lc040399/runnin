@@ -76,10 +76,12 @@ for (const r of RACES) {
 const NORDEN = new Set(["DK", "NO", "SE", "FI", "IS", "FO", "GL"]);
 const kommende = RACES.filter(r => (r.dt ? r.dt >= iDag : (r.m || "0") >= iDag.slice(0, 7)));
 const guideDato = new Date().toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" });
+// hero-fotos: Wikimedia Commons (CC), selv-hostet m. kreditering i footer (assets/guides/kredit.json)
+const KREDIT = JSON.parse(readFileSync("assets/guides/kredit.json", "utf8"));
 
 const GUIDES = [
   {
-    sl: "marathon-danmark", lang: "da",
+    sl: "marathon-danmark", lang: "da", hero: "marathon-dk",
     titel: "Marathon i Danmark: den komplette kalender",
     filter: r => r.cc === "DK" && r.t === "marathon",
     intro: n => `Der er lige nu ${n} kommende marathonløb i Danmark i kalenderen - fra de store bybegivenheder til små lokale løb. Listen er sorteret efter dato og opdateres automatisk hver uge fra arrangørernes offentlige kalendere.`,
@@ -89,27 +91,27 @@ const GUIDES = [
     ],
   },
   {
-    sl: "halvmarathon-danmark", lang: "da",
+    sl: "halvmarathon-danmark", lang: "da", hero: "half-dk",
     titel: "Halvmarathon i Danmark: kommende løb",
     filter: r => r.cc === "DK" && r.t === "half",
-    intro: n => `${n} kommende halvmarathonløb i Danmark, sorteret efter dato. 21,1 km er en af de mest løbne konkurrencedistancer herhjemme, og der er løb næsten hver weekend året rundt. Listen opdateres automatisk hver uge.`,
+    intro: n => `${n} kommende halvmarathonløb i Danmark, sorteret efter dato. 21,1 km er en af de mest populære konkurrencedistancer herhjemme, og der er løb næsten hver weekend året rundt. Listen opdateres automatisk hver uge.`,
     faq: n => [
       ["Hvor mange halvmarathonløb er der i Danmark?", `Kalenderen indeholder i øjeblikket ${n} kommende halvmarathonløb i Danmark.`],
       ["Hvad koster et halvmarathon typisk?", "Startgebyret fremgår af arrangørens tilmeldingsside, som hvert løb linker til. Prisen stiger ofte tættere på løbsdagen."],
     ],
   },
   {
-    sl: "trail-og-ultra-danmark", lang: "da",
+    sl: "trail-og-ultra-danmark", lang: "da", hero: "trail",
     titel: "Trail- og ultraløb i Danmark",
     filter: r => r.cc === "DK" && r.t === "ultra",
-    intro: n => `${n} kommende trail- og ultraløb i Danmark - fra kystspor og bakket skov til backyard-formater, hvor sidste løber på benene vinder. Sorteret efter dato, opdateret ugentligt.`,
+    intro: n => `${n} kommende trail- og ultraløb i Danmark - fra kystspor og bakket skov til backyard-formater, hvor den sidste løber på benene vinder. Sorteret efter dato, opdateret ugentligt.`,
     faq: n => [
       ["Hvor mange trail- og ultraløb er der i Danmark?", `Runnin kender i øjeblikket ${n} kommende trail- og ultraløb i Danmark.`],
       ["Hvad er et backyard ultra?", "Et format hvor alle løber samme 6,7 km-sløjfe hver time, indtil kun én kan fortsætte. Flere danske løb på listen bruger formatet."],
     ],
   },
   {
-    sl: "marathon-norden", lang: "da",
+    sl: "marathon-norden", lang: "da", hero: "norden",
     titel: "Marathon i Norden: Danmark, Norge, Sverige m.fl.",
     filter: r => NORDEN.has(r.cc) && r.t === "marathon",
     intro: n => `${n} kommende marathonløb i Norden - Danmark, Norge, Sverige, Finland, Island og Færøerne - samlet ét sted og sorteret efter dato. Fra storbyklassikerne til fjeld- og kystmarathon.`,
@@ -119,7 +121,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "marathons-in-the-nordics", lang: "en",
+    sl: "marathons-in-the-nordics", lang: "en", hero: "norden",
     titel: "Marathons in the Nordics: the complete calendar",
     filter: r => NORDEN.has(r.cc) && r.t === "marathon",
     intro: n => `${n} upcoming marathons across Denmark, Norway, Sweden, Finland, Iceland and the Faroe Islands - in one list, sorted by date. From big-city classics to fell and coastal marathons. Updated automatically every week from the organisers' public calendars.`,
@@ -129,7 +131,7 @@ const GUIDES = [
     ],
   },
   {
-    sl: "running-races-in-denmark", lang: "en",
+    sl: "running-races-in-denmark", lang: "en", hero: "marathon-dk",
     titel: "Running races in Denmark: upcoming events",
     filter: r => r.cc === "DK",
     intro: n => `${n} upcoming running races in Denmark - from 5Ks and half marathons to trail ultras - sorted by date and updated weekly. Denmark has races nearly every weekend, most of them small, friendly and open to visitors.`,
@@ -168,36 +170,53 @@ for (const gd of GUIDES) {
 <meta name="description" content="${esc(gd.intro(liste.length).slice(0, 155))}">
 <link rel="canonical" href="${url}">
 <meta property="og:title" content="${esc(gd.titel)}">
-<meta property="og:image" content="${BASE}/assets/og.png?v=3">
+<meta property="og:image" content="${BASE}/assets/guides/${gd.hero}.jpg">
 <link rel="icon" type="image/png" href="/assets/mark.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script type="application/ld+json">${JSON.stringify(jsonld)}</script>
 <style>
-  body{font-family:"Inter Tight",-apple-system,sans-serif;background:#F5F3EE;color:#38240D;margin:0;padding:28px 18px 60px;line-height:1.55}
+  :root{--paper:#F5F3EE;--ink:#38240D;--muted:#7E6A50;--faint:#AE9C80;--caramel:#C05800;--hairline:rgba(56,36,13,.1)}
+  body{font-family:"Inter Tight",-apple-system,sans-serif;background:var(--paper);color:var(--ink);margin:0;padding:28px 18px 60px;line-height:1.55}
   main{max-width:760px;margin:0 auto}
-  .brand{font-weight:800;letter-spacing:2.5px;font-size:14px}
-  .brand a{color:#38240D;text-decoration:none}
-  h1{font-size:30px;margin:18px 0 6px}
-  .meta{color:#7E6A50;font-size:13.5px;margin-bottom:4px}
-  .accent{width:56px;height:5px;border-radius:3px;background:#C05800;margin:14px 0 18px}
-  table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;font-size:14.5px}
-  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid rgba(56,36,13,.1)}
-  th{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:#7E6A50}
-  a{color:#C05800}
-  .faq h2{font-size:20px;margin-top:34px}
+  .brand{font-weight:800;letter-spacing:2.5px;font-size:14px;display:flex;align-items:center;gap:9px}
+  .brand a{color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:9px}
+  .brand img{width:22px;height:22px}
+  h1{font-size:clamp(28px,5vw,36px);font-weight:800;letter-spacing:-.02em;margin:20px 0 6px}
+  .meta{color:var(--muted);font-size:13.5px;margin-bottom:4px}
+  .accent{width:56px;height:5px;border-radius:3px;background:var(--caramel);margin:14px 0 18px}
+  .hero{width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:16px;border:1px solid var(--hairline);box-shadow:0 12px 32px rgba(56,36,13,.14);margin:4px 0 18px}
+  p.intro{font-size:16.5px;max-width:64ch}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;font-size:14.5px;box-shadow:0 2px 10px rgba(56,36,13,.06)}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--hairline)}
+  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);background:#FBFAF7}
+  tbody tr{transition:background .12s}
+  tbody tr:hover{background:#FBF7EF}
+  td:last-child{color:var(--muted);white-space:nowrap}
+  a{color:var(--caramel);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .faq h2{font-size:20px;font-weight:800;margin-top:36px}
   .faq h3{font-size:16px;margin:18px 0 4px}
-  .faq p{margin:0;color:#5b4a33}
-  .cta{display:inline-block;margin-top:26px;background:#C05800;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:700}
-  footer{margin-top:34px;color:#AE9C80;font-size:12.5px}
+  .faq p{margin:0;color:#5b4a33;max-width:64ch}
+  .cta{display:inline-block;margin-top:28px;background:var(--caramel);color:#fff;padding:13px 22px;border-radius:12px;text-decoration:none;font-weight:700;box-shadow:0 8px 20px rgba(192,88,0,.28);transition:transform .15s,box-shadow .15s}
+  .cta:hover{transform:translateY(-1px);box-shadow:0 11px 24px rgba(192,88,0,.34);text-decoration:none}
+  footer{margin-top:36px;color:var(--faint);font-size:12.5px;line-height:1.7}
+  @media (prefers-reduced-motion: no-preference){
+    .op{opacity:0;transform:translateY(14px);animation:op .6s cubic-bezier(.22,1,.36,1) forwards}
+    .op1{animation-delay:.05s}.op2{animation-delay:.14s}.op3{animation-delay:.23s}.op4{animation-delay:.32s}.op5{animation-delay:.44s}
+    @keyframes op{to{opacity:1;transform:none}}
+  }
 </style>
 </head>
 <body>
 <main>
-<div class="brand"><a href="/">R U N N I N</a></div>
-<h1>${esc(gd.titel)}</h1>
-<div class="meta">${liste.length} ${da ? "løb" : "races"} · ${da ? "opdateret" : "updated"} ${guideDato}</div>
-<div class="accent"></div>
-<p>${esc(gd.intro(liste.length))}</p>
-<table>
+<div class="brand op op1"><a href="/"><img src="/assets/mark.png" alt="">R U N N I N</a></div>
+<h1 class="op op2">${esc(gd.titel)}</h1>
+<div class="meta op op2">${liste.length} ${da ? "løb" : "races"} · ${da ? "opdateret" : "updated"} ${guideDato}</div>
+<div class="accent op op2"></div>
+<img class="hero op op3" src="/assets/guides/${gd.hero}.jpg" alt="${esc(gd.titel)}" width="1200" height="600">
+<p class="intro op op4">${esc(gd.intro(liste.length))}</p>
+<table class="op op5">
 <thead><tr><th>${da ? "Løb" : "Race"}</th><th>${da ? "By" : "City"}</th><th>${da ? "Dato" : "Date"}</th></tr></thead>
 <tbody>
 ${rows}
@@ -208,7 +227,7 @@ ${rows}
 ${gd.faq(liste.length).map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join("\n")}
 </div>
 <a class="cta" href="/">${da ? "Se alle løb på kortet →" : "See every race on the map →"}</a>
-<footer>${da ? "Kilder: arrangørernes offentlige kalendere. Runnin er gratis og open source." : "Sources: the organisers' public calendars. Runnin is free and open source."} · <a href="https://runnin.org">runnin.org</a> · <a href="/guide/">${da ? "Alle guides" : "All guides"}</a></footer>
+<footer>${da ? "Kilder: arrangørernes offentlige kalendere. Runnin er gratis og open source." : "Sources: the organisers' public calendars. Runnin is free and open source."} · <a href="https://runnin.org">runnin.org</a> · <a href="/guide/">${da ? "Alle guides" : "All guides"}</a><br>${da ? "Foto" : "Photo"}: <a href="${KREDIT[gd.hero].side}" rel="noopener">${esc(KREDIT[gd.hero].artist)}</a> (${KREDIT[gd.hero].lic}, Wikimedia Commons)</footer>
 </main>
 </body>
 </html>
@@ -225,14 +244,31 @@ if (guideUrls.length) {
 <meta name="description" content="Data-drevne guides fra Runnin: marathon-, halvmarathon- og trailkalendere for Danmark og Norden. Opdateres automatisk hver uge.">
 <link rel="canonical" href="${BASE}/guide/">
 <link rel="icon" type="image/png" href="/assets/mark.png">
-<style>body{font-family:"Inter Tight",-apple-system,sans-serif;background:#F5F3EE;color:#38240D;margin:0;padding:28px 18px}main{max-width:640px;margin:0 auto}h1{font-size:28px}a{color:#C05800}li{margin:10px 0}</style>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  body{font-family:"Inter Tight",-apple-system,sans-serif;background:#F5F3EE;color:#38240D;margin:0;padding:28px 18px 60px}
+  main{max-width:640px;margin:0 auto}
+  .brand{font-weight:800;letter-spacing:2.5px;font-size:14px;display:flex;align-items:center;gap:9px}
+  .brand a{color:#38240D;text-decoration:none;display:flex;align-items:center;gap:9px}
+  .brand img{width:22px;height:22px}
+  h1{font-size:32px;font-weight:800;letter-spacing:-.02em;margin:20px 0 4px}
+  .sub{color:#7E6A50;font-size:14px;margin-bottom:20px}
+  .kort{display:block;background:#fff;border:1px solid rgba(56,36,13,.1);border-radius:14px;padding:15px 17px;margin:10px 0;color:#38240D;text-decoration:none;box-shadow:0 2px 10px rgba(56,36,13,.06);transition:transform .15s,box-shadow .15s}
+  .kort:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(56,36,13,.12)}
+  .kort b{display:block;font-size:16px}
+  .kort span{color:#7E6A50;font-size:13px}
+  @media (prefers-reduced-motion: no-preference){
+    .op{opacity:0;transform:translateY(12px);animation:op .55s cubic-bezier(.22,1,.36,1) forwards}
+    @keyframes op{to{opacity:1;transform:none}}
+  }
+</style>
 </head>
 <body><main>
-<div style="font-weight:800;letter-spacing:2.5px;font-size:14px"><a href="/" style="color:#38240D;text-decoration:none">R U N N I N</a></div>
-<h1>Guides</h1>
-<ul>
-${guideUrls.map(g => `<li><a href="${g.url}">${esc(g.titel)}</a> <span style="color:#7E6A50">(${g.antal} ${g.lang === "da" ? "løb" : "races"})</span></li>`).join("\n")}
-</ul>
+<div class="brand op" style="animation-delay:.05s"><a href="/"><img src="/assets/mark.png" alt="">R U N N I N</a></div>
+<h1 class="op" style="animation-delay:.12s">Guides</h1>
+<div class="sub op" style="animation-delay:.12s">Data-drevne kalendere - opdateres automatisk hver uge.</div>
+${guideUrls.map((g, i) => `<a class="kort op" style="animation-delay:${(0.2 + i * 0.07).toFixed(2)}s" href="${g.url}"><b>${esc(g.titel)}</b><span>${g.antal} ${g.lang === "da" ? "løb" : "races"} · ${g.lang.toUpperCase()}</span></a>`).join("\n")}
 </main></body></html>
 `);
 }
