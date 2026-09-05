@@ -14,6 +14,8 @@ targets:
     sources: [Runnin]
     dependencies:
       - package: MapLibre
+    entitlements:
+      path: Runnin/Runnin.entitlements
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dk.runnin.ap
@@ -26,6 +28,6 @@ targets:
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: "64R255UR26"
         MARKETING_VERSION: "1.0.2"
-        CURRENT_PROJECT_VERSION: "10"
+        CURRENT_PROJECT_VERSION: "11"
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: "NO"
         INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "Runnin uses your location to center the map on races near you."

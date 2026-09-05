@@ -84,6 +84,34 @@ final class Auth: ObservableObject {
         return true // bekræftelses-mail sendt
     }
 
+    /// Sign in with Apple: veksl Apples identityToken til en Supabase-session
+    /// (grant_type=id_token). Navn følger kun med ved FØRSTE login - gemmes i metadata.
+    func loginMedApple(idToken: String, nonce: String, fuldeNavn: String?) async throws {
+        loading = true; defer { loading = false }
+        var body: [String: Any] = ["provider": "apple", "id_token": idToken, "nonce": nonce]
+        let json = try await request("/auth/v1/token?grant_type=id_token", body: body)
+        guard let tok = json["access_token"] as? String else {
+            throw AuthFejl(besked: T("Apple-login fejlede. Prøv igen.", "Apple sign-in failed. Please try again."))
+        }
+        let u = json["user"] as? [String: Any]
+        let meta = u?["user_metadata"] as? [String: Any]
+        let email = (u?["email"] as? String) ?? ""
+        var navn = (meta?["navn"] as? String) ?? (meta?["name"] as? String) ?? ""
+        if navn.isEmpty { navn = fuldeNavn ?? String(email.split(separator: "@").first ?? "Løber") }
+        gem(AuthUser(id: (u?["id"] as? String) ?? "", email: email, navn: navn),
+            token: tok, refresh: json["refresh_token"] as? String)
+        // Apple giver kun navnet ved allerførste login - persistér det i Supabase-metadata
+        if let fn = fuldeNavn, !fn.isEmpty, (meta?["navn"] as? String) == nil {
+            var req = URLRequest(url: URL(string: "\(Self.base)/auth/v1/user")!)
+            req.httpMethod = "PUT"
+            req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            req.setValue(Self.anon, forHTTPHeaderField: "apikey")
+            req.setValue("Bearer \(tok)", forHTTPHeaderField: "Authorization")
+            req.httpBody = try? JSONSerialization.data(withJSONObject: ["data": ["navn": fn]])
+            _ = try? await URLSession.shared.data(for: req)
+        }
+    }
+
     func logout() {
         user = nil; token = nil
         for k in ["runnin-user", "runnin-token", "runnin-refresh"] { defaults.removeObject(forKey: k) }

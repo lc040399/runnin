@@ -1,4 +1,6 @@
 import SwiftUI
+import AuthenticationServices
+import CryptoKit
 
 /// Login / opret-konto-ark - to tilstande, pw-øje, "tjek din indbakke"-succes.
 struct LoginView: View {
@@ -13,6 +15,7 @@ struct LoginView: View {
     @State private var visPw = false
     @State private var fejl: String?
     @State private var bekraeftEmail: String?
+    @State private var appleNonce = ""
     @FocusState private var fokus: Felt?
     enum Felt { case navn, email, pw }
 
@@ -59,6 +62,43 @@ struct LoginView: View {
                            : lang.t("Velkommen tilbage - dine gemte løb venter.", "Welcome back - your saved races are waiting."))
                 .font(.system(size: 15)).foregroundColor(muted).padding(.top, 8)
 
+            SignInWithAppleButton(.signIn) { req in
+                let rå = UUID().uuidString + UUID().uuidString
+                appleNonce = rå
+                req.requestedScopes = [.fullName, .email]
+                req.nonce = SHA256.hash(data: Data(rå.utf8)).map { String(format: "%02x", $0) }.joined()
+            } onCompletion: { resultat in
+                switch resultat {
+                case .success(let auth):
+                    guard let cred = auth.credential as? ASAuthorizationAppleIDCredential,
+                          let tokenData = cred.identityToken,
+                          let idToken = String(data: tokenData, encoding: .utf8) else {
+                        fejl = lang.t("Apple-login fejlede. Prøv igen.", "Apple sign-in failed. Please try again."); return
+                    }
+                    let navnDele = [cred.fullName?.givenName, cred.fullName?.familyName].compactMap { $0 }
+                    let fuldeNavn = navnDele.isEmpty ? nil : navnDele.joined(separator: " ")
+                    Task {
+                        do { try await auth2Apple(idToken: idToken, fuldeNavn: fuldeNavn); dismiss() }
+                        catch { fejl = (error as? Auth.AuthFejl)?.besked ?? lang.t("Apple-login fejlede. Prøv igen.", "Apple sign-in failed. Please try again.") }
+                    }
+                case .failure(let e):
+                    if (e as? ASAuthorizationError)?.code != .canceled {
+                        fejl = lang.t("Apple-login fejlede. Prøv igen.", "Apple sign-in failed. Please try again.")
+                    }
+                }
+            }
+            .signInWithAppleButtonStyle(.black)
+            .frame(height: 50)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .padding(.top, 22)
+
+            HStack(spacing: 10) {
+                Rectangle().fill(hairline).frame(height: 1)
+                Text(lang.t("eller med e-mail", "or with email")).font(.system(size: 12)).foregroundColor(muted).fixedSize()
+                Rectangle().fill(hairline).frame(height: 1)
+            }
+            .padding(.top, 16)
+
             VStack(spacing: 12) {
                 if opretMode {
                     felt(lang.t("Navn", "Name"), tekst: $navn, felt: .navn, autocap: .words)
@@ -66,7 +106,7 @@ struct LoginView: View {
                 felt(lang.t("E-mail", "Email"), tekst: $email, felt: .email, keyboard: .emailAddress, autocap: .never)
                 pwFelt
             }
-            .padding(.top, 22)
+            .padding(.top, 14)
 
             if let fejl {
                 Text(fejl).font(.system(size: 13)).foregroundColor(coral).padding(.top, 12)
@@ -161,6 +201,10 @@ struct LoginView: View {
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(fokus == .pw ? ink : hairline,
                                                                lineWidth: fokus == .pw ? 1.5 : 1))
         }
+    }
+
+    private func auth2Apple(idToken: String, fuldeNavn: String?) async throws {
+        try await auth.loginMedApple(idToken: idToken, nonce: appleNonce, fuldeNavn: fuldeNavn)
     }
 
     private func send() {
