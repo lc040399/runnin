@@ -60,10 +60,19 @@ struct Race: Decodable, Identifiable {
         }
     }
 
-    /// dato i lokal tid som YYYY-MM-DD (til kommende-filtrering)
+    /// dato i lokal tid som YYYY-MM-DD (til kommende-filtrering).
+    /// Cachet: erKommende kaldes for 6400+ løb pr. filtrering - en ny DateFormatter
+    /// hver gang gjorde nav'en langsom. Genberegnes højst hvert 30. minut.
+    private static let isoFmt: DateFormatter = {
+        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; f.timeZone = .current; f.locale = Locale(identifier: "en_US_POSIX"); return f
+    }()
+    private static var iDagCache: (dag: String, stamp: Date)?
     static var iDagISO: String {
-        let f = DateFormatter(); f.dateFormat = "yyyy-MM-dd"; f.timeZone = .current
-        return f.string(from: Date())
+        let nu = Date()
+        if let c = iDagCache, nu.timeIntervalSince(c.stamp) < 1800 { return c.dag }
+        let s = isoFmt.string(from: nu)
+        iDagCache = (s, nu)
+        return s
     }
 
     /// er løbet endnu ikke afholdt? (matcher web's erKommende: skjul kun rene fortids-løb)

@@ -117,10 +117,19 @@ struct MapView: UIViewRepresentable {
             mapView.setCenter(loc.coordinate, zoomLevel: 8, animated: true)
         }
 
+        /// gen-klyng LØBENDE mens brugeren zoomer (så prikker samler/spreder sig "live")
+        func mapViewRegionIsChanging(_ mapView: MLNMapView) {
+            omKlyngNødvendigt(mapView)
+        }
+
         func mapView(_ mapView: MLNMapView, regionDidChangeAnimated animated: Bool) {
-            let bucket = Int((mapView.zoomLevel * 2).rounded())
+            omKlyngNødvendigt(mapView)
+        }
+
+        private func omKlyngNødvendigt(_ mapView: MLNMapView) {
+            let bucket = Int((mapView.zoomLevel * 2).rounded())   // hver 0.5 zoom-niveau
             if bucket != lastZoomBucket, let style = mapView.style {
-                lastZoomBucket = bucket; rebuildClusters(style: style)
+                rebuildClusters(style: style)   // sætter selv lastZoomBucket NÅR den kører (ikke ved skip)
             }
         }
 
@@ -134,6 +143,7 @@ struct MapView: UIViewRepresentable {
             defer { byggerNu = false }
             genopbygRacesById()
             let z = mv.zoomLevel
+            lastZoomBucket = Int((z * 2).rounded())   // opdatér kun når vi faktisk gen-klynger
 
             // ryd gamle lag + kilder
             for id in ["clusters", "cluster-count", "race-dots", "dot-count"] {

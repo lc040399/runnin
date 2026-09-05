@@ -39,7 +39,19 @@ final class RaceStore: ObservableObject {
 
     private static let nordiske: Set<String> = ["DK", "NO", "SE", "FI", "IS", "FO", "GL"]
 
+    // memoisering: filtered genberegnes kun når resultatet reelt kan ændre sig
+    // (filtre/søgning/data), ikke ved hver SwiftUI-render eller zoom-frame
+    private var _cache: [Race]?
+    private var _cacheSig = ""
+
     var filtered: [Race] {
+        if let c = _cache, _cacheSig == filterSignatur { return c }
+        let r = beregnFiltered()
+        _cache = r; _cacheSig = filterSignatur
+        return r
+    }
+
+    private func beregnFiltered() -> [Race] {
         let q = search.trimmingCharacters(in: .whitespaces).lowercased()
         return all.filter { r in
             if !r.erKommende { return false }   // vis aldrig afholdte løb (matcher web)
