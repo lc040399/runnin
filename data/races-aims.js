@@ -1,7 +1,7 @@
 // Autogenereret af tools/build-aims.mjs - kilde: AIMS-kalenderen (76 løb, verden)
 // Kompakt format: [navn, by, cc, co, lat, lng, type, distance, måned, dato|null, officiel-url]
 for (const a of [
-["Wizz Air Skopje Marathon","Skopje","MK","EU",41.9965,21.4314,"marathon","42,2 km","2026-09","2026-09-04","https://www.aims-worldrunning.org/races/726.html"],
+["PBG Satara Hill Half Marathon","Satara","IN","AS",17.6859,73.9933,"half","21,1 km","2026-09","2026-09-06","https://www.aims-worldrunning.org/races/10083.html"],
 ["Kazan Half Marathon","Kazan","RU","EU",55.7887,49.1221,"half","21,1 km","2026-09","2026-09-11","https://www.aims-worldrunning.org/races/10336.html"],
 ["Wizz Air Sofia Marathon","Sofia","BG","EU",42.6975,23.3241,"marathon","42,2 km","2026-09","2026-09-11","https://www.aims-worldrunning.org/races/10237.html"],
 ["Tlajomulco Half Marathon Skarch Hydrated by Electrolit","Tlajomulco","MX","NA",20.4742,-103.4465,"half","21,1 km","2026-09","2026-09-11","https://www.aims-worldrunning.org/races/10091.html"],
@@ -23,7 +23,6 @@ for (const a of [
 ["Trento Half Marathon","Trento","IT","EU",46.0679,11.1211,"half","21,1 km","2026-09","2026-09-27","https://www.aims-worldrunning.org/races/10115.html"],
 ["Yerevan Marathon and Half Marathon","Yerevan","AM","AS",40.1776,44.5126,"half","21,1 km","2026-10","2026-10-17","https://www.aims-worldrunning.org/races/10137.html"],
 ["TCS New York City Marathon","New York","US","NA",40.7143,-74.006,"marathon","42,2 km","2026-11","2026-11-01","https://www.aims-worldrunning.org/races/10100.html"],
-["Maraton Cartago","San Jose","CR","NA",9.9339,-84.0849,"marathon","42,2 km","2026-11","2026-11-04","https://www.aims-worldrunning.org/races/10225.html"],
 ["Bharat Midnight Marathon","Bengaluru","IN","AS",12.9719,77.5937,"marathon","42,2 km","2026-11","2026-11-05","https://www.aims-worldrunning.org/races/10118.html"],
 ["Techcombank Ho Chi Minh City International Marathon","Ho Chi Minh City","VN","AS",10.823,106.6296,"marathon","42,2 km","2026-11","2026-11-06","https://www.aims-worldrunning.org/races/10212.html"],
 ["Marathon COMAR Tunis - Carthage","Tunis","TN","AF",36.819,10.1658,"marathon","42,2 km","2026-11","2026-11-06","https://www.aims-worldrunning.org/races/10232.html"],
@@ -72,6 +71,7 @@ for (const a of [
 ["Malta Marathon","Bugibba","MT","EU",35.9514,14.4106,"marathon","42,2 km","2026-11","2026-11-28","https://www.aims-worldrunning.org/races/895.html"],
 ["Björn Borg Helsinki Marathon","Helsinki","FI","EU",60.1695,24.9354,"marathon","42,2 km","2026-11","2026-11-28","https://www.aims-worldrunning.org/races/10198.html"],
 ["Stavanger Marathon","Stavanger","NO","EU",58.9701,5.7333,"marathon","42,2 km","2026-11","2026-11-28","https://www.aims-worldrunning.org/races/10144.html"],
+["Adani Ahmedabad Marathon","Ahmedabad","IN","AS",23.0258,72.5873,"marathon","42,2 km","2026-11","2026-11-29","https://www.aims-worldrunning.org/races/10317.html"],
 ["Amazing Thailand Marathon Bangkok - Official Bangkok Capital City Marathon","Bangkok","TH","AS",13.754,100.5014,"marathon","42,2 km","2026-11","2026-11-29","https://www.aims-worldrunning.org/races/10342.html"],
 ["Vedanta Pink City Half Marathon – Jaipur","Jaipur","IN","AS",26.9196,75.7878,"half","21,1 km","2026-11","2026-11-29","https://www.aims-worldrunning.org/races/10217.html"],
 ["Funchal Marathon","Funchal","PT","EU",32.6657,-16.9255,"marathon","42,2 km","2026-11","2026-11-31","https://www.aims-worldrunning.org/races/10131.html"],
