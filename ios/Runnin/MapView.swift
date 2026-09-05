@@ -1,5 +1,6 @@
 import SwiftUI
 import MapLibre
+import CoreLocation
 
 extension UIColor {
     convenience init(hex: String) {
@@ -17,9 +18,12 @@ extension UIColor {
 /// Lader SwiftUI-knappen "find mig" styre kortet uden at bryde UIViewRepresentable-mønstret.
 final class MapController: ObservableObject {
     fileprivate weak var mapView: MLNMapView?
-    /// centrér på brugerens placering (gør intet uden fix/tilladelse)
+    /// centrér på brugerens placering. Er lokation ikke slået til (fx "Tillad én
+    /// gang" udløbet), genaktiveres den her - et eksplicit tryk må gerne spørge igen.
     func centrérPåMig() {
-        guard let mv = mapView, let loc = mv.userLocation?.location else { return }
+        guard let mv = mapView else { return }
+        if !mv.showsUserLocation { mv.showsUserLocation = true; return } // prompt + auto-centrering v. fix
+        guard let loc = mv.userLocation?.location else { return }
         mv.setCenter(loc.coordinate, zoomLevel: max(mv.zoomLevel, 8), animated: true)
     }
 }
@@ -41,7 +45,17 @@ struct MapView: UIViewRepresentable {
         mv.minimumZoomLevel = 0.8
         mv.delegate = context.coordinator
         mv.logoView.isHidden = true
-        mv.showsUserLocation = true   // blå prik + udløser lokations-tilladelse
+        // Lokation: spørg automatisk KUN første gang nogensinde. Vælger brugeren
+        // "Tillad én gang"/afvis, plager vi ikke ved hver opstart - kun et eksplicit
+        // tryk på "find mig" må udløse prompten igen.
+        let status = CLLocationManager().authorizationStatus
+        let harSpurgt = UserDefaults.standard.bool(forKey: "runnin-lokation-spurgt")
+        if status == .authorizedWhenInUse || status == .authorizedAlways {
+            mv.showsUserLocation = true
+        } else if status == .notDetermined && !harSpurgt {
+            UserDefaults.standard.set(true, forKey: "runnin-lokation-spurgt")
+            mv.showsUserLocation = true   // udløser system-prompten (én gang)
+        }
         mv.tintColor = UIColor(red: 0.75, green: 0.35, blue: 0.0, alpha: 1)
         let tap = UITapGestureRecognizer(target: context.coordinator,
                                          action: #selector(Coordinator.handleTap(_:)))
