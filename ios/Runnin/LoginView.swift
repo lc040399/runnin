@@ -101,8 +101,12 @@ struct LoginView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 8) {
-                    Text("f").font(.system(size: 20, weight: .heavy)).italic()
+                HStack(spacing: 9) {
+                    Image("fblogo")
+                        .resizable().renderingMode(.template)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 17, height: 17)
+                        .foregroundColor(.white)
                     Text(lang.t("Fortsæt med Facebook", "Continue with Facebook"))
                         .font(.system(size: 16, weight: .semibold))
                 }
