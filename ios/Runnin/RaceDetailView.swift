@@ -236,8 +236,11 @@ struct RaceDetailView: View {
             HStack(alignment: .bottom, spacing: 4) {
                 ForEach(0..<12, id: \.self) { m in
                     let v = c.t[m]
-                    let h = v == nil ? 4 : 4 + 58 * Double(v! - lo) / Double(max(hi - lo, 1))
-                    VStack(spacing: 5) {
+                    let h = v == nil ? 4 : 4 + 52 * Double(v! - lo) / Double(max(hi - lo, 1))
+                    VStack(spacing: 4) {
+                        Text(m == mi && v != nil ? "\(v!)°" : "")   // temp-tal over den aktive søjle
+                            .font(.system(size: 10, weight: .heavy)).foregroundColor(coral)
+                            .frame(height: 13)
                         RoundedRectangle(cornerRadius: 3)
                             .fill(m == mi ? AnyShapeStyle(LinearGradient(colors: [Color(red: 0.9, green: 0.6, blue: 0.33), coral], startPoint: .top, endPoint: .bottom))
                                           : AnyShapeStyle(Color(red: 0.94, green: 0.89, blue: 0.82)))

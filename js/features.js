@@ -121,7 +121,8 @@ async function visVejr(r) {
   const lo = Math.min(...gyldige), hi = Math.max(...gyldige);
   const h = v => v == null ? 0 : Math.round(18 + 82 * (v - lo) / (hi - lo || 1));
   const søjler = c.t.map((v, m) =>
-    `<div class="kmo${m === mi ? " on" : ""}"><i style="height:${h(v)}%"></i><b>${KLIMA_MDR[m]}</b></div>`).join("");
+    `<div class="kmo${m === mi ? " on" : ""}"><em>${m === mi && v != null ? v + "°" : ""}</em>` +
+    `<i style="height:${h(v)}%"></i><b>${KLIMA_MDR[m]}</b></div>`).join("");
   const regn = c.r[mi];
   const en = typeof SPROG !== "undefined" && SPROG === "en";
   el.innerHTML =

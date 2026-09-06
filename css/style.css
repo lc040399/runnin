@@ -1233,8 +1233,9 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .klima-h { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 11px; }
 .klima-h span:first-child { font-size: 14px; font-weight: 700; color: var(--ink); }
 .klima-note { font-size: 11px; color: var(--muted); font-weight: 600; }
-.klima-strip { display: flex; gap: 4px; align-items: flex-end; height: 66px; }
-.kmo { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
+.klima-strip { display: flex; gap: 4px; align-items: flex-end; height: 78px; }
+.kmo { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; }
+.kmo em { height: 13px; line-height: 13px; font-size: 10px; font-weight: 800; font-style: normal; color: var(--coral); }
 .kmo i { width: 100%; border-radius: 4px; background: #EFE2D2; min-height: 4px; display: block; }
 .kmo b { font-size: 9.5px; color: var(--muted); font-weight: 600; font-style: normal; }
 .kmo.on i { background: linear-gradient(180deg, #E79A55, var(--coral)); }
