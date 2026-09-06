@@ -122,6 +122,7 @@ final class Auth: ObservableObject {
     /// Åbner Supabase OAuth-flowet for en provider (fx "facebook") i et sikkert
     /// systemvindue; tokens kommer retur i runnin://auth-fragmentet.
     func loginMedOAuth(provider: String) async throws {
+        loading = true; defer { loading = false }
         let url = URL(string: "\(Self.base)/auth/v1/authorize?provider=\(provider)&redirect_to=runnin://auth")!
         let callback: URL = try await withCheckedThrowingContinuation { cont in
             let s = ASWebAuthenticationSession(url: url, callbackURLScheme: "runnin") { cb, err in

@@ -16,6 +16,7 @@ struct LoginView: View {
     @State private var fejl: String?
     @State private var bekraeftEmail: String?
     @State private var appleNonce = ""
+    @State private var vist = false
     @FocusState private var fokus: Felt?
     enum Felt { case navn, email, pw }
 
@@ -50,17 +51,24 @@ struct LoginView: View {
         .scrollDismissesKeyboard(.interactively)
         .presentationDetents([.large])
         .background(paper.ignoresSafeArea())
+        .animation(.easeOut(duration: 0.22), value: fejl)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) { vist = true }
+        }
     }
 
     private var form: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(lang.t("RUNNIN-PROFIL", "RUNNIN PROFILE")).font(.system(size: 11, weight: .bold)).kerning(1.2).foregroundColor(coral)
                 .padding(.top, 6)
+                .modifier(trin(0))
             Text(opretMode ? lang.t("Opret konto", "Create account") : lang.t("Log ind", "Sign in"))
                 .font(.system(size: 30, weight: .bold)).foregroundColor(ink).padding(.top, 4)
+                .modifier(trin(0.5))
             Text(opretMode ? lang.t("Gem løb og find dem på tværs af dine enheder.", "Save races and find them across your devices.")
                            : lang.t("Velkommen tilbage - dine gemte løb venter.", "Welcome back - your saved races are waiting."))
                 .font(.system(size: 15)).foregroundColor(muted).padding(.top, 8)
+                .modifier(trin(1))
 
             SignInWithAppleButton(.signIn) { req in
                 let rå = UUID().uuidString + UUID().uuidString
@@ -91,6 +99,8 @@ struct LoginView: View {
             .frame(height: 50)
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .padding(.top, 22)
+            .modifier(trin(2))
+            .disabled(auth.loading)
 
             Button {
                 Task {
@@ -102,13 +112,17 @@ struct LoginView: View {
                 }
             } label: {
                 HStack(spacing: 9) {
-                    Image("fblogo")
-                        .resizable().renderingMode(.template)
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 17, height: 17)
-                        .foregroundColor(.white)
-                    Text(lang.t("Fortsæt med Facebook", "Continue with Facebook"))
-                        .font(.system(size: 16, weight: .semibold))
+                    if auth.loading {
+                        ProgressView().tint(.white)
+                    } else {
+                        Image("fblogo")
+                            .resizable().renderingMode(.template)
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 17, height: 17)
+                            .foregroundColor(.white)
+                        Text(lang.t("Fortsæt med Facebook", "Continue with Facebook"))
+                            .font(.system(size: 16, weight: .semibold))
+                    }
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -117,7 +131,9 @@ struct LoginView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(PressableStyle())
+            .disabled(auth.loading)
             .padding(.top, 10)
+            .modifier(trin(2.5))
 
             HStack(spacing: 10) {
                 Rectangle().fill(hairline).frame(height: 1)
@@ -125,18 +141,24 @@ struct LoginView: View {
                 Rectangle().fill(hairline).frame(height: 1)
             }
             .padding(.top, 16)
+            .modifier(trin(3))
 
             VStack(spacing: 12) {
                 if opretMode {
                     felt(lang.t("Navn", "Name"), tekst: $navn, felt: .navn, autocap: .words)
+                        .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .top)).combined(with: .scale(scale: 0.98)),
+                                                removal: .opacity))
                 }
                 felt(lang.t("E-mail", "Email"), tekst: $email, felt: .email, keyboard: .emailAddress, autocap: .never)
                 pwFelt
             }
             .padding(.top, 14)
+            .modifier(trin(3.5))
+            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: opretMode)
 
             if let fejl {
                 Text(fejl).font(.system(size: 13)).foregroundColor(coral).padding(.top, 12)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
 
             Button(action: send) {
@@ -152,6 +174,7 @@ struct LoginView: View {
             }
             .disabled(auth.loading)
             .padding(.top, 20)
+            .modifier(trin(4))
 
             HStack(spacing: 5) {
                 Text(opretMode ? lang.t("Har du en konto?", "Already have an account?") : lang.t("Ny her?", "New here?")).foregroundColor(muted)
@@ -234,6 +257,9 @@ struct LoginView: View {
         try await auth.loginMedApple(idToken: idToken, nonce: appleNonce, fuldeNavn: fuldeNavn)
     }
 
+    /// staggered indgang: blødt løft + fade, trinvis forsinkelse
+    private func trin(_ i: Double) -> some ViewModifier { TrinReveal(vist: vist, delay: i * 0.07) }
+
     private func send() {
         fokus = nil; fejl = nil
         Task {
@@ -248,6 +274,23 @@ struct LoginView: View {
             } catch {
                 fejl = (error as? Auth.AuthFejl)?.besked ?? lang.t("Noget gik galt. Prøv igen.", "Something went wrong. Please try again.")
             }
+        }
+    }
+}
+
+
+/// blødt trinvist indhop (respekterer Reducér bevægelse)
+struct TrinReveal: ViewModifier {
+    let vist: Bool
+    let delay: Double
+    func body(content: Content) -> some View {
+        if UIAccessibility.isReduceMotionEnabled {
+            content
+        } else {
+            content
+                .opacity(vist ? 1 : 0)
+                .offset(y: vist ? 0 : 14)
+                .animation(.spring(response: 0.5, dampingFraction: 0.85).delay(delay), value: vist)
         }
     }
 }
