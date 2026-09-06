@@ -108,7 +108,9 @@ sb.auth.onAuthStateChange((event, session) => {
   const varLoggetInd = !!eksisterende.email; // Supabase fyrer SIGNED_IN v. token-refresh/tab-fokus - kun ÆGTE nyt login skal fejres
   const navn = u.user_metadata?.navn || u.user_metadata?.full_name || u.user_metadata?.name
     || eksisterende.navn || u.email.split("@")[0];
-  localStorage.setItem("runnin-user", JSON.stringify({ ...eksisterende, navn, email: u.email }));
+  // profilbillede: brugerens eget lokale valg vinder; ellers OAuth-providerens (FB/Apple)
+  const foto = eksisterende.foto || u.user_metadata?.avatar_url || u.user_metadata?.picture || undefined;
+  localStorage.setItem("runnin-user", JSON.stringify({ ...eksisterende, navn, email: u.email, ...(foto ? { foto } : {}) }));
   updateAuthUI();
   if (event === "SIGNED_IN" || event === "INITIAL_SESSION") skyHent();
   if (event === "SIGNED_IN" && location.hash.includes("access_token")) history.replaceState(null, "", location.pathname);
