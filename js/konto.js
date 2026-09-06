@@ -106,7 +106,8 @@ sb.auth.onAuthStateChange((event, session) => {
   const u = session.user;
   const eksisterende = getUser() || {};
   const varLoggetInd = !!eksisterende.email; // Supabase fyrer SIGNED_IN v. token-refresh/tab-fokus - kun ÆGTE nyt login skal fejres
-  const navn = u.user_metadata?.navn || eksisterende.navn || u.email.split("@")[0];
+  const navn = u.user_metadata?.navn || u.user_metadata?.full_name || u.user_metadata?.name
+    || eksisterende.navn || u.email.split("@")[0];
   localStorage.setItem("runnin-user", JSON.stringify({ ...eksisterende, navn, email: u.email }));
   updateAuthUI();
   if (event === "SIGNED_IN" || event === "INITIAL_SESSION") skyHent();
