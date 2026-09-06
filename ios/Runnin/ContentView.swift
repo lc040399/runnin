@@ -199,7 +199,16 @@ struct ContentView: View {
                 HStack(spacing: 7) {
                     ZStack {
                         Circle().fill(ink)
-                        Text(user.initialer).font(.system(size: 11, weight: .bold)).foregroundColor(paper)
+                        if let foto = user.foto, let url = URL(string: foto) {
+                            AsyncImage(url: url) { img in
+                                img.resizable().scaledToFill()
+                            } placeholder: {
+                                Text(user.initialer).font(.system(size: 11, weight: .bold)).foregroundColor(paper)
+                            }
+                            .frame(width: 30, height: 30).clipShape(Circle())
+                        } else {
+                            Text(user.initialer).font(.system(size: 11, weight: .bold)).foregroundColor(paper)
+                        }
                     }
                     .frame(width: 30, height: 30)
                     Text(user.navn.split(separator: " ").first.map(String.init) ?? user.navn)

@@ -5,6 +5,7 @@ struct AuthUser: Codable {
     let id: String
     let email: String
     var navn: String
+    var foto: String?   // OAuth-avatar-URL (FB); Apple leverer aldrig billede
     var initialer: String {
         let dele = navn.split(separator: " ")
         let i = dele.prefix(2).compactMap { $0.first }.map(String.init).joined()
@@ -68,8 +69,8 @@ final class Auth: ObservableObject {
         let meta = u?["user_metadata"] as? [String: Any]
         let navn = (meta?["navn"] as? String) ?? (meta?["name"] as? String) ?? String(email.split(separator: "@").first ?? "")
         let id = (u?["id"] as? String) ?? ""
-        gem(AuthUser(id: id, email: email, navn: navn), token: json["access_token"] as? String,
-            refresh: json["refresh_token"] as? String)
+        gem(AuthUser(id: id, email: email, navn: navn, foto: (meta?["avatar_url"] as? String) ?? (meta?["picture"] as? String)),
+            token: json["access_token"] as? String, refresh: json["refresh_token"] as? String)
     }
 
     /// returnerer true hvis kontoen kræver e-mail-bekræftelse (ingen session endnu)
@@ -79,7 +80,7 @@ final class Auth: ObservableObject {
                                      body: ["email": email, "password": pw, "data": ["navn": navn]])
         if let token = json["access_token"] as? String {
             let id = ((json["user"] as? [String: Any])?["id"] as? String) ?? (json["id"] as? String) ?? ""
-            gem(AuthUser(id: id, email: email, navn: navn), token: token, refresh: json["refresh_token"] as? String)
+            gem(AuthUser(id: id, email: email, navn: navn, foto: nil), token: token, refresh: json["refresh_token"] as? String)
             return false
         }
         return true // bekræftelses-mail sendt
@@ -99,7 +100,7 @@ final class Auth: ObservableObject {
         let email = (u?["email"] as? String) ?? ""
         var navn = (meta?["navn"] as? String) ?? (meta?["name"] as? String) ?? ""
         if navn.isEmpty { navn = fuldeNavn ?? String(email.split(separator: "@").first ?? "Løber") }
-        gem(AuthUser(id: (u?["id"] as? String) ?? "", email: email, navn: navn),
+        gem(AuthUser(id: (u?["id"] as? String) ?? "", email: email, navn: navn, foto: nil),
             token: tok, refresh: json["refresh_token"] as? String)
         // Apple giver kun navnet ved allerførste login - persistér det i Supabase-metadata
         if let fn = fuldeNavn, !fn.isEmpty, (meta?["navn"] as? String) == nil {
@@ -157,7 +158,8 @@ final class Auth: ObservableObject {
         let email = (u["email"] as? String) ?? ""
         let navn = (meta?["navn"] as? String) ?? (meta?["full_name"] as? String) ?? (meta?["name"] as? String)
             ?? String(email.split(separator: "@").first ?? "Løber")
-        gem(AuthUser(id: (u["id"] as? String) ?? "", email: email, navn: navn),
+        gem(AuthUser(id: (u["id"] as? String) ?? "", email: email, navn: navn,
+                     foto: (meta?["avatar_url"] as? String) ?? (meta?["picture"] as? String)),
             token: tok, refresh: tokens["refresh_token"])
     }
 

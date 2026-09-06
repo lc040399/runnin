@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 /// Gemte løb. Lokalt (UserDefaults) som gæste-/visningslag; synkes til Supabase
 /// user_races (gemt-flag) når man er logget ind - union-merge, bevarer andre flag.
@@ -29,6 +30,15 @@ final class Saved: ObservableObject {
     func toggle(_ n: String, auth: Auth) {
         if navne.contains(n) { navne.remove(n) } else { navne.insert(n) }
         gemLokal()
+        // positivt øjeblik: 3. gemte løb → bed (højst én gang) om App Store-anmeldelse
+        if navne.count == 3, !UserDefaults.standard.bool(forKey: "runnin-har-bedt-om-rating") {
+            UserDefaults.standard.set(true, forKey: "runnin-har-bedt-om-rating")
+            if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    SKStoreReviewController.requestReview(in: scene)
+                }
+            }
+        }
         if let tok = auth.token, let uid = auth.user?.id, !uid.isEmpty {
             let gemt = navne.contains(n)
             Task { await push(n, gemt: gemt, token: tok, userId: uid) }
