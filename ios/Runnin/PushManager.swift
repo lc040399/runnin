@@ -42,7 +42,7 @@ final class PushManager {
         kald("fjern_push_token", jwt: jwt, krop: ["p_token": tok])
     }
 
-    private func kald(_ rpc: String, jwt: String, krop: [String: Any]) {
+    @MainActor private func kald(_ rpc: String, jwt: String, krop: [String: Any]) {
         var r = URLRequest(url: URL(string: "\(Auth.base)/rest/v1/rpc/\(rpc)")!)
         r.httpMethod = "POST"
         r.setValue(Auth.anon, forHTTPHeaderField: "apikey")
