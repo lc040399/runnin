@@ -135,6 +135,32 @@ struct LoginView: View {
             .padding(.top, 10)
             .modifier(trin(2.5))
 
+            Button {
+                Task {
+                    do { try await auth.loginMedOAuth(provider: "google"); dismiss() }
+                    catch {
+                        let b = (error as? Auth.AuthFejl)?.besked ?? ""
+                        if !b.isEmpty { fejl = b }
+                    }
+                }
+            } label: {
+                HStack(spacing: 9) {
+                    Image("glogo").resizable().aspectRatio(contentMode: .fit).frame(width: 18, height: 18)
+                    Text(lang.t("Fortsæt med Google", "Continue with Google"))
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundColor(ink)
+                .frame(maxWidth: .infinity)
+                .frame(height: 50)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(hairline, lineWidth: 1))
+            }
+            .buttonStyle(PressableStyle())
+            .disabled(auth.loading)
+            .padding(.top, 10)
+            .modifier(trin(2.7))
+
             HStack(spacing: 10) {
                 Rectangle().fill(hairline).frame(height: 1)
                 Text(lang.t("eller med e-mail", "or with email")).font(.system(size: 12)).foregroundColor(muted).fixedSize()

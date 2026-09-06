@@ -279,6 +279,13 @@ function renderDashboard() {
               </div>
             </div>
             <div>
+              <span class="login-label">Venner</span>
+              <label class="del-toggle">
+                <input type="checkbox" id="setDel" ${window.delTilmeldinger !== false ? "checked" : ""}>
+                <span>Del mine tilmeldinger <small>Venner får besked når du tilmelder dig et løb</small></span>
+              </label>
+            </div>
+            <div>
               <span class="login-label">Dine data</span>
               <div class="dash-genveje">
                 <button id="setExport" type="button">⬇️ Download mine data</button>
@@ -301,6 +308,8 @@ function renderDashboard() {
     c.onclick = () => setTema(c.dataset.tema);
   });
   dashOverlay.querySelectorAll(".sprog-chip").forEach(c => c.onclick = () => { if (c.dataset.sprog !== SPROG) sætSprog(c.dataset.sprog); });
+  const delEl = document.getElementById("setDel");
+  if (delEl) delEl.onchange = () => window.sætDelTilmeldinger?.(delEl.checked);
   document.getElementById("dashAvatarBtn").onclick = () => document.getElementById("fotoInput").click();
   document.getElementById("setGem").onclick = () => {
     const navn = document.getElementById("setNavn").value.trim();

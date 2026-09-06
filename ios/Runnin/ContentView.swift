@@ -10,6 +10,7 @@ struct ContentView: View {
     @StateObject private var store = RaceStore()
     @StateObject private var auth = Auth()
     @StateObject private var saved = Saved()
+    @StateObject private var venner = Venner()
     @StateObject private var mapCtrl = MapController()
     @ObservedObject private var lang = Lang.shared
     @State private var selected: Race?
@@ -18,10 +19,15 @@ struct ContentView: View {
     @State private var showLogin = false
     @State private var visProfil = false
     @State private var visSprog = false
+    @State private var visVenner = false
     @State private var bekræftSlet = false
     @State private var tab: Tab = .kort
     @State private var didSetup = false
     @State private var ventendeSlug: String?
+    @State private var ventendeVen: String?
+    @State private var toast: String?
+    @AppStorage("runnin-har-set-velkomst") private var harSetVelkomst = false
+    @State private var visVelkomst = false
     @FocusState private var searchFocused: Bool
 
     private let paper = Color(red: 0.96, green: 0.953, blue: 0.933)
@@ -34,15 +40,44 @@ struct ContentView: View {
     /// (gen)planlæg lokale påmindelser for de gemte løb
     private func planlægNotifikationer() { Notifikationer.shared.planlæg(for: mineKilde) }
 
-    /// runnin.org/#slug eller /lob/slug/ → åbn løbets detalje (venter på data hvis nødvendigt)
+    /// runnin.org/#slug (løb), /lob/slug/ (SEO), eller /#ven=<uid> (venne-invite)
     private func håndtérLink(_ url: URL) {
-        var slug = url.fragment ?? ""
-        if slug.isEmpty, url.path.hasPrefix("/lob/") {
-            slug = url.path.replacingOccurrences(of: "/lob/", with: "").trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        var frag = url.fragment ?? ""
+        if frag.hasPrefix("ven=") {
+            ventendeVen = String(frag.dropFirst(4))
+            løsVentendeVen()
+            return
         }
-        guard !slug.isEmpty else { return }
-        ventendeSlug = slug
+        if frag.isEmpty, url.path.hasPrefix("/lob/") {
+            frag = url.path.replacingOccurrences(of: "/lob/", with: "").trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        }
+        guard !frag.isEmpty else { return }
+        ventendeSlug = frag
         løsVentendeSlug()
+    }
+
+    /// venne-invite: kræver login; udføres når man er logget ind
+    private func løsVentendeVen() {
+        guard let vid = ventendeVen else { return }
+        guard let tok = auth.token, let uid = auth.user?.id, !uid.isEmpty else {
+            showLogin = true   // log ind først, så prøver vi igen ved login
+            return
+        }
+        if vid == uid { ventendeVen = nil; visToast(lang.t("Det er dit eget invite-link 🙂", "That's your own invite link 🙂")); return }
+        ventendeVen = nil
+        Task {
+            await venner.tilfoej(vid, token: tok)
+            let navn = venner.venner.first(where: { $0.id == vid })?.navn
+            visToast(navn.map { lang.t("I er nu venner med \($0) 🎉", "You're now friends with \($0) 🎉") }
+                     ?? lang.t("I er nu venner 🎉", "You're now friends 🎉"))
+        }
+    }
+
+    private func visToast(_ t: String) {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) { toast = t }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
+            withAnimation(.easeOut(duration: 0.3)) { if toast == t { toast = nil } }
+        }
     }
 
     private func løsVentendeSlug() {
@@ -69,11 +104,30 @@ struct ContentView: View {
             BottomNav(tab: $tab, badges: saved.navne.isEmpty ? [:] : [.mine: saved.navne.count])
                 .padding(.horizontal, 22)
                 .padding(.bottom, 2)
+
+            if let t = toast {
+                Text(t)
+                    .font(.system(size: 14, weight: .semibold)).foregroundColor(paper)
+                    .padding(.vertical, 12).padding(.horizontal, 18)
+                    .background(ink).clipShape(Capsule())
+                    .shadow(color: .black.opacity(0.25), radius: 12, y: 4)
+                    .padding(.bottom, 96).padding(.horizontal, 24)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+
+            if visVelkomst {
+                WelcomeView { harSetVelkomst = true; visVelkomst = false }
+                    .zIndex(10)
+            }
         }
         .sheet(item: $selected) { race in
-            RaceDetailView(race: race, saved: saved, auth: auth,
+            RaceDetailView(race: race, saved: saved, auth: auth, venner: venner.tilmeldte(race.n),
                            efterGem: { Notifikationer.shared.bedOmLov(så: planlægNotifikationer) },
                            kræverLogin: { selected = nil; showLogin = true })
+        }
+        .sheet(isPresented: $visVenner) {
+            VennerView(venner: venner, auth: auth, mitId: auth.user?.id ?? "")
         }
         .sheet(item: Binding(get: { stak.map(StakBox.init) }, set: { stak = $0?.løb })) { box in
             StakSheet(løb: box.løb) { r in stak = nil; selected = r }
@@ -81,7 +135,17 @@ struct ContentView: View {
         .sheet(isPresented: $showFilters) { FilterSheet(store: store) }
         .sheet(isPresented: $showLogin) { LoginView(auth: auth) }
         .onChange(of: auth.user?.id) { id in
-            if id != nil { Task { await saved.syncMedSky(auth: auth) } } else { saved.ryd() }
+            if id != nil, let tok = auth.token, let user = auth.user {
+                PushManager.shared.konfigurer(auth: auth)
+                PushManager.shared.aktivér()          // bed om push-lov + registrér enhed
+                PushManager.shared.knytTilBruger()    // knyt evt. allerede-modtaget token
+                Task {
+                    await saved.syncMedSky(auth: auth)
+                    await venner.opdaterProfil(user, token: tok)   // så venner kan se navn/avatar
+                    await venner.hent(token: tok)
+                    løsVentendeVen()                                // afventende invite fra før login
+                }
+            } else { PushManager.shared.frigør(); saved.ryd(); venner.ryd() }
         }
         .onChange(of: saved.navne) { _ in planlægNotifikationer() }     // gem/fjern → opdatér påmindelser
         .onChange(of: store.dataVersion) { _ in
@@ -109,6 +173,9 @@ struct ContentView: View {
         }
         .onAppear {
             guard !didSetup else { return }; didSetup = true
+            if !harSetVelkomst {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { visVelkomst = true }
+            }
             #if DEBUG
             // Kun til udvikling/screenshots (fjernes i Release-builds) - forudfyld søgning
             // eller spring til en bestemt skærm via miljøvariabler.
@@ -128,6 +195,7 @@ struct ContentView: View {
                 }
                 vælgDetail()
             case "login": showLogin = true
+            case "velkomst": visVelkomst = true
             default: break
             }
             #endif
@@ -219,6 +287,7 @@ struct ContentView: View {
                 .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
             }
             .confirmationDialog(user.navn, isPresented: $visProfil, titleVisibility: .visible) {
+                Button(venner.venner.isEmpty ? lang.t("Venner", "Friends") : lang.t("Venner (\(venner.venner.count))", "Friends (\(venner.venner.count))")) { visVenner = true }
                 Button(lang.t("Log ud", "Sign out")) { auth.logout() }
                 Button(lang.t("Slet konto", "Delete account"), role: .destructive) { bekræftSlet = true }
             }

@@ -358,6 +358,7 @@ function openDetail(r, fly) {
   const note = document.getElementById("dNote");
   note.hidden = !r.note;
   if (r.note) note.textContent = "⚑ Adgang: " + r.note;
+  visVennerPåDetalje(r);
   const cta = document.getElementById("dCta");
   cta.href = r.u;
   // Kondis-event-sider er informations-sider med videre-links - lov ikke direkte tilmelding dér
@@ -377,6 +378,21 @@ function openDetail(r, fly) {
   detail.hidden = false;
   if (fly) map.flyTo({ center: [r.lo, r.la], zoom: Math.max(map.getZoom(), 5.5), duration: 1100, essential: true });
 }
+
+/* venne-indikator på detaljen: "Anna skal løbe" / "Anna og 2 andre skal løbe" */
+function visVennerPåDetalje(r) {
+  const el = document.getElementById("dFriends");
+  if (!el) return;
+  const vs = (window.vennerPerLøb || {})[r.n] || [];
+  if (!vs.length) { el.hidden = true; el.textContent = ""; return; }
+  const fornavne = vs.map(v => (v.navn || "Ven").split(" ")[0]);
+  const tekst = fornavne.length === 1 ? `${fornavne[0]} skal løbe`
+    : fornavne.length === 2 ? `${fornavne[0]} og ${fornavne[1]} skal løbe`
+    : `${fornavne[0]} og ${fornavne.length - 1} andre skal løbe`;
+  el.innerHTML = `<span class="d-venner">🏃 ${tekst}</span>`;
+  el.hidden = false;
+}
+window.visVennerPåDetalje = visVennerPåDetalje;
 
 function updateSaveBtn() {
   const btn = document.getElementById("dSave");

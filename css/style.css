@@ -1217,5 +1217,16 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
   display: flex; align-items: center; justify-content: center; gap: 9px; transition: filter .15s; }
 .fb-login:hover { filter: brightness(1.07); }
 .fb-logo { width: 17px; height: 17px; }
+/* Google-login: hvid m. hårlinje, tekst i blæk */
+.google-login { width: 100%; border: 1px solid var(--hairline); border-radius: 14px; padding: 12px; margin-top: 8px;
+  background: #fff; color: var(--ink); font-family: var(--sans); font-size: 15px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer; transition: background .15s; }
+.google-login:hover { background: #f7f5f0; }
+.g-logo { width: 17px; height: 17px; }
+.d-venner { color: var(--coral); font-weight: 600; font-size: 14px; }
+.del-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; margin-top: 4px; }
+.del-toggle input { width: 20px; height: 20px; accent-color: var(--coral); margin-top: 1px; flex: 0 0 auto; }
+.del-toggle span { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+.del-toggle small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; }
 .login-deler { display: flex; align-items: center; gap: 10px; margin: 14px 0 2px; color: var(--muted); font-size: 12px; }
 .login-deler::before, .login-deler::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }

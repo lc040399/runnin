@@ -52,7 +52,27 @@ async function skyHent() {
   updateFavCount();
   if (!panel.hidden && state.tab === "mine") renderFavs();
   if (!dashOverlay.hidden) renderDashboard();
+  hentVenner();
 }
+
+/* venners tilmeldte/gemte løb → window.vennerPerLøb[race_n] = [{navn}], til indikator på detaljen */
+window.vennerPerLøb = {};
+async function hentVenner() {
+  try {
+    const { data, error } = await sb.rpc("venners_loeb");
+    if (error || !data) return;
+    const map = {};
+    for (const r of data) {
+      (map[r.race_n] ||= []);
+      if (!map[r.race_n].some(v => v.id === r.ven)) map[r.race_n].push({ id: r.ven, navn: r.navn || "Ven" });
+    }
+    window.vennerPerLøb = map;
+    if (typeof currentRace !== "undefined" && currentRace && typeof visVennerPåDetalje === "function") {
+      visVennerPåDetalje(currentRace);
+    }
+  } catch (_) { /* ikke kritisk */ }
+}
+window.hentVenner = hentVenner;
 
 async function skyPush(raceN) {
   try {
@@ -100,6 +120,18 @@ window.sletKonto = async () => {
   }
 })();
 
+/* gæst med invite-link: bed dem logge ind, så venskabet kan kobles (hash bevares) */
+(async function promptVenLogin() {
+  const ven = new URLSearchParams(location.hash.slice(1)).get("ven");
+  if (!ven) return;
+  const { data: { session } } = await sb.auth.getSession();
+  if (session?.user) return; // logget ind → onAuthStateChange løser det
+  setTimeout(() => {
+    if (typeof openLogin === "function") openLogin();
+    if (typeof visLoginFejl === "function") visLoginFejl("Log ind for at blive venner og se hinandens løb.", true);
+  }, 700);
+})();
+
 /* ---------- session ↔ appens brugermodel ---------- */
 sb.auth.onAuthStateChange((event, session) => {
   if (!session?.user) return;
@@ -112,18 +144,77 @@ sb.auth.onAuthStateChange((event, session) => {
   const foto = eksisterende.foto || u.user_metadata?.avatar_url || u.user_metadata?.picture || undefined;
   localStorage.setItem("runnin-user", JSON.stringify({ ...eksisterende, navn, email: u.email, ...(foto ? { foto } : {}) }));
   updateAuthUI();
-  if (event === "SIGNED_IN" || event === "INITIAL_SESSION") skyHent();
+  if (event === "SIGNED_IN" || event === "INITIAL_SESSION") {
+    skyHent();
+    opdaterProfil(u, navn, foto);   // så venner kan se navn/avatar
+    løsVentendeVen();               // afventende invite fra #ven=
+  }
   if (event === "SIGNED_IN" && location.hash.includes("access_token")) history.replaceState(null, "", location.pathname);
   if (event === "SIGNED_IN" && !varLoggetInd && typeof visToast === "function") visToast(`✓ Velkommen, ${navn.split(" ")[0]} - dine løb følger dig nu på tværs af enheder.`);
 });
 
+/* ---------- venne-graf ---------- */
+async function opdaterProfil(u, navn, foto) {
+  try {
+    await sb.from("profiler").upsert({ user_id: u.id, navn, avatar_url: foto || null });
+  } catch (_) { /* ikke kritisk */ }
+  hentDelValg(u.id);
+}
+
+/* del-mine-tilmeldinger: web modtager ikke push, men tilmeldinger her notificerer
+   stadig mobil-venner via DB-triggeren - så web skal kunne slå deling fra */
+window.delTilmeldinger = true;
+async function hentDelValg(userId) {
+  try {
+    const { data } = await sb.from("profiler").select("del_tilmeldinger").eq("user_id", userId).maybeSingle();
+    if (data) { window.delTilmeldinger = data.del_tilmeldinger !== false; syncDelToggle(); }
+  } catch (_) {}
+}
+window.sætDelTilmeldinger = async (on) => {
+  window.delTilmeldinger = on;
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (user) await sb.from("profiler").update({ del_tilmeldinger: on }).eq("user_id", user.id);
+  } catch (_) {}
+};
+function syncDelToggle() {
+  const el = document.getElementById("setDel");
+  if (el) el.checked = window.delTilmeldinger;
+}
+
+/* et invite-link (#ven=<uid>) kobler de to som venner så snart man er logget ind */
+async function løsVentendeVen() {
+  const ven = new URLSearchParams(location.hash.slice(1)).get("ven");
+  if (!ven) return;
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return;                       // gæst: vent til login (linket bevares i hash)
+  history.replaceState(null, "", location.pathname);
+  if (ven === user.id) return;             // egne link
+  const { error } = await sb.rpc("tilfoej_ven", { p_ven: ven });
+  if (!error && typeof visToast === "function") visToast("✓ I er nu venner - I kan se hinandens løb.");
+}
+
 document.getElementById("fbLogin")?.addEventListener("click", async () => {
   try {
-    await sb.auth.signInWithOAuth({ provider: "facebook", options: { redirectTo: location.origin } });
+    await sb.auth.signInWithOAuth({ provider: "facebook", options: { redirectTo: bevarVenHash() } });
   } catch (_) {
     visLoginFejl?.("Facebook-login fejlede. Prøv igen.", true);
   }
 });
+
+document.getElementById("googleLogin")?.addEventListener("click", async () => {
+  try {
+    await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: bevarVenHash() } });
+  } catch (_) {
+    visLoginFejl?.("Google-login fejlede. Prøv igen.", true);
+  }
+});
+
+/* invite-links (#ven=<uid>) skal overleve OAuth-redirect, så vennen kobles bagefter */
+function bevarVenHash() {
+  const ven = new URLSearchParams(location.hash.slice(1)).get("ven");
+  return ven ? `${location.origin}/#ven=${ven}` : location.origin;
+}
 
 window.kontoLogUd = async () => {
   try { await sb.auth.signOut(); } catch (_) {}

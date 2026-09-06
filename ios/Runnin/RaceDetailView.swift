@@ -7,9 +7,12 @@ struct RaceDetailView: View {
     @ObservedObject var saved: Saved
     @ObservedObject private var lang = Lang.shared
     var auth: Auth
+    var venner: [Ven] = []
     var efterGem: () -> Void = {}
     var kræverLogin: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
+    @State private var visBib = false
+    @State private var bibUdkast = ""
 
     private let ink = Color(red: 0.22, green: 0.14, blue: 0.05)
     private let muted = Color(red: 0.49, green: 0.42, blue: 0.31)
@@ -50,6 +53,14 @@ struct RaceDetailView: View {
                 .font(.system(size: 15))
                 .foregroundColor(muted)
                 .padding(.top, 3)
+
+            if !venner.isEmpty {
+                HStack(spacing: 7) {
+                    Image(systemName: "figure.run").font(.system(size: 13, weight: .semibold)).foregroundColor(coral)
+                    Text(vennerLabel).font(.system(size: 14, weight: .medium)).foregroundColor(ink).lineLimit(1)
+                }
+                .padding(.top, 10)
+            }
 
             HStack(spacing: 9) {
                 Button {
@@ -103,6 +114,29 @@ struct RaceDetailView: View {
             }
             .padding(.top, 14)
 
+            if saved.erTilmeldt(race.n) {
+                HStack(spacing: 8) {
+                    Image(systemName: "number").font(.system(size: 13, weight: .semibold)).foregroundColor(muted)
+                    TextField(lang.t("Startnummer", "Bib number"), text: $bibUdkast)
+                        .font(.system(size: 15, weight: .medium)).foregroundColor(ink)
+                        .keyboardType(.numberPad)
+                        .submitLabel(.done)
+                        .onSubmit { saved.sætBib(race.n, bibUdkast, auth: auth) }
+                    if !bibUdkast.isEmpty {
+                        Button {
+                            saved.sætBib(race.n, bibUdkast, auth: auth)
+                            hideKeyboard()
+                        } label: {
+                            Text(lang.t("Gem", "Save")).font(.system(size: 13, weight: .semibold)).foregroundColor(coral)
+                        }
+                    }
+                }
+                .padding(.vertical, 10).padding(.horizontal, 13)
+                .overlay(RoundedRectangle(cornerRadius: 11).stroke(hairline, lineWidth: 1))
+                .padding(.top, 10)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+
             Spacer(minLength: 20)
 
             HStack(spacing: 10) {
@@ -146,8 +180,24 @@ struct RaceDetailView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 20)
-        .presentationDetents([.height(400)])
+        .presentationDetents(saved.erTilmeldt(race.n) || !venner.isEmpty ? [.height(470)] : [.height(400)])
         .presentationDragIndicator(.hidden)
+        .onAppear { bibUdkast = saved.bib(race.n) }
+    }
+
+    /// "Anna skal løbe" / "Anna og 2 andre skal løbe"
+    private var vennerLabel: String {
+        let navne = venner.map { $0.navn.split(separator: " ").first.map(String.init) ?? $0.navn }
+        switch navne.count {
+        case 0: return ""
+        case 1: return lang.t("\(navne[0]) skal løbe", "\(navne[0]) is running")
+        case 2: return lang.t("\(navne[0]) og \(navne[1]) skal løbe", "\(navne[0]) and \(navne[1]) are running")
+        default: return lang.t("\(navne[0]) og \(navne.count - 1) andre skal løbe", "\(navne[0]) and \(navne.count - 1) others are running")
+        }
+    }
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
     /// launcher Apples native Kort-app på løbets placering (Guideline 4 - Design)
