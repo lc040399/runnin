@@ -114,6 +114,14 @@ sb.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_IN" && !varLoggetInd && typeof visToast === "function") visToast(`✓ Velkommen, ${navn.split(" ")[0]} - dine løb følger dig nu på tværs af enheder.`);
 });
 
+document.getElementById("fbLogin")?.addEventListener("click", async () => {
+  try {
+    await sb.auth.signInWithOAuth({ provider: "facebook", options: { redirectTo: location.origin } });
+  } catch (_) {
+    visLoginFejl?.("Facebook-login fejlede. Prøv igen.", true);
+  }
+});
+
 window.kontoLogUd = async () => {
   try { await sb.auth.signOut(); } catch (_) {}
   // løbs-state ryddes lokalt, så næste bruger på maskinen ikke arver den - skyen husker alt

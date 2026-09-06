@@ -1211,3 +1211,11 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .tab-menu::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; height: 12px; }
 .counter-guides { color: var(--muted); text-decoration: none; }
 .counter-guides:hover { color: var(--coral); }
+/* Facebook-login i login-modalen */
+.fb-login { width: 100%; border: 0; border-radius: 14px; padding: 13px; margin-top: 4px;
+  background: #1877F2; color: #fff; font-family: var(--sans); font-size: 15px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; gap: 9px; transition: filter .15s; }
+.fb-login:hover { filter: brightness(1.07); }
+.fb-f { font-weight: 900; font-style: italic; font-size: 19px; }
+.login-deler { display: flex; align-items: center; gap: 10px; margin: 14px 0 2px; color: var(--muted); font-size: 12px; }
+.login-deler::before, .login-deler::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
