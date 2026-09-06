@@ -97,31 +97,41 @@ setTimeout(() => {
 }, 3500);
 
 /* ================= VEJR (Open-Meteo, ægte data) ================= */
-// Løb afvikles om formiddagen - så vi viser temperaturen i løbsvinduet (kl. 8-11
-// lokal tid, samme måned sidste år) i stedet for det brede nat-til-eftermiddag-spænd.
-const weatherCache = new Map();
+// Vejr-graf: 12-måneders klima-normaler (forudberegnet pr. 0,5°-celle i
+// data/climate.json), løbsmåneden fremhævet. Ægte Open-Meteo-arkivdata, ingen
+// API-kald pr. visning. Løb uden celle-data viser bare intet (.d-extra:empty).
+const KLIMA_MDR = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+const round05 = x => Math.round(x * 2) / 2;
+const klimaKey = (la, lo) => `${round05(la).toFixed(1)},${round05(lo).toFixed(1)}`;
+let klimaData = null, klimaHentet = null;
+function hentKlima() {
+  if (klimaHentet) return klimaHentet;
+  klimaHentet = fetch("data/climate.json?v=1").then(r => r.json()).then(j => { klimaData = j.celler || {}; }).catch(() => { klimaData = {}; });
+  return klimaHentet;
+}
 async function visVejr(r) {
   const el = document.getElementById("dWeather");
-  el.textContent = "";
-  const key = r.n;
-  if (!weatherCache.has(key)) {
-    try {
-      const mm = r.m.split("-")[1];
-      const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${r.la}&longitude=${r.lo}` +
-        `&start_date=2025-${mm}-01&end_date=2025-${mm}-28&hourly=temperature_2m&daily=precipitation_sum&timezone=auto`;
-      const d = await (await fetch(url, { signal: AbortSignal.timeout(5000) })).json();
-      const formiddag = d.hourly.temperature_2m.filter((v, i) => {
-        const h = +d.hourly.time[i].slice(11, 13);
-        return h >= 8 && h <= 11 && v != null;
-      });
-      const middel = Math.round(formiddag.reduce((s, v) => s + v, 0) / formiddag.length);
-      const dage = d.daily.precipitation_sum.filter(x => x != null);
-      const regn = dage.filter(x => x >= 1).length;
-      const ikon = regn >= 14 ? "🌧" : regn >= 7 ? "⛅️" : "☀️";
-      weatherCache.set(key, `${ikon} Typisk løbevejr i ${MONTHS[+mm - 1]}: ~${middel}° om formiddagen · regn ${regn} af ${dage.length} dage <span class="w-src">(${r.c}, Open-Meteo ${mm}/2025)</span>`);
-    } catch (_) { weatherCache.set(key, null); }
-  }
-  if (currentRace === r && weatherCache.get(key)) el.innerHTML = weatherCache.get(key);
+  el.innerHTML = "";
+  await hentKlima();
+  if (currentRace !== r) return;
+  const c = klimaData[klimaKey(r.la, r.lo)];
+  const mi = +r.m.split("-")[1] - 1;
+  if (!c || c.t[mi] == null) return;                       // ingen data → skjul (graceful)
+  const gyldige = c.t.filter(x => x != null);
+  const lo = Math.min(...gyldige), hi = Math.max(...gyldige);
+  const h = v => v == null ? 0 : Math.round(18 + 82 * (v - lo) / (hi - lo || 1));
+  const søjler = c.t.map((v, m) =>
+    `<div class="kmo${m === mi ? " on" : ""}"><i style="height:${h(v)}%"></i><b>${KLIMA_MDR[m]}</b></div>`).join("");
+  const regn = c.r[mi];
+  const en = typeof SPROG !== "undefined" && SPROG === "en";
+  el.innerHTML =
+    `<div class="klima">
+      <div class="klima-h"><span>${en ? "Race-day weather" : "Vejret på løbsdagen"}</span>` +
+      `<span class="klima-note">${en ? "historical" : "historisk"}</span></div>
+      <div class="klima-strip">${søjler}</div>
+      <div class="klima-legend"><span>${en ? "Race month" : "Løbsmåneden"}: <b>${c.t[mi]}°</b></span>` +
+      (regn != null ? `<span>${en ? "Rain" : "Regn"} ~<b>${regn}%</b></span>` : "") + `</div>
+    </div>`;
 }
 
 /* ================= TILMELDTE (ægte tal fra databasen) ================= */

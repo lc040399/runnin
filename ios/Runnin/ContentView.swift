@@ -173,6 +173,7 @@ struct ContentView: View {
         }
         .onAppear {
             guard !didSetup else { return }; didSetup = true
+            Task { await Klima.shared.hent() }   // vejr-grafen på detaljen
             if !harSetVelkomst {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { visVelkomst = true }
             }

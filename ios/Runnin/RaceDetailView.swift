@@ -6,6 +6,7 @@ struct RaceDetailView: View {
     let race: Race
     @ObservedObject var saved: Saved
     @ObservedObject private var lang = Lang.shared
+    @ObservedObject private var klima = Klima.shared
     var auth: Auth
     var venner: [Ven] = []
     var efterGem: () -> Void = {}
@@ -60,6 +61,10 @@ struct RaceDetailView: View {
                     Text(vennerLabel).font(.system(size: 14, weight: .medium)).foregroundColor(ink).lineLimit(1)
                 }
                 .padding(.top, 10)
+            }
+
+            if let c = klima.celle(la: race.la, lo: race.lo), let mi = løbsMåned, c.t[mi] != nil {
+                klimaStrip(c, mi).padding(.top, 16)
             }
 
             HStack(spacing: 9) {
@@ -180,7 +185,7 @@ struct RaceDetailView: View {
         }
         .padding(.horizontal, 24)
         .padding(.bottom, 20)
-        .presentationDetents(saved.erTilmeldt(race.n) || !venner.isEmpty ? [.height(470)] : [.height(400)])
+        .presentationDetents([.height(detentHøjde)])
         .presentationDragIndicator(.hidden)
         .onAppear { bibUdkast = saved.bib(race.n) }
     }
@@ -198,6 +203,65 @@ struct RaceDetailView: View {
 
     private func hideKeyboard() {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+
+    /// ark-højde: vokser med det der vises (venner / bib / klima)
+    private var detentHøjde: CGFloat {
+        var h: CGFloat = 400
+        if !venner.isEmpty { h += 30 }
+        if saved.erTilmeldt(race.n) { h += 70 }
+        if let mi = løbsMåned, let c = klima.celle(la: race.la, lo: race.lo), c.t[mi] != nil { h += 150 }
+        return min(h, 660)
+    }
+
+    /// løbsmåned 0-11 (fra m "YYYY-MM", ellers dt)
+    private var løbsMåned: Int? {
+        if let m = race.m, m.count == 7, let mm = Int(m.suffix(2)) { return mm - 1 }
+        if let dt = race.dt, dt.count == 10, let mm = Int(dt.dropFirst(5).prefix(2)) { return mm - 1 }
+        return nil
+    }
+
+    /// vejr-graf: 12 måneders klima, løbsmåneden fremhævet (samme som web)
+    @ViewBuilder private func klimaStrip(_ c: KlimaCelle, _ mi: Int) -> some View {
+        let mdr = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
+        let gyldige = c.t.compactMap { $0 }
+        let lo = gyldige.min() ?? 0, hi = gyldige.max() ?? 1
+        VStack(alignment: .leading, spacing: 11) {
+            HStack {
+                Text(lang.t("Vejret på løbsdagen", "Race-day weather"))
+                    .font(.system(size: 14, weight: .bold)).foregroundColor(ink)
+                Spacer()
+                Text(lang.t("historisk", "historical")).font(.system(size: 11, weight: .semibold)).foregroundColor(muted)
+            }
+            HStack(alignment: .bottom, spacing: 4) {
+                ForEach(0..<12, id: \.self) { m in
+                    let v = c.t[m]
+                    let h = v == nil ? 4 : 4 + 58 * Double(v! - lo) / Double(max(hi - lo, 1))
+                    VStack(spacing: 5) {
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(m == mi ? AnyShapeStyle(LinearGradient(colors: [Color(red: 0.9, green: 0.6, blue: 0.33), coral], startPoint: .top, endPoint: .bottom))
+                                          : AnyShapeStyle(Color(red: 0.94, green: 0.89, blue: 0.82)))
+                            .frame(height: h)
+                        Text(mdr[m]).font(.system(size: 9.5, weight: m == mi ? .heavy : .semibold))
+                            .foregroundColor(m == mi ? coral : muted)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(height: 74, alignment: .bottom)
+            HStack(spacing: 16) {
+                if let t = c.t[mi] {
+                    (Text(lang.t("Løbsmåneden: ", "Race month: ")).foregroundColor(muted)
+                     + Text("\(t)°").foregroundColor(ink).fontWeight(.bold))
+                        .font(.system(size: 12.5, weight: .semibold))
+                }
+                if let r = c.r[mi] {
+                    (Text(lang.t("Regn ~", "Rain ~")).foregroundColor(muted)
+                     + Text("\(r)%").foregroundColor(ink).fontWeight(.bold))
+                        .font(.system(size: 12.5, weight: .semibold))
+                }
+            }
+        }
     }
 
     /// launcher Apples native Kort-app på løbets placering (Guideline 4 - Design)

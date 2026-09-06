@@ -1228,5 +1228,18 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .del-toggle input { width: 20px; height: 20px; accent-color: var(--coral); margin-top: 1px; flex: 0 0 auto; }
 .del-toggle span { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.3; }
 .del-toggle small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: 2px; }
+/* klima-graf på løbsdetaljen (12 måneder, løbsmåneden fremhævet) */
+.klima { margin-top: 2px; }
+.klima-h { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 11px; }
+.klima-h span:first-child { font-size: 14px; font-weight: 700; color: var(--ink); }
+.klima-note { font-size: 11px; color: var(--muted); font-weight: 600; }
+.klima-strip { display: flex; gap: 4px; align-items: flex-end; height: 66px; }
+.kmo { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 5px; }
+.kmo i { width: 100%; border-radius: 4px; background: #EFE2D2; min-height: 4px; display: block; }
+.kmo b { font-size: 9.5px; color: var(--muted); font-weight: 600; font-style: normal; }
+.kmo.on i { background: linear-gradient(180deg, #E79A55, var(--coral)); }
+.kmo.on b { color: var(--coral); font-weight: 800; }
+.klima-legend { display: flex; gap: 16px; margin-top: 11px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+.klima-legend b { color: var(--ink); font-weight: 700; }
 .login-deler { display: flex; align-items: center; gap: 10px; margin: 14px 0 2px; color: var(--muted); font-size: 12px; }
 .login-deler::before, .login-deler::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
