@@ -322,17 +322,28 @@ function initLiveUI() {
   });
   map.on("mouseleave", "live-halo-core", () => { map.getCanvas().style.cursor = ""; hc.hidden = true; });
 
-  // roligt åndedræt: sinus-kurve så glowet fader både ind og ud - intet hårdt loop-hop
+  // roligt åndedræt (sinus-kurve) - MEN kun mens live-prikkerne faktisk er synlige.
+  // Live-løb klynger under zoom 11, så på verdens-/globe-view er der intet at pulse:
+  // da lader vi kortet HVILE (ingen repaint) i st.f. at gen-tegne hver frame for evigt.
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; // statiske prikker er nok
-  let t0 = performance.now();
-  (function pulse(ts) {
-    const p = ((ts - t0) % 2600) / 2600;
-    try {
-      map.setPaintProperty("live-halo-pulse", "circle-radius", 7 + p * 10);
-      map.setPaintProperty("live-halo-pulse", "circle-opacity", Math.max(0, .28 * Math.sin(p * Math.PI)));
-    } catch (_) { return; }
-    requestAnimationFrame(pulse);
-  })(t0);
+  let pulseAktiv = false;
+  function kørPuls() {
+    if (pulseAktiv || document.hidden || map.getZoom() <= 11) return;
+    pulseAktiv = true;
+    const t0 = performance.now();
+    (function pulse(ts) {
+      if (document.hidden || map.getZoom() <= 11) { pulseAktiv = false; return; } // usynlig → stop, kortet hviler
+      const p = ((ts - t0) % 2600) / 2600;
+      try {
+        map.setPaintProperty("live-halo-pulse", "circle-radius", 7 + p * 10);
+        map.setPaintProperty("live-halo-pulse", "circle-opacity", Math.max(0, .28 * Math.sin(p * Math.PI)));
+      } catch (_) { pulseAktiv = false; return; }
+      requestAnimationFrame(pulse);
+    })(t0);
+  }
+  map.on("zoomend", kørPuls);
+  document.addEventListener("visibilitychange", kørPuls);
+  kørPuls();
 }
 
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !livePanel.hidden) closeLive(); });

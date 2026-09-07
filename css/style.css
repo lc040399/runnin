@@ -384,7 +384,7 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 .d-actions { display: flex; gap: 8px; margin-top: 12px; }
 .d-actions button {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  border: 1px solid var(--hairline); background: none; border-radius: 12px;
+  border: 1px solid var(--hairline); background: none; border-radius: 12px; color: var(--ink);
   font-family: var(--sans); padding: 9px 0 7px; cursor: pointer;
   transition: all .15s;
 }
