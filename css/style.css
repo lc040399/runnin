@@ -1225,12 +1225,19 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .g-logo { width: 17px; height: 17px; }
 .d-venner { color: var(--coral); font-weight: 600; font-size: 14px; }
 /* "tilbage til kloden"-knap - dukker op når man er zoomet ind */
-.globe-btn { position: absolute; right: 10px; bottom: 118px; z-index: 5; width: 40px; height: 40px;
+.globe-btn { position: absolute; right: 10px; bottom: 120px; z-index: 5; width: 40px; height: 40px;
   border-radius: 11px; background: var(--card); border: 1px solid var(--hairline); color: var(--ink);
   display: flex; align-items: center; justify-content: center; box-shadow: var(--card-shadow); cursor: pointer;
   opacity: 0; transform: scale(.9) translateY(6px); pointer-events: none; transition: opacity .25s ease, transform .25s ease, color .15s, border-color .15s; }
 .globe-btn.vis { opacity: 1; transform: none; pointer-events: auto; }
 .globe-btn:hover { color: var(--coral); border-color: var(--coral); }
+/* zoom-kontrollen matcher globe-knappen: samme afrundede kort-look, ikke default grå */
+.maplibregl-ctrl-group { border-radius: 11px !important; background: var(--card) !important;
+  border: 1px solid var(--hairline) !important; box-shadow: var(--card-shadow) !important; overflow: hidden; }
+.maplibregl-ctrl-group button { width: 40px !important; height: 40px !important; background: transparent !important; }
+.maplibregl-ctrl-group button + button { border-top: 1px solid var(--hairline) !important; }
+.maplibregl-ctrl-group button:hover { background: rgba(56, 36, 13, .05) !important; }
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: none; }
 .del-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; margin-top: 4px; }
 .del-toggle input { width: 20px; height: 20px; accent-color: var(--coral); margin-top: 1px; flex: 0 0 auto; }
 .del-toggle span { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.3; }

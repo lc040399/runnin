@@ -89,7 +89,7 @@ const map = new maplibregl.Map({
   minZoom: 1.2,
   renderWorldCopies: false, // én verden - ingen gentagne kontinenter/prikker
   attributionControl: { compact: true, customAttribution: '<a href="/guide/" target="_blank" rel="noopener">Guides</a>' },
-  fadeDuration: 0, // INGEN cross-fade: fliser byttes øjeblikkeligt uden grå gennemblink ved zoom
+  fadeDuration: 300, // labels/klynge-tal fader blødt ind/ud (i st.f. at snappe) når kloden roterer/zoomer
   refreshExpiredTiles: false, // fliserne har 10-års cache - genhent dem aldrig unødigt
   maxTileCacheSize: 512, // hold flere fliser i hukommelsen, så zoom-ud-tilbage ikke genhenter
   dragRotate: false, // rent 2D - ingen utilsigtet rotation, der føles klunky
@@ -272,7 +272,8 @@ map.on("load", () => {
   });
   map.addLayer({
     id: "cluster-count", type: "symbol", source: "races", filter: ["has", "point_count"],
-    layout: { "text-field": "{point_count_abbreviated}", "text-font": ["Noto Sans Regular"], "text-size": 11 },
+    layout: { "text-field": "{point_count_abbreviated}", "text-font": ["Noto Sans Regular"], "text-size": 11,
+      "text-allow-overlap": true, "text-ignore-placement": true },   // tal må aldrig skjules af kollision
     paint: { "text-color": "#ffffff", "text-opacity": 1, "text-opacity-transition": { duration: 220 } },
   });
   map.addLayer({
