@@ -61,18 +61,24 @@ console.log(`${Object.keys(ud).length} allerede hentet, ${mangler.length} mangle
 let gjort = Object.keys(ud).length, fejl = 0;
 for (let i = 0; i < mangler.length; i += BATCH) {
   const batch = mangler.slice(i, i + BATCH);
-  let forsoeg = 0, ok = false;
-  // tålmodig: giv aldrig op på rate-limit, eskalér backoff (60s→300s cap), maks 10 forsøg
-  while (forsoeg < 10 && !ok) {
+  let forsoeg = 0, ok = false, andreFejl = 0;
+  // 429 = rate-limit: vent 10 min og prøv IGEN i det uendelige (dags-grænsen
+  // nulstiller UTC-midnat), så kørslen selv-fuldfører i nat. Andre fejl: maks 4.
+  while (!ok) {
     try {
       const svar = await hentBatch(batch);
       svar.forEach((lok, j) => { if (lok?.daily) { ud[batch[j].k] = aggreger(lok.daily); gjort++; } });
       ok = true;
     } catch (e) {
       forsoeg++;
-      const vent = e.message === "429" ? Math.min(60000 * forsoeg, 300000) : 5000 * forsoeg;
-      console.log(`  batch @${i} fejl (${e.message}), venter ${vent / 1000}s (forsøg ${forsoeg}/10)`);
-      await sov(vent);
+      if (e.message === "429") {
+        console.log(`  batch @${i}: rate-limit, venter 600s (forsøg ${forsoeg}) [${new Date().toISOString().slice(11,16)}Z]`);
+        await sov(600000);
+      } else {
+        andreFejl++;
+        if (andreFejl >= 4) { console.log(`  batch @${i}: opgiver (${e.message})`); break; }
+        await sov(5000 * andreFejl);
+      }
     }
   }
   if (!ok) fejl += batch.length;
