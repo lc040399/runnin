@@ -7,7 +7,7 @@ const dist = process.argv[2] || "dist";
 
 const RACES = [];
 global.RACES = RACES;
-for (const f of ["data/races.js", "data/races-st.js", "data/races2.js", "data/races-nordics.js", "data/races-rid.js", "data/races-kondis.js", "data/races-aims.js", "data/races-wm.js"]) {
+for (const f of ["data/races.js", "data/races-st.js", "data/races2.js", "data/races-nordics.js", "data/races-rid.js", "data/races-kondis.js", "data/races-aims.js", "data/races-wm.js", "data/races-duv.js"]) {
   // races.js definerer const RACES - omskriv til push på vores globale
   const src = readFileSync(f, "utf8").replace("const RACES = [", "RACES.push(...[").replace(/^\];$/m, "]);");
   eval(src);
@@ -555,8 +555,152 @@ ${["Danmark & Norden", "Europe", "North America", "Asia & Oceania", "World"].map
 `);
 }
 
+/* ---------- bysider (SEO: "løb i <by>" / "running races in <city>") ----------
+   Data-drevne og sande: hver side viser byens rigtige kommende løb. */
+const TYPE_DA = { kort: "korte løb", half: "halvmarathonløb", marathon: "marathonløb", ultra: "trail- og ultraløb", tri: "triatlon" };
+const TYPE_EN = { kort: "short races", half: "half marathons", marathon: "marathons", ultra: "trail & ultra races", tri: "triathlons" };
+const LANDE = { DK: "Danmark", NO: "Norge", SE: "Sverige", FI: "Finland", IS: "Island", GB: "United Kingdom", DE: "Germany", FR: "France", ES: "Spain", IT: "Italy", NL: "Netherlands", US: "USA", CA: "Canada", AU: "Australia", JP: "Japan", CH: "Switzerland", BE: "Belgium", AT: "Austria", IE: "Ireland", PL: "Poland", PT: "Portugal", CZ: "Czechia", NZ: "New Zealand", BR: "Brazil", ZA: "South Africa" };
+const SIDE_CSS = `:root{--paper:#F5F3EE;--ink:#38240D;--muted:#7E6A50;--faint:#AE9C80;--caramel:#C05800;--hairline:rgba(56,36,13,.1)}
+  body{font-family:"Inter Tight",-apple-system,sans-serif;background:var(--paper);color:var(--ink);margin:0;padding:28px 18px 60px;line-height:1.55}
+  main{max-width:760px;margin:0 auto}
+  .brand{font-weight:800;letter-spacing:2.5px;font-size:14px;display:flex;align-items:center;gap:9px}
+  .brand a{color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:9px}.brand img{width:22px;height:22px}
+  .nav-links{margin-left:auto;font-weight:600;font-size:13px;letter-spacing:0}.nav-links a{color:var(--muted)}.nav-links a:hover{color:var(--caramel)}
+  h1{font-size:clamp(28px,5vw,36px);font-weight:800;letter-spacing:-.02em;margin:20px 0 6px}
+  .meta{color:var(--muted);font-size:13.5px}.accent{width:56px;height:5px;border-radius:3px;background:var(--caramel);margin:14px 0 18px}
+  p.intro{font-size:16.5px;max-width:64ch}
+  h2{font-size:21px;font-weight:800;letter-spacing:-.01em;margin:30px 0 8px}
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;font-size:14.5px;box-shadow:0 2px 10px rgba(56,36,13,.06)}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--hairline)}
+  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);background:#FBFAF7}
+  tbody tr:hover{background:#FBF7EF}td:last-child{color:var(--muted);white-space:nowrap}
+  a{color:var(--caramel);text-decoration:none}a:hover{text-decoration:underline}
+  .faq h3{font-size:16px;margin:18px 0 4px}.faq p{margin:0;color:#5b4a33;max-width:64ch}
+  .cta{display:inline-block;margin-top:28px;background:var(--caramel);color:#fff;padding:13px 22px;border-radius:12px;text-decoration:none;font-weight:700;box-shadow:0 8px 20px rgba(192,88,0,.28)}
+  .cta:hover{text-decoration:none}
+  footer{margin-top:36px;color:var(--faint);font-size:12.5px;line-height:1.7}`;
+
+// pæn by-slug (æøå→ae/oe/aa) - uafhængig af app-deeplinks, så den må gerne være læsbar
+const citySlug = s => norm(s.replace(/æ/gi, "ae").replace(/ø/gi, "oe").replace(/å/gi, "aa").replace(/ö/gi, "oe").replace(/ä/gi, "ae").replace(/ü/gi, "ue"))
+  .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+// saml postdistrikter for nordiske byer: "København Ø"/"Aarhus C"/"Odense SV" → basisby
+const byNavn = (raw, cc) => NORDEN.has(cc) ? raw.replace(/\s+(C|N|S|Ø|V|SØ|SV|NØ|NV)$/, "").trim() : raw;
+
+const byGrupper = new Map();
+for (const r of kommende) {
+  if (!r.c || !r.cc) continue;
+  const navn = byNavn(r.c, r.cc);
+  const key = norm(navn) + "|" + r.cc;
+  if (!byGrupper.has(key)) byGrupper.set(key, { by: navn, cc: r.cc, co: r.co, races: [] });
+  byGrupper.get(key).races.push(r);
+}
+const byUrls = [];
+const brugteBySlugs = new Set();
+for (const g of [...byGrupper.values()].filter(g => g.races.length >= 4).sort((a, b) => b.races.length - a.races.length)) {
+  let sl = citySlug(g.by);
+  if (!sl) continue;
+  if (brugteBySlugs.has(sl)) sl = `${sl}-${g.cc.toLowerCase()}`;
+  if (brugteBySlugs.has(sl)) continue;
+  brugteBySlugs.add(sl);
+  const da = NORDEN.has(g.cc);
+  const TL = da ? TYPE_DA : TYPE_EN;
+  const liste = g.races.sort((a, b) => (a.dt || a.m + "-28") < (b.dt || b.m + "-28") ? -1 : 1);
+  const n = liste.length;
+  const typeAntal = {};
+  for (const r of liste) typeAntal[r.t] = (typeAntal[r.t] || 0) + 1;
+  const fraser = Object.entries(typeAntal).sort((a, b) => b[1] - a[1]).map(([t, c]) => `${c} ${TL[t] || t}`);
+  const typeTekst = fraser.length > 1 ? fraser.slice(0, -1).join(", ") + (da ? " og " : " and ") + fraser.slice(-1) : fraser[0];
+  const næste = liste[0];
+  const titel = da ? `Løb i ${g.by}` : `Running races in ${g.by}`;
+  const url = `${BASE}/by/${sl}/`;
+  byUrls.push({ url, by: g.by, cc: g.cc, n });
+  const intro = da
+    ? `Der er ${n} kommende løb i ${g.by}: ${typeTekst}. Det næste er ${næste.n} den ${datoTekst(næste)}. Listen er sorteret efter dato, opdateres automatisk hver uge, og hvert løb linker direkte til arrangørens officielle tilmelding.`
+    : `There are ${n} upcoming running races in ${g.by}: ${typeTekst}. The next one is ${næste.n} on ${datoTekst(næste)}. The list is sorted by date, updated weekly, and each race links straight to the organiser's official registration.`;
+  const [gsl, gnavn] = guideFor(næste);
+  const rows = liste.slice(0, 120).map(r => {
+    const rsl = slug(r.n);
+    const side = seteSlugs.has(rsl) ? `/lob/${rsl}/` : `/#${rsl}`;
+    return `<tr><td><a href="${side}">${esc(r.n)}</a></td><td>${esc(TL[r.t] || r.t)}</td><td>${datoTekst(r)}</td></tr>`;
+  }).join("\n");
+  const faq = da ? [
+    [`Hvor mange løb er der i ${g.by}?`, `Runnin kender i øjeblikket ${n} kommende løb i ${g.by} på tværs af alle distancer. Kalenderen opdateres hver uge.`],
+    ["Hvordan tilmelder jeg mig?", "Hvert løb på listen linker direkte til arrangørens officielle tilmeldingsside. Runnin er gratis og sælger ingen billetter."],
+  ] : [
+    [`How many races are there in ${g.by}?`, `Runnin currently lists ${n} upcoming running races in ${g.by} across all distances. The calendar refreshes weekly.`],
+    ["How do I register?", "Every race on the list links directly to the organiser's official registration page. Runnin is free and sells nothing."],
+  ];
+  const jsonld = [
+    { "@context": "https://schema.org", "@type": "ItemList", name: titel, numberOfItems: n,
+      itemListElement: liste.slice(0, 50).map((r, i) => ({ "@type": "ListItem", position: i + 1, name: r.n })) },
+    { "@context": "https://schema.org", "@type": "FAQPage",
+      mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) },
+  ];
+  mkdirSync(`${dist}/by/${sl}`, { recursive: true });
+  writeFileSync(`${dist}/by/${sl}/index.html`, `<!DOCTYPE html>
+<html lang="${da ? "da" : "en"}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${esc(titel)} (${n}) | Runnin</title>
+<meta name="description" content="${esc(intro.slice(0, 155))}">
+<link rel="canonical" href="${url}">
+<meta property="og:title" content="${esc(titel)}"><meta property="og:description" content="${esc(intro.slice(0, 155))}">
+<meta property="og:image" content="${BASE}/assets/og.png?v=3"><meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="/assets/mark.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">${JSON.stringify(jsonld)}</script>
+<style>${SIDE_CSS}</style>
+</head>
+<body><main>
+<div class="brand"><a href="/"><img src="/assets/mark.png" alt="">R U N N I N</a><span class="nav-links"><a href="/by/">${da ? "← Alle byer" : "← All cities"}</a> · <a href="/">${da ? "Kortet" : "The map"}</a></span></div>
+<h1>${esc(titel)}</h1>
+<div class="meta">${n} ${da ? "kommende løb · opdateret" : "upcoming races · updated"} ${guideDato}</div>
+<div class="accent"></div>
+<p class="intro">${esc(intro)}</p>
+<h2>${da ? "Kommende løb" : "Upcoming races"}</h2>
+<table><thead><tr><th>${da ? "Løb" : "Race"}</th><th>${da ? "Type" : "Type"}</th><th>${da ? "Dato" : "Date"}</th></tr></thead>
+<tbody>${rows}</tbody></table>
+${n > 120 ? `<p style="color:var(--muted);font-size:13.5px">+ ${n - 120} ${da ? "flere - se dem på" : "more - see them on"} <a href="/">${da ? "kortet" : "the map"}</a>.</p>` : ""}
+<div class="faq"><h2>${da ? "Ofte stillede spørgsmål" : "Frequently asked questions"}</h2>
+${faq.map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join("\n")}</div>
+<p style="margin-top:22px"><a href="${gsl}">${esc(gnavn)} →</a></p>
+<a class="cta" href="/">${da ? "Se alle løb på kortet →" : "See every race on the map →"}</a>
+<footer>${da ? "Kilder: arrangørernes offentlige kalendere. Runnin er gratis og open source." : "Sources: the organisers' public calendars. Runnin is free and open source."} · <a href="https://runnin.org">runnin.org</a></footer>
+</main></body></html>
+`);
+}
+
+// by-indeks (/by/) - hub grupperet efter land, hjælper både brugere og Google
+if (byUrls.length) {
+  const perLand = {};
+  for (const b of byUrls) (perLand[b.cc] ||= []).push(b);
+  const landeSorteret = Object.keys(perLand).sort((a, b) => perLand[b].length - perLand[a].length);
+  mkdirSync(`${dist}/by`, { recursive: true });
+  writeFileSync(`${dist}/by/index.html`, `<!DOCTYPE html>
+<html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Løb by for by: ${byUrls.length} byer | Runnin</title>
+<meta name="description" content="Find kommende løb i ${byUrls.length} byer verden over - marathon, halvmarathon, trail og mere. Opdateres automatisk hver uge.">
+<link rel="canonical" href="${BASE}/by/"><link rel="icon" type="image/png" href="/assets/mark.png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;600;800&display=swap" rel="stylesheet">
+<style>${SIDE_CSS}
+  .byliste{columns:3 220px;column-gap:24px;margin-top:6px}
+  .byliste a{display:block;padding:3px 0;font-weight:600;font-size:14px;break-inside:avoid}
+  .byliste a span{color:var(--faint);font-weight:400;font-size:12.5px}</style>
+</head><body><main>
+<div class="brand"><a href="/"><img src="/assets/mark.png" alt="">R U N N I N</a><span class="nav-links"><a href="/">← Til kortet</a></span></div>
+<h1>Løb by for by</h1><div class="meta">${byUrls.length} byer · opdateret ${guideDato}</div><div class="accent"></div>
+<p class="intro">Find kommende løb i din by - eller i den by du rejser til. ${byUrls.length} byer med fire eller flere kommende løb, opdateret automatisk hver uge.</p>
+${landeSorteret.map(cc => `<h2>${LANDE[cc] || cc}</h2><div class="byliste">${perLand[cc].sort((a, b) => b.n - a.n).map(b => `<a href="${b.url}">${esc(b.by)} <span>${b.n}</span></a>`).join("")}</div>`).join("\n")}
+<a class="cta" href="/">Se alle løb på kortet →</a>
+<footer>Runnin er gratis og open source. · <a href="https://runnin.org">runnin.org</a></footer>
+</main></body></html>
+`);
+}
+
 writeFileSync(`${dist}/sitemap.xml`,
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
-  [`${BASE}/`, `${BASE}/guide/`, ...guideUrls.map(g => g.url), ...urls].map(u => `  <url><loc>${u}</loc></url>`).join("\n") + `\n</urlset>\n`);
+  [`${BASE}/`, `${BASE}/guide/`, `${BASE}/by/`, ...guideUrls.map(g => g.url), ...byUrls.map(b => b.url), ...urls].map(u => `  <url><loc>${u}</loc></url>`).join("\n") + `\n</urlset>\n`);
 writeFileSync(`${dist}/robots.txt`, `User-agent: *\nAllow: /\nSitemap: ${BASE}/sitemap.xml\n`);
-console.log(`SEO: ${urls.length} løbssider + ${guideUrls.length} guides + sitemap + robots.txt`);
+console.log(`SEO: ${urls.length} løbssider + ${guideUrls.length} guides + ${byUrls.length} bysider + sitemap + robots.txt`);
