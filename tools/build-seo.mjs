@@ -475,6 +475,7 @@ for (const gd of GUIDES) {
   .cta{display:inline-block;margin-top:28px;background:var(--caramel);color:#fff;padding:13px 22px;border-radius:12px;text-decoration:none;font-weight:700;box-shadow:0 8px 20px rgba(192,88,0,.28);transition:transform .15s,box-shadow .15s}
   .cta:hover{transform:translateY(-1px);box-shadow:0 11px 24px rgba(192,88,0,.34);text-decoration:none}
   footer{margin-top:36px;color:var(--faint);font-size:12.5px;line-height:1.7}
+  @media(max-width:560px){body{padding:22px 14px 50px}table{font-size:13px}th,td{padding:10px 9px}td:last-child{white-space:normal}.nav-links{font-size:12px}.hero{aspect-ratio:16/10}}
   @media (prefers-reduced-motion: no-preference){
     .op{opacity:0;transform:translateY(14px);animation:op .6s cubic-bezier(.22,1,.36,1) forwards}
     .op1{animation-delay:.05s}.op2{animation-delay:.14s}.op3{animation-delay:.23s}.op4{animation-delay:.32s}.op5{animation-delay:.44s}
@@ -578,7 +579,8 @@ const SIDE_CSS = `:root{--paper:#F5F3EE;--ink:#38240D;--muted:#7E6A50;--faint:#A
   .faq h3{font-size:16px;margin:18px 0 4px}.faq p{margin:0;color:#5b4a33;max-width:64ch}
   .cta{display:inline-block;margin-top:28px;background:var(--caramel);color:#fff;padding:13px 22px;border-radius:12px;text-decoration:none;font-weight:700;box-shadow:0 8px 20px rgba(192,88,0,.28)}
   .cta:hover{text-decoration:none}
-  footer{margin-top:36px;color:var(--faint);font-size:12.5px;line-height:1.7}`;
+  footer{margin-top:36px;color:var(--faint);font-size:12.5px;line-height:1.7}
+  @media(max-width:560px){body{padding:22px 14px 50px}table{font-size:13px}th,td{padding:10px 9px}td:last-child{white-space:normal}.nav-links{font-size:12px}h1{font-size:26px}}`;
 
 // pæn by-slug (æøå→ae/oe/aa) - uafhængig af app-deeplinks, så den må gerne være læsbar
 const citySlug = s => norm(s.replace(/æ/gi, "ae").replace(/ø/gi, "oe").replace(/å/gi, "aa").replace(/ö/gi, "oe").replace(/ä/gi, "ae").replace(/ü/gi, "ue"))
