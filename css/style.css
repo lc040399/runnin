@@ -1224,6 +1224,13 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .google-login:hover { background: #f7f5f0; }
 .g-logo { width: 17px; height: 17px; }
 .d-venner { color: var(--coral); font-weight: 600; font-size: 14px; }
+/* "tilbage til kloden"-knap - dukker op når man er zoomet ind */
+.globe-btn { position: absolute; right: 10px; bottom: 118px; z-index: 5; width: 40px; height: 40px;
+  border-radius: 11px; background: var(--card); border: 1px solid var(--hairline); color: var(--ink);
+  display: flex; align-items: center; justify-content: center; box-shadow: var(--card-shadow); cursor: pointer;
+  opacity: 0; transform: scale(.9) translateY(6px); pointer-events: none; transition: opacity .25s ease, transform .25s ease, color .15s, border-color .15s; }
+.globe-btn.vis { opacity: 1; transform: none; pointer-events: auto; }
+.globe-btn:hover { color: var(--coral); border-color: var(--coral); }
 .del-toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; margin-top: 4px; }
 .del-toggle input { width: 20px; height: 20px; accent-color: var(--coral); margin-top: 1px; flex: 0 0 auto; }
 .del-toggle span { font-size: 14px; font-weight: 600; color: var(--ink); line-height: 1.3; }

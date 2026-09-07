@@ -84,8 +84,8 @@ function toGeojson(list) {
 const map = new maplibregl.Map({
   container: "map",
   style: "https://tiles.openfreemap.org/styles/positron",
-  center: [13, 59.5], // Norden først - verden er ét zoom-ud væk
-  zoom: 4.1,
+  center: [13, 44], // starter på kloden (jf. intro-fly til Norden efter load)
+  zoom: 2.0,
   minZoom: 1.2,
   renderWorldCopies: false, // én verden - ingen gentagne kontinenter/prikker
   attributionControl: { compact: true, customAttribution: '<a href="/guide/" target="_blank" rel="noopener">Guides</a>' },
@@ -101,6 +101,45 @@ map.touchZoomRotate.disableRotation(); // to-finger-drej på trackpad skal ikke 
 map.scrollZoom.setWheelZoomRate(1 / 380);
 map.scrollZoom.setZoomRate(1 / 120);
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+
+// cinematisk intro: kloden får sit øjeblik, så glider vi blødt ned til Norden.
+// Springes over ved deep-link (openFromHash flyver selv) eller hvis brugeren rører kortet.
+let introKørt = false;
+function startIntro() {
+  if (introKørt) return; introKørt = true;
+  if (location.hash.slice(1)) return;                 // deep-link → lad openFromHash styre kameraet
+  const afbryd = () => map.stop();
+  ["mousedown", "touchstart", "wheel", "dragstart"].forEach(e => map.once(e, afbryd));
+  setTimeout(() => map.flyTo({ center: [13, 59.5], zoom: 4.1, duration: 2600, curve: 1.42, essential: true }), 1200);
+}
+map.once("load", startIntro);
+
+// "tilbage til kloden"-knap: flyv ud til hele verden
+const globeBtn = document.createElement("button");
+globeBtn.className = "globe-btn"; globeBtn.type = "button";
+globeBtn.setAttribute("aria-label", "Se hele kloden");
+globeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M4.5 7.5h15M4.5 16.5h15"/></svg>';
+globeBtn.onclick = () => { killSpin(); map.flyTo({ center: [13, 44], zoom: map.getMinZoom(), duration: 2000, curve: 1.4, essential: true }); };
+document.getElementById("map").appendChild(globeBtn);
+// vis kun knappen når man er zoomet ind (ingen grund til den på selve kloden)
+function opdaterGlobeBtn() { globeBtn.classList.toggle("vis", map.getZoom() > map.getMinZoom() + 0.4); }
+map.on("zoom", opdaterGlobeBtn); map.once("load", opdaterGlobeBtn);
+
+// subtil idle-rotation når man står på den fulde klode og ikke rører noget
+let idleTimer = null, spinning = false, spinRAF = null;
+function killSpin() { spinning = false; if (spinRAF) cancelAnimationFrame(spinRAF); spinRAF = null; }
+function startSpin() {
+  if (spinning) return;                                  // undgå dobbelt-start
+  if (map.getZoom() > map.getMinZoom() + 0.05) return;   // kun på selve kloden
+  spinning = true;
+  const step = () => { if (!spinning) return; const c = map.getCenter(); c.lng -= 0.055; map.setCenter(c); spinRAF = requestAnimationFrame(step); };
+  spinRAF = requestAnimationFrame(step);
+}
+function armIdle() { clearTimeout(idleTimer); idleTimer = setTimeout(startSpin, 3500); }
+// ægte bruger-gestus stopper spin straks (programmatisk setCenter gør ikke)
+["mousedown", "touchstart", "wheel", "dragstart", "boxzoomstart"].forEach(ev => map.on(ev, killSpin));
+// gen-arm når kameraet står stille igen (både efter gestus OG efter flyTo)
+map.on("moveend", armIdle);
 
 // globe-gulv: stop zoom-ud så kloden altid fylder viewporten pænt (ingen lille
 // klode i tomt rum). Fylder den korte led, så hele kloden er synlig.
