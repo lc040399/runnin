@@ -146,8 +146,9 @@ map.on("moveend", armIdle);
 function clampMinZoom() {
   const el = map.getContainer();
   const d = Math.min(el.clientWidth, el.clientHeight);
-  // rammer ~zoom 1.9 på desktop = fuld klode fylder pænt; gulv så mobil ikke bliver for lille
-  map.setMinZoom(Math.max(1.1, Math.log2(d * Math.PI / 512) - 0.40));
+  // responsivt: hele kloden fylder viewporten med et par pixels luft top/bund
+  // (konstant kalibreret så klodens diameter ≈ den korte led)
+  map.setMinZoom(Math.max(0.6, Math.log2(d * Math.PI / 512) - 0.52));
 }
 map.on("load", clampMinZoom);
 window.addEventListener("resize", clampMinZoom);
