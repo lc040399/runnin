@@ -115,9 +115,12 @@ function startIntro() {
 }
 map.once("load", startIntro);
 
-// "tilbage til kloden"-knap: flyv ud til hele verden
+// "tilbage til kloden"-knap som ÆGTE MapLibre-kontrol → stables rent oven på
+// zoom-kontrollen (ingen overlap), auto-responsiv, matchende kort-look.
+const globeCtrl = document.createElement("div");
+globeCtrl.className = "maplibregl-ctrl maplibregl-ctrl-group globe-ctrl";
 const globeBtn = document.createElement("button");
-globeBtn.className = "globe-btn"; globeBtn.type = "button";
+globeBtn.type = "button";
 globeBtn.setAttribute("aria-label", "Se hele kloden");
 globeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M4.5 7.5h15M4.5 16.5h15"/></svg>';
 globeBtn.onclick = () => {
@@ -125,9 +128,10 @@ globeBtn.onclick = () => {
   const mål = { center: [13, 44], zoom: map.getMinZoom() };
   if (roligt) map.jumpTo(mål); else map.flyTo({ ...mål, duration: 2000, curve: 1.4, essential: true });
 };
-document.getElementById("map").appendChild(globeBtn);
+globeCtrl.appendChild(globeBtn);
+map.addControl({ onAdd: () => globeCtrl, onRemove: () => globeCtrl.remove() }, "bottom-right");
 // vis kun knappen når man er zoomet ind (ingen grund til den på selve kloden)
-function opdaterGlobeBtn() { globeBtn.classList.toggle("vis", map.getZoom() > map.getMinZoom() + 0.4); }
+function opdaterGlobeBtn() { globeCtrl.classList.toggle("vis", map.getZoom() > map.getMinZoom() + 0.4); }
 map.on("zoom", opdaterGlobeBtn); map.once("load", opdaterGlobeBtn);
 
 // subtil idle-rotation når man står på den fulde klode og ikke rører noget
@@ -939,7 +943,15 @@ const searchInput = document.getElementById("search");
 const searchMenu = document.getElementById("searchMenu");
 const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
+let søgValg = -1;  // markeret forslag i søge-menuen (-1 = ingen), til piltast-navigation
+function markerSøgValg() {
+  const knapper = searchMenu.querySelectorAll("button");
+  knapper.forEach((b, i) => b.classList.toggle("aktiv", i === søgValg));
+  if (søgValg >= 0 && knapper[søgValg]) knapper[søgValg].scrollIntoView({ block: "nearest" });
+}
+
 searchInput.addEventListener("input", () => {
+  søgValg = -1;
   const q = norm(searchInput.value.trim());
   if (q.length < 2) { searchMenu.hidden = true; return; }
   const hits = RACES.filter(r => norm(r.n).includes(q) || norm(r.c).includes(q))
@@ -961,7 +973,14 @@ searchInput.addEventListener("input", () => {
     openDetail(RACES[+b.dataset.id], true);
   });
 });
-searchInput.addEventListener("keydown", e => { if (e.key === "Escape") { searchMenu.hidden = true; searchInput.blur(); } });
+searchInput.addEventListener("keydown", e => {
+  if (e.key === "Escape") { searchMenu.hidden = true; searchInput.blur(); søgValg = -1; return; }
+  const knapper = searchMenu.hidden ? [] : [...searchMenu.querySelectorAll("button")];
+  if (!knapper.length) return;
+  if (e.key === "ArrowDown") { e.preventDefault(); søgValg = (søgValg + 1) % knapper.length; markerSøgValg(); }
+  else if (e.key === "ArrowUp") { e.preventDefault(); søgValg = (søgValg - 1 + knapper.length) % knapper.length; markerSøgValg(); }
+  else if (e.key === "Enter") { e.preventDefault(); (knapper[søgValg] || knapper[0]).click(); }
+});
 document.addEventListener("click", e => { if (!searchMenu.hidden && !e.target.closest(".search-wrap")) searchMenu.hidden = true; });
 
 /* ---------- nær mig ---------- */

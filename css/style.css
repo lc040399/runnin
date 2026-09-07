@@ -427,7 +427,9 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
   border: 0; background: none; cursor: pointer; font-family: var(--sans);
   padding: 9px 11px; border-radius: 10px; transition: background .12s;
 }
-.search-menu button:hover { background: var(--flade); }
+.search-menu button:hover,
+.search-menu button.aktiv { background: var(--flade); }
+.search-menu button.aktiv { box-shadow: inset 2px 0 0 var(--coral); }
 .search-menu .dot { width: 9px; height: 9px; border-radius: 999px; flex: none; }
 .s-navn { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .s-meta { margin-left: auto; font-size: 11px; color: var(--faint); flex: none; }
@@ -1224,13 +1226,12 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .google-login:hover { background: #f7f5f0; }
 .g-logo { width: 17px; height: 17px; }
 .d-venner { color: var(--coral); font-weight: 600; font-size: 14px; }
-/* "tilbage til kloden"-knap - dukker op når man er zoomet ind */
-.globe-btn { position: absolute; right: 10px; bottom: 120px; z-index: 5; width: 40px; height: 40px;
-  border-radius: 11px; background: var(--card); border: 1px solid var(--hairline); color: var(--ink);
-  display: flex; align-items: center; justify-content: center; box-shadow: var(--card-shadow); cursor: pointer;
-  opacity: 0; transform: scale(.9) translateY(6px); pointer-events: none; transition: opacity .25s ease, transform .25s ease, color .15s, border-color .15s; }
-.globe-btn.vis { opacity: 1; transform: none; pointer-events: auto; }
-.globe-btn:hover { color: var(--coral); border-color: var(--coral); }
+/* "tilbage til kloden"-kontrol - stables OVER zoom-kontrollen, kun synlig når zoomet ind */
+.globe-ctrl { order: -1; display: none !important; }
+.globe-ctrl.vis { display: block !important; animation: globeIn .22s ease; }
+.globe-ctrl button { color: var(--ink); }
+.globe-ctrl button:hover { color: var(--coral) !important; }
+@keyframes globeIn { from { opacity: 0; transform: scale(.92) translateY(6px); } to { opacity: 1; transform: none; } }
 /* zoom-kontrollen matcher globe-knappen: samme afrundede kort-look, ikke default grå */
 .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group { border-radius: 11px !important; background: var(--card) !important;
   border: 1px solid var(--hairline) !important; box-shadow: var(--card-shadow) !important; overflow: hidden !important; margin-right: 10px; }
