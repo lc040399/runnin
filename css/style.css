@@ -1053,7 +1053,7 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .login-succes strong { color: var(--ink); }
 /* ---------- fuldskærms-listevisning ---------- */
 .liste-overlay { overflow-y: auto; }
-.liste-indre { max-width: 1760px; margin: 0 auto; padding: calc(22px + env(safe-area-inset-top)) clamp(16px, 3vw, 56px) calc(90px + env(safe-area-inset-bottom)); }
+.liste-indre { max-width: 1280px; margin: 0 auto; padding: calc(22px + env(safe-area-inset-top)) clamp(16px, 3vw, 48px) calc(90px + env(safe-area-inset-bottom)); }
 .liste-indre .dash-head h2 { font-size: clamp(24px, 3.2vw, 34px); }
 .l-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px; margin-bottom: 4px; }
 .liste-styr { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 10px 0 6px; }

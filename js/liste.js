@@ -84,14 +84,14 @@ window.renderListe = function () {
           <div class="foto-kicker">Kommende løb</div>
           <h2>Løb i ${scopeNavn}.</h2>
         </div>
-        <button class="close" id="listeLuk" aria-label="Luk">✕</button>
-      </div>
-      <div class="liste-styr dash-in" style="--i:1">
-        <div class="tema-valg liste-scope">${scopeChips}</div>
         <div class="liste-styr-højre">
           <span class="liste-antal">${løb.length.toLocaleString("da-DK")} løb</span>
           <button class="pill" id="listeKalender">📅 Kalender</button>
+          <button class="close" id="listeLuk" aria-label="Luk">✕</button>
         </div>
+      </div>
+      <div class="liste-styr dash-in" style="--i:1">
+        <div class="tema-valg liste-scope">${scopeChips}</div>
       </div>
       <div class="l-typer dash-in" style="--i:2">${typeKort}</div>
       ${liveNu.length ? `
