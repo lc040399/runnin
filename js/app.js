@@ -108,6 +108,7 @@ let introKørt = false;
 function startIntro() {
   if (introKørt) return; introKørt = true;
   if (location.hash.slice(1)) return;                 // deep-link → lad openFromHash styre kameraet
+  if (roligt) { map.jumpTo({ center: [13, 59.5], zoom: 4.1 }); return; }  // reducér bevægelse: ingen fly
   const afbryd = () => map.stop();
   ["mousedown", "touchstart", "wheel", "dragstart"].forEach(e => map.once(e, afbryd));
   setTimeout(() => map.flyTo({ center: [13, 59.5], zoom: 4.1, duration: 2600, curve: 1.42, essential: true }), 1200);
@@ -119,7 +120,11 @@ const globeBtn = document.createElement("button");
 globeBtn.className = "globe-btn"; globeBtn.type = "button";
 globeBtn.setAttribute("aria-label", "Se hele kloden");
 globeBtn.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M4.5 7.5h15M4.5 16.5h15"/></svg>';
-globeBtn.onclick = () => { killSpin(); map.flyTo({ center: [13, 44], zoom: map.getMinZoom(), duration: 2000, curve: 1.4, essential: true }); };
+globeBtn.onclick = () => {
+  killSpin();
+  const mål = { center: [13, 44], zoom: map.getMinZoom() };
+  if (roligt) map.jumpTo(mål); else map.flyTo({ ...mål, duration: 2000, curve: 1.4, essential: true });
+};
 document.getElementById("map").appendChild(globeBtn);
 // vis kun knappen når man er zoomet ind (ingen grund til den på selve kloden)
 function opdaterGlobeBtn() { globeBtn.classList.toggle("vis", map.getZoom() > map.getMinZoom() + 0.4); }
@@ -129,10 +134,16 @@ map.on("zoom", opdaterGlobeBtn); map.once("load", opdaterGlobeBtn);
 let idleTimer = null, spinning = false, spinRAF = null;
 function killSpin() { spinning = false; if (spinRAF) cancelAnimationFrame(spinRAF); spinRAF = null; }
 function startSpin() {
-  if (spinning) return;                                  // undgå dobbelt-start
+  if (spinning || roligt) return;                        // reducér bevægelse → aldrig auto-spin
   if (map.getZoom() > map.getMinZoom() + 0.05) return;   // kun på selve kloden
   spinning = true;
-  const step = () => { if (!spinning) return; const c = map.getCenter(); c.lng -= 0.055; map.setCenter(c); spinRAF = requestAnimationFrame(step); };
+  let drejet = 0;
+  const step = () => {
+    if (!spinning) return;
+    if (drejet >= 130) { killSpin(); return; }           // stop efter ~130° - undgå evig-spin (batteri)
+    const c = map.getCenter(); c.lng -= 0.055; drejet += 0.055; map.setCenter(c);
+    spinRAF = requestAnimationFrame(step);
+  };
   spinRAF = requestAnimationFrame(step);
 }
 function armIdle() { clearTimeout(idleTimer); idleTimer = setTimeout(startSpin, 3500); }
@@ -140,6 +151,10 @@ function armIdle() { clearTimeout(idleTimer); idleTimer = setTimeout(startSpin, 
 ["mousedown", "touchstart", "wheel", "dragstart", "boxzoomstart"].forEach(ev => map.on(ev, killSpin));
 // gen-arm når kameraet står stille igen (både efter gestus OG efter flyTo)
 map.on("moveend", armIdle);
+// spar batteri: stop rotation når fanen er i baggrunden
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) { killSpin(); clearTimeout(idleTimer); } else armIdle();
+});
 
 // globe-gulv: stop zoom-ud så kloden altid fylder viewporten pænt (ingen lille
 // klode i tomt rum). Fylder den korte led, så hele kloden er synlig.
@@ -248,10 +263,13 @@ function setTema(t) {
 }
 document.querySelectorAll(".tema-chip").forEach(c => c.addEventListener("click", () => setTema(c.dataset.tema)));
 
+// respektér "reducér bevægelse" (OS-indstilling): ingen intro-fly, ingen auto-spin
+const roligt = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+
 map.on("load", () => {
-  // 3D-klode (MapLibre 5) - flader automatisk ud til fladt kort når man zoomer ind
-  map.setProjection({ type: "globe" });
-  opdaterAtmosfaere();
+  // 3D-klode (MapLibre 5) - flader automatisk ud til fladt kort når man zoomer ind.
+  // Fald pænt tilbage til fladt kort hvis globe ikke kan tegnes (gammel GPU/WebGL).
+  try { map.setProjection({ type: "globe" }); opdaterAtmosfaere(); } catch (_) {}
   // attribution er licenskrav (OSM/OpenMapTiles) - men den må gerne starte kollapset til ⓘ
   const attrib = document.querySelector(".maplibregl-ctrl-attrib");
   if (attrib) { attrib.classList.remove("maplibregl-compact-show"); attrib.removeAttribute("open"); }
