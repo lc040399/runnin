@@ -102,10 +102,13 @@ map.scrollZoom.setWheelZoomRate(1 / 380);
 map.scrollZoom.setZoomRate(1 / 120);
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
 
-// minZoom så verden altid mindst fylder skærmbredden (ellers klemmer maxBounds kameraet skævt)
+// globe-gulv: stop zoom-ud så kloden altid fylder viewporten pænt (ingen lille
+// klode i tomt rum). Fylder den korte led, så hele kloden er synlig.
 function clampMinZoom() {
-  const w = map.getContainer().clientWidth;
-  map.setMinZoom(Math.max(1.1, Math.log2(w / 512) + 0.05));
+  const el = map.getContainer();
+  const d = Math.min(el.clientWidth, el.clientHeight);
+  // rammer ~zoom 1.9 på desktop = fuld klode fylder pænt; gulv så mobil ikke bliver for lille
+  map.setMinZoom(Math.max(1.1, Math.log2(d * Math.PI / 512) - 0.40));
 }
 map.on("load", clampMinZoom);
 window.addEventListener("resize", clampMinZoom);
@@ -114,8 +117,9 @@ window.addEventListener("resize", clampMinZoom);
 // animationen = klunky), lader vi gesten køre frit og glider blødt tilbage på plads
 // FØRST når den er sluppet. Fuld-verdens maxBounds er ustabilt i MapLibre, derfor manuelt.
 function klampCentrum() {
+  if (map.getZoom() < 5) return;   // kloden: fri rotation (kun fladt zoom-ind klampes)
   const c = map.getCenter();
-  const lat = Math.min(74, Math.max(-52, c.lat));
+  const lat = Math.min(80, Math.max(-70, c.lat));
   const lng = Math.min(178, Math.max(-178, c.lng));
   if (lat !== c.lat || lng !== c.lng) {
     map.easeTo({ center: [lng, lat], duration: 300, easing: t => t * (2 - t) });
@@ -179,6 +183,19 @@ function warmify() {
   }
 }
 
+// atmosfære/glød om kloden - varmt papir i lys, chokolade-nat i mørk
+function opdaterAtmosfaere() {
+  try {
+    map.setSky(erMørk() ? {
+      "sky-color": "#0e1a24", "horizon-color": "#211609", "fog-color": "#211609",
+      "fog-ground-blend": 0.5, "horizon-fog-blend": 0.6, "sky-horizon-blend": 0.8, "atmosphere-blend": 0.8,
+    } : {
+      "sky-color": "#cfe0ef", "horizon-color": "#F5F3EE", "fog-color": "#F5F3EE",
+      "fog-ground-blend": 0.4, "horizon-fog-blend": 0.5, "sky-horizon-blend": 0.9, "atmosphere-blend": 0.7,
+    });
+  } catch (_) {}
+}
+
 let temaTimer = null;
 function setTema(t) {
   document.documentElement.classList.add("tema-glid");
@@ -188,11 +205,14 @@ function setTema(t) {
   else delete document.documentElement.dataset.tema;
   localStorage.setItem("runnin-tema", t);
   document.querySelectorAll(".tema-chip").forEach(c => c.classList.toggle("on", c.dataset.tema === t));
-  if (map.isStyleLoaded()) warmify();
+  if (map.isStyleLoaded()) { warmify(); opdaterAtmosfaere(); }
 }
 document.querySelectorAll(".tema-chip").forEach(c => c.addEventListener("click", () => setTema(c.dataset.tema)));
 
 map.on("load", () => {
+  // 3D-klode (MapLibre 5) - flader automatisk ud til fladt kort når man zoomer ind
+  map.setProjection({ type: "globe" });
+  opdaterAtmosfaere();
   // attribution er licenskrav (OSM/OpenMapTiles) - men den må gerne starte kollapset til ⓘ
   const attrib = document.querySelector(".maplibregl-ctrl-attrib");
   if (attrib) { attrib.classList.remove("maplibregl-compact-show"); attrib.removeAttribute("open"); }
