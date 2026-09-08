@@ -6,7 +6,7 @@ import vm from "node:vm";
 // samme rækkefølge som index.html (races.js definerer const RACES, resten RACES.push)
 const FILER = [
   "races", "races-st", "races2", "races-nordics",
-  "races-aims", "races-wm", "races-rid", "races-kondis", "races-rsu", "races-duv",
+  "races-aims", "races-wm", "races-rid", "races-kondis", "races-rsu", "races-duv", "races-parkrun",
 ];
 
 let kode = "";

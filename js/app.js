@@ -943,6 +943,29 @@ const searchInput = document.getElementById("search");
 const searchMenu = document.getElementById("searchMenu");
 const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
+/* zero-result-logging: coverage-kompasset. Fanger hvad folk søger men IKKE finder,
+   så vi ved hvor dækningshullerne gør ondt. Debounced (kun når teksten er faldet til
+   ro), dedup pr. session, kun >= 3 tegn med reelt 0 hits. Ingen bruger-/enheds-id. */
+const loggedeMiss = new Set();
+let missTimer;
+function logSøgeMiss(raw) {
+  const q = (raw || "").trim();
+  const nq = q.toLowerCase();
+  if (q.length < 3 || loggedeMiss.has(nq)) return;
+  const n = norm(q);
+  if (RACES.some(r => norm(r.n).includes(n) || norm(r.c).includes(n))) return; // fandt alligevel
+  loggedeMiss.add(nq);
+  try {
+    fetch("https://qdqvyvidafslzvxgkvof.supabase.co/rest/v1/search_misses", {
+      method: "POST", keepalive: true,
+      headers: { apikey: "sb_publishable_UfiDozoliZR44TAJ9SX-ng_1f3q_Mk3",
+        Authorization: "Bearer sb_publishable_UfiDozoliZR44TAJ9SX-ng_1f3q_Mk3",
+        "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ q, lang: (navigator.language || "").slice(0, 5) }),
+    });
+  } catch (_) {}
+}
+
 let søgValg = -1;  // markeret forslag i søge-menuen (-1 = ingen), til piltast-navigation
 function markerSøgValg() {
   const knapper = searchMenu.querySelectorAll("button");
@@ -952,6 +975,7 @@ function markerSøgValg() {
 
 searchInput.addEventListener("input", () => {
   søgValg = -1;
+  clearTimeout(missTimer);
   const q = norm(searchInput.value.trim());
   if (q.length < 2) { searchMenu.hidden = true; return; }
   const hits = RACES.filter(r => norm(r.n).includes(q) || norm(r.c).includes(q))
@@ -959,7 +983,13 @@ searchInput.addEventListener("input", () => {
       ? sortKey(a).localeCompare(sortKey(b))     // nærmeste dato øverst
       : (erKommende(a) ? -1 : 1))                // afholdte nederst
     .slice(0, 8);
-  if (!hits.length) { searchMenu.innerHTML = `<div class="search-tom">Ingen løb matcher "${searchInput.value.trim()}"</div>`; searchMenu.hidden = false; return; }
+  if (!hits.length) {
+    searchMenu.innerHTML = `<div class="search-tom">Ingen løb matcher "${searchInput.value.trim()}"</div>`;
+    searchMenu.hidden = false;
+    const raw = searchInput.value;   // log først når teksten er faldet til ro
+    missTimer = setTimeout(() => logSøgeMiss(raw), 1400);
+    return;
+  }
   searchMenu.innerHTML = hits.map(r => `
     <button data-id="${r.id}">
       <span class="dot" style="background:${TYPE_COLOR[r.t]}"></span>
@@ -1178,23 +1208,29 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000);
 
-/* ---------- USA-kataloget hentes dovent (¾ af datamængden) ----------
-   Norden-først: kortet står med det samme, RunSignup-løbene flettes ind
-   når kortet har haft sit første rolige øjeblik. */
+/* ---------- store kataloger hentes dovent (RunSignup + parkrun) ----------
+   Norden-først: kortet står med det samme, de tunge kilder flettes ind
+   sekventielt når kortet har haft sit første rolige øjeblik. */
 map.once("load", () => setTimeout(() => {
-  const s = document.createElement("script");
-  s.src = "data/races-rsu.js?v=81";
-  s.onload = () => {
-    // filen pusher sine løb og gen-id'er hele RACES selv
+  const lazyKilder = ["data/races-rsu.js?v=81", "data/races-parkrun.js?v=1"];
+  const refresh = () => {
+    // hver fil pusher sine løb og gen-id'er hele RACES selv
     const src = map.getSource("races");
     if (src) src.setData(toGeojson(filtered()));
     updateCounter();
     if (typeof initLiveUI === "function") initLiveUI();
     if (!panel.hidden) setTab(state.tab); // genopfrisk åben liste
     if (window.listeOverlay && !window.listeOverlay.hidden) window.renderListe();
-    if (!currentRace) openFromHash();     // deep-link til et USA-løb kan nu løses
+    if (!currentRace) openFromHash();     // deep-link til et lazy-løb kan nu løses
   };
-  document.head.appendChild(s);
+  (function næste(i) {
+    if (i >= lazyKilder.length) return;
+    const s = document.createElement("script");
+    s.src = lazyKilder[i];
+    s.onload = () => { refresh(); næste(i + 1); };
+    s.onerror = () => næste(i + 1);
+    document.head.appendChild(s);
+  })(0);
 }, 1200));
 
 /* ---------- demo-login ---------- */
