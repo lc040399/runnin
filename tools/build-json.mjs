@@ -7,6 +7,7 @@ import vm from "node:vm";
 const FILER = [
   "races", "races-st", "races2", "races-nordics",
   "races-aims", "races-wm", "races-rid", "races-kondis", "races-rsu", "races-duv", "races-parkrun",
+  "races-findarace",
 ];
 
 let kode = "";
