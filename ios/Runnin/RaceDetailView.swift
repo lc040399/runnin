@@ -223,7 +223,9 @@ struct RaceDetailView: View {
 
     /// vejr-graf: 12 måneders klima, løbsmåneden fremhævet (samme som web)
     @ViewBuilder private func klimaStrip(_ c: KlimaCelle, _ mi: Int) -> some View {
-        let mdr = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"]
+        let mdr = lang.erDansk
+            ? ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"]
+            : ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
         let gyldige = c.t.compactMap { $0 }
         let lo = gyldige.min() ?? 0, hi = gyldige.max() ?? 1
         VStack(alignment: .leading, spacing: 11) {
@@ -245,8 +247,9 @@ struct RaceDetailView: View {
                             .fill(m == mi ? AnyShapeStyle(LinearGradient(colors: [Color(red: 0.9, green: 0.6, blue: 0.33), coral], startPoint: .top, endPoint: .bottom))
                                           : AnyShapeStyle(Color(red: 0.94, green: 0.89, blue: 0.82)))
                             .frame(height: h)
-                        Text(mdr[m]).font(.system(size: 9.5, weight: m == mi ? .heavy : .semibold))
+                        Text(mdr[m]).font(.system(size: 8.5, weight: m == mi ? .heavy : .semibold))
                             .foregroundColor(m == mi ? coral : muted)
+                            .lineLimit(1).minimumScaleFactor(0.7).fixedSize()
                     }
                     .frame(maxWidth: .infinity)
                 }

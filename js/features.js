@@ -100,7 +100,8 @@ setTimeout(() => {
 // Vejr-graf: 12-måneders klima-normaler (forudberegnet pr. 0,5°-celle i
 // data/climate.json), løbsmåneden fremhævet. Ægte Open-Meteo-arkivdata, ingen
 // API-kald pr. visning. Løb uden celle-data viser bare intet (.d-extra:empty).
-const KLIMA_MDR = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+const KLIMA_MDR_DA = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"];
+const KLIMA_MDR_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const round05 = x => Math.round(x * 2) / 2;
 const klimaKey = (la, lo) => `${round05(la).toFixed(1)},${round05(lo).toFixed(1)}`;
 let klimaData = null, klimaHentet = null;
@@ -120,11 +121,12 @@ async function visVejr(r) {
   const gyldige = c.t.filter(x => x != null);
   const lo = Math.min(...gyldige), hi = Math.max(...gyldige);
   const h = v => v == null ? 0 : Math.round(18 + 82 * (v - lo) / (hi - lo || 1));
+  const en = typeof SPROG !== "undefined" && SPROG === "en";
+  const MDR = en ? KLIMA_MDR_EN : KLIMA_MDR_DA;
   const søjler = c.t.map((v, m) =>
     `<div class="kmo${m === mi ? " on" : ""}"><em>${m === mi && v != null ? v + "°" : ""}</em>` +
-    `<i style="height:${h(v)}%"></i><b>${KLIMA_MDR[m]}</b></div>`).join("");
+    `<i style="height:${h(v)}%"></i><b>${MDR[m]}</b></div>`).join("");
   const regn = c.r[mi];
-  const en = typeof SPROG !== "undefined" && SPROG === "en";
   el.innerHTML =
     `<div class="klima">
       <div class="klima-h"><span>${en ? "Race-day weather" : "Vejret på løbsdagen"}</span>` +
