@@ -48,6 +48,18 @@ function sætSprog(l) {
     "Det lykkedes ikke - prøv igen om lidt.": "That didn't work - try again shortly.",
     "Konto og gemte løb opbevares sikkert hos Supabase (EU) og følger dig på tværs af enheder. Profilbilledet bliver kun på din enhed.": "Your account and saved races are stored securely with Supabase (EU) and follow you across devices. Your profile photo stays on this device.",
     "Demo: gemmes kun lokalt i din browser - ingen konto oprettes.": "Demo: stored only locally in your browser - no account is created.",
+    // tilføj løb (crowdsource)
+    "Bidrag til kortet": "Contribute to the map", "Tilføj et løb": "Add a race",
+    "Tak! 🏃": "Thanks! 🏃", "Vi kigger det igennem og lægger det på kortet.": "We'll review it and add it to the map.",
+    "Færdig": "Done", "Løbets navn": "Race name", "fx Copenhagen Marathon": "e.g. Copenhagen Marathon",
+    "By": "City", "fx København": "e.g. Copenhagen", "Land": "Country", "fx Danmark": "e.g. Denmark",
+    "5k / 10k / kort": "5k / 10k / short", "Ultra / trail": "Ultra / trail",
+    "Dato (valgfri)": "Date (optional)", "Tilmeldings-link (valgfri)": "Registration link (optional)",
+    "Din e-mail (valgfri)": "Your email (optional)", "dig@mail.dk – hvis vi har et spørgsmål": "you@email.com – in case we have a question",
+    "Send løbet": "Submit race", "Vi tjekker alle indsendelser, før de vises. Tak fordi du gør kortet bedre.": "We review every submission before it appears. Thanks for making the map better.",
+    "+ Tilføj dette løb til kortet": "+ Add this race to the map", "+ Mangler dit løb? Tilføj det": "+ Missing your race? Add it",
+    "Udfyld mindst løbets navn og by.": "Enter at least the race name and city.",
+    "Kunne ikke sende lige nu. Prøv igen om lidt.": "Couldn't submit right now. Try again shortly.",
     // dashboard
     "Godmorgen": "Good morning", "Formiddag": "Good day", "Goddag": "Good afternoon", "Godaften": "Good evening", "Godnat": "Good night",
     "Dashboard": "Dashboard", "Dit næste løb": "Your next race", "🎟 Dit næste tilmeldte løb": "🎟 Your next registered race",

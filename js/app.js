@@ -984,10 +984,12 @@ searchInput.addEventListener("input", () => {
       : (erKommende(a) ? -1 : 1))                // afholdte nederst
     .slice(0, 8);
   if (!hits.length) {
-    searchMenu.innerHTML = `<div class="search-tom">Ingen løb matcher "${searchInput.value.trim()}"</div>`;
+    const raw = searchInput.value.trim();
+    searchMenu.innerHTML = `<div class="search-tom">Ingen løb matcher "${raw}"</div>` +
+      `<button class="tilfoej-knap" id="tilfoejBtn">+ Tilføj dette løb til kortet</button>`;
     searchMenu.hidden = false;
-    const raw = searchInput.value;   // log først når teksten er faldet til ro
-    missTimer = setTimeout(() => logSøgeMiss(raw), 1400);
+    document.getElementById("tilfoejBtn").onclick = () => åbnTilføj(raw);
+    missTimer = setTimeout(() => logSøgeMiss(searchInput.value), 1400);   // log når teksten er faldet til ro
     return;
   }
   searchMenu.innerHTML = hits.map(r => `
@@ -995,13 +997,15 @@ searchInput.addEventListener("input", () => {
       <span class="dot" style="background:${TYPE_COLOR[r.t]}"></span>
       <span class="s-navn">${r.n}</span>
       <span class="s-meta">${r.c} · ${r.dt && r.dt < iDagISO() ? "Afholdt " : ""}${dateLabel(r)}</span>
-    </button>`).join("");
+    </button>`).join("") +
+    `<button class="tilfoej-knap" id="tilfoejBtn">+ Mangler dit løb? Tilføj det</button>`;
   searchMenu.hidden = false;
-  searchMenu.querySelectorAll("button").forEach(b => b.onclick = () => {
+  searchMenu.querySelectorAll("button[data-id]").forEach(b => b.onclick = () => {
     searchMenu.hidden = true;
     searchInput.value = "";
     openDetail(RACES[+b.dataset.id], true);
   });
+  document.getElementById("tilfoejBtn").onclick = () => åbnTilføj(searchInput.value.trim());
 });
 searchInput.addEventListener("keydown", e => {
   if (e.key === "Escape") { searchMenu.hidden = true; searchInput.blur(); søgValg = -1; return; }
@@ -1012,6 +1016,55 @@ searchInput.addEventListener("keydown", e => {
   else if (e.key === "Enter") { e.preventDefault(); (knapper[søgValg] || knapper[0]).click(); }
 });
 document.addEventListener("click", e => { if (!searchMenu.hidden && !e.target.closest(".search-wrap")) searchMenu.hidden = true; });
+
+/* ---------- Tilføj et løb (crowdsource) ---------- */
+const addOverlay = document.getElementById("addOverlay");
+const addForm = document.getElementById("addForm");
+const addFejl = document.getElementById("addFejl");
+function åbnTilføj(prefill) {
+  searchMenu.hidden = true;
+  addForm.hidden = false;
+  document.getElementById("addSucces").hidden = true;
+  addFejl.hidden = true;
+  addForm.reset();
+  if (prefill) document.getElementById("addName").value = prefill;
+  addOverlay.hidden = false;
+  setTimeout(() => document.getElementById(prefill ? "addCity" : "addName").focus(), 60);
+}
+window.åbnTilføj = åbnTilføj;
+function lukTilføj() { addOverlay.hidden = true; }
+document.getElementById("addClose").onclick = lukTilføj;
+document.getElementById("addLuk2").onclick = lukTilføj;
+addOverlay.addEventListener("click", e => { if (e.target === addOverlay) lukTilføj(); });
+
+addForm.addEventListener("submit", async e => {
+  e.preventDefault();
+  if (document.getElementById("addHp").value) { lukTilføj(); return; }   // honeypot → bot, drop stille
+  const v = id => document.getElementById(id).value.trim();
+  const navn = v("addName"), by = v("addCity");
+  if (navn.length < 2 || !by) { addFejl.textContent = "Udfyld mindst løbets navn og by."; addFejl.hidden = false; return; }
+  const cta = document.getElementById("addCta");
+  cta.disabled = true; addFejl.hidden = true;
+  try {
+    const KEY = "sb_publishable_UfiDozoliZR44TAJ9SX-ng_1f3q_Mk3";
+    const r = await fetch("https://qdqvyvidafslzvxgkvof.supabase.co/rest/v1/race_submissions", {
+      method: "POST",
+      headers: { apikey: KEY, Authorization: "Bearer " + KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({
+        name: navn, city: by, country: v("addCountry") || null,
+        race_type: document.getElementById("addType").value,
+        race_date: v("addDate") || null,
+        url: v("addUrl") || null, email: v("addEmail") || null, status: "pending",
+      }),
+    });
+    if (!r.ok) throw new Error(String(r.status));
+    addForm.hidden = true;
+    document.getElementById("addSucces").hidden = false;
+  } catch (_) {
+    addFejl.textContent = "Kunne ikke sende lige nu. Prøv igen om lidt.";
+    addFejl.hidden = false;
+  } finally { cta.disabled = false; }
+});
 
 /* ---------- nær mig ---------- */
 document.getElementById("nearBtn").addEventListener("click", () => {
