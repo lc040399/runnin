@@ -248,7 +248,7 @@ function renderDashboard() {
           <div class="avatar-rad">
             <button class="avatar-upload" id="dashAvatarBtn" type="button" title="Skift profilbillede">
               <span id="dashAvatar">${avatarHtml(user)}</span>
-              <span class="avatar-kamera">📷</span>
+              <span class="avatar-kamera" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M4 8.8A1.6 1.6 0 0 1 5.6 7.2h1.3a1 1 0 0 0 .84-.46l.62-.96a1 1 0 0 1 .84-.46h3.72a1 1 0 0 1 .84.46l.62.96a1 1 0 0 0 .84.46h1.3A1.6 1.6 0 0 1 20 8.8v7.6A1.6 1.6 0 0 1 18.4 18H5.6A1.6 1.6 0 0 1 4 16.4V8.8Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="12.2" r="2.9" stroke="currentColor" stroke-width="1.7"/></svg></span>
             </button>
             <div class="avatar-hjælp">Klik for at skifte profilbillede.<br><small>Gemmes kun på denne enhed.</small></div>
           </div>
