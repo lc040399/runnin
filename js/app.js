@@ -28,7 +28,42 @@ const favs = new Set(
 // Tilmeldinger markeres manuelt (købet sker på arrangørens side) - nøgle = løbets navn
 const entries = new Set(JSON.parse(localStorage.getItem("runnin-entries") || "[]"));
 const saveEntries = () => localStorage.setItem("runnin-entries", JSON.stringify([...entries]));
-RACES.forEach((r, i) => (r.id = i));
+
+/* Dedup: samme løb kommer fra flere kilder (aggregatorer overlapper). Fjern så hvert løb
+   kun står ÉN gang. Beholder-regel: kommende > load-rækkefølge (kurateret først) > eksakt
+   dato > tidligst. Samme logik som tools/build-json.mjs (native app). Kaldes ved statisk
+   load + efter hver lazy-kilde, så tal/kort/søgning altid er rene. */
+function dedupRACES() {
+  const nrm = s => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/20\d\d/g, "").replace(/[^a-z0-9]/g, "");
+  const celle = (la, lo) => Math.round(la * 5) / 5 + "," + Math.round(lo * 5) / 5;
+  const iDag = iDagISO();
+  const komm = r => r.dt && r.dt.length === 10 ? r.dt >= iDag : (r.m && r.m.length === 7 ? r.m + "-31" >= iDag : true);
+  const eff = r => r.dt || (r.m ? r.m + "-15" : "9999-99-99");
+  const bedre = (a, b) => {                                  // er a bedre end nuværende keeper b?
+    if (komm(a) !== komm(b)) return komm(a);
+    if (a.__i !== b.__i) return a.__i < b.__i;               // load-index = prioritet
+    const ad = !!(a.dt && a.dt.length === 10), bd = !!(b.dt && b.dt.length === 10);
+    if (ad !== bd) return ad;
+    return eff(a) <= eff(b);
+  };
+  RACES.forEach((r, i) => (r.__i = i));
+  const fjern = new Set();
+  const pass = nøgle => {
+    const g = new Map();
+    RACES.forEach((r, i) => { if (fjern.has(i)) return; const k = nøgle(r); if (!k) return; (g.get(k) || g.set(k, []).get(k)).push(i); });
+    for (const idxs of g.values()) {
+      if (idxs.length < 2) continue;
+      let keep = idxs[0];
+      for (const i of idxs) if (bedre(RACES[i], RACES[keep])) keep = i;
+      for (const i of idxs) if (i !== keep) fjern.add(i);
+    }
+  };
+  pass(r => nrm(r.n).length >= 4 ? nrm(r.n) + "@" + celle(r.la, r.lo) : null);
+  pass(r => (nrm(r.n).length >= 4 && r.dt && r.cc) ? nrm(r.n) + "|" + r.cc + "|" + r.dt : null);
+  if (fjern.size) { const kept = RACES.filter((_, i) => !fjern.has(i)); RACES.length = 0; RACES.push(...kept); }
+  RACES.forEach((r, i) => { r.id = i; delete r.__i; });
+}
 
 /* ---------- helpers ---------- */
 const flag = cc => cc === "AQ" ? "🇦🇶" : [...cc].map(c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65)).join("");
@@ -57,6 +92,8 @@ const iDagISO = () => {
 // afholdte løb arkiveres: væk fra kortet og Kommende løb (men bliver i Mine løb/statistik).
 // Løb der er i gang i DAG skal selvfølgelig stadig vises.
 const erKommende = r => r.dt ? r.dt >= iDagISO() : r.m >= iDagISO().slice(0, 7);
+
+dedupRACES();   // ryd dubletter i de statiske kilder før kortet bygges (iDagISO er nu defineret)
 
 function filtered() {
   return RACES.filter(r =>
@@ -1267,7 +1304,8 @@ setInterval(() => {
 map.once("load", () => setTimeout(() => {
   const lazyKilder = ["data/races-rsu.js?v=81", "data/races-parkrun.js?v=1", "data/races-findarace.js?v=1", "data/races-endu.js?v=1", "data/races-finishers.js?v=1"];
   const refresh = () => {
-    // hver fil pusher sine løb og gen-id'er hele RACES selv
+    // hver fil pusher sine løb og gen-id'er hele RACES selv → dedup på tværs af alle kilder
+    dedupRACES();
     const src = map.getSource("races");
     if (src) src.setData(toGeojson(filtered()));
     updateCounter();
