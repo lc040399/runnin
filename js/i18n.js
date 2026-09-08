@@ -105,6 +105,7 @@ function sætSprog(l) {
     [/^([\d.]+) løb i gang$/, "$1 races live"],
     [/^(\d+) Runnin-løbere? er tilmeldt$/, (m) => m.replace("Runnin-løbere er tilmeldt", "Runnin runners are registered").replace("Runnin-løber er tilmeldt", "Runnin runner is registered")],
     [/^\+ (\d+) flere$/, "+ $1 more"],
+    [/^Hurtigste (marathon|halvmarathon)$/, (m, d) => `Fastest ${d === "halvmarathon" ? "half marathon" : "marathon"}`],
     [/^fra ([\d.,]+) kr$/, "from $1 kr"],
     [/^Startgebyr: fra ([\d.,]+) kr$/, "Entry fee: from $1 kr"],
     [/^Næste udgave: (.+)$/, (m, resten) => `Next edition: ${oversætDato(resten)}`],
