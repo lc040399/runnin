@@ -1265,7 +1265,7 @@ setInterval(() => {
    Norden-først: kortet står med det samme, de tunge kilder flettes ind
    sekventielt når kortet har haft sit første rolige øjeblik. */
 map.once("load", () => setTimeout(() => {
-  const lazyKilder = ["data/races-rsu.js?v=81", "data/races-parkrun.js?v=1", "data/races-findarace.js?v=1"];
+  const lazyKilder = ["data/races-rsu.js?v=81", "data/races-parkrun.js?v=1", "data/races-findarace.js?v=1", "data/races-endu.js?v=1"];
   const refresh = () => {
     // hver fil pusher sine løb og gen-id'er hele RACES selv
     const src = map.getSource("races");
