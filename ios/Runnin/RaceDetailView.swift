@@ -14,6 +14,7 @@ struct RaceDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var visBib = false
     @State private var bibUdkast = ""
+    @State private var visStory = false
 
     private let ink = Color(red: 0.22, green: 0.14, blue: 0.05)
     private let muted = Color(red: 0.49, green: 0.42, blue: 0.31)
@@ -104,8 +105,9 @@ struct RaceDetailView: View {
                 }
                 .buttonStyle(PressableStyle())
 
-                ShareLink(item: race.delLink,
-                          message: Text(lang.t("Skal vi løbe \(race.n)?", "Want to run \(race.n)?"))) {
+                Button {
+                    visStory = true
+                } label: {
                     HStack(spacing: 7) {
                         Image(systemName: "square.and.arrow.up")
                             .font(.system(size: 14, weight: .semibold))
@@ -116,6 +118,7 @@ struct RaceDetailView: View {
                     .padding(.vertical, 9).padding(.horizontal, 14)
                     .overlay(RoundedRectangle(cornerRadius: 11).stroke(hairline, lineWidth: 1))
                 }
+                .buttonStyle(PressableStyle())
             }
             .padding(.top, 14)
 
@@ -188,6 +191,13 @@ struct RaceDetailView: View {
         .presentationDetents([.height(detentHøjde)])
         .presentationDragIndicator(.hidden)
         .onAppear { bibUdkast = saved.bib(race.n) }
+        .sheet(isPresented: $visStory) {
+            StoryShareView(race: race,
+                           tilmeldt: saved.erTilmeldt(race.n),
+                           brugerNavn: auth.user?.navn ?? "")
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     /// "Anna skal løbe" / "Anna og 2 andre skal løbe"

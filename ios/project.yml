@@ -11,7 +11,11 @@ targets:
   Runnin:
     type: application
     platform: iOS
-    sources: [Runnin]
+    sources:
+      - Runnin
+      - path: StoryAssets
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: MapLibre
     info:
@@ -20,6 +24,8 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLName: dk.runnin.auth
             CFBundleURLSchemes: [runnin]
+        LSApplicationQueriesSchemes: [instagram-stories, instagram]
+        NSPhotoLibraryAddUsageDescription: "Save your race story to share it on Instagram or anywhere else."
     entitlements:
       path: Runnin/Runnin.entitlements
       properties:

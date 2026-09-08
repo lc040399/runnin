@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080, initial-scale=1">
+<script src="d3.min.js"></script>
+<script src="topojson.min.js"></script>
+<script src="land.js"></script>
+<style>
+  @font-face{font-family:'Inter Tight';font-style:normal;font-weight:100 900;font-display:block;src:url(fonts/InterTight.woff2) format('woff2')}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1920px;overflow:hidden}
+  body{--bg1:#2A1D0F;--bg2:#1B1206;--bg3:#120B04;--ink:#F5EFE2;--sub:#C6B49A;--faint:#8A7A62;
+    --accent:#E7924A;--ok:#6FB98A;--water1:#2C4658;--water2:#1B2E3C;--water3:#12212C;--land:#3A4C3A;--landhi:#46583F;--grid:rgba(245,239,226,.11);--sep:rgba(245,239,226,.14)}
+  body.lys{--bg1:#F7F3EA;--bg2:#F1ECDF;--bg3:#E9E2D2;--ink:#2E1D0A;--sub:#7E6A50;--faint:#AE9C80;
+    --accent:#C05800;--ok:#3E8F63;--water1:#C3D7E0;--water2:#AEC8D4;--water3:#98B7C6;--land:#DCE3C6;--landhi:#E7EDD5;--grid:rgba(46,29,10,.12);--sep:rgba(46,29,10,.14)}
+  body{font-family:'Inter Tight',system-ui,sans-serif;color:var(--ink);
+    background:radial-gradient(135% 85% at 50% 14%, var(--bg1) 0%, var(--bg2) 56%, var(--bg3) 100%)}
+  .wrap{height:100%;display:flex;flex-direction:column;align-items:center;padding:118px 90px 108px;position:relative}
+  .brand{display:flex;align-items:center;gap:16px;font-weight:700;letter-spacing:8px;font-size:27px;color:var(--sub)}
+  .brand img{width:40px;height:40px;object-fit:contain}
+  #globe{margin-top:92px}
+  .kicker{margin-top:84px;display:flex;align-items:center;gap:14px;font-weight:700;letter-spacing:7px;font-size:29px}
+  .kicker.go{color:var(--accent)}
+  .kicker.done{color:var(--ok)}
+  .kicker .chk{display:none;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;background:var(--ok);color:var(--bg3)}
+  .kicker.done .chk{display:inline-flex}
+  .kicker .chk svg{width:22px;height:22px}
+  .titel{margin-top:20px;font-weight:800;font-size:104px;line-height:.98;text-align:center;letter-spacing:-.025em;max-width:920px}
+  .meta{margin-top:40px;font-weight:500;font-size:41px;color:var(--sub)}
+  .stats{margin-top:52px;display:none;width:100%;max-width:900px}
+  .stats.on{display:flex}
+  .stat{flex:1;text-align:center;position:relative}
+  .stat + .stat::before{content:"";position:absolute;left:0;top:12%;height:76%;width:1px;background:var(--sep)}
+  .stat .v{font-weight:800;font-size:60px;letter-spacing:-.02em;line-height:1}
+  .stat .l{margin-top:14px;font-weight:600;font-size:25px;letter-spacing:3px;color:var(--faint);text-transform:uppercase}
+  .foot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:14px}
+  .bruger{font-weight:600;font-size:35px;color:var(--sub);letter-spacing:.3px;text-align:center}
+  .url{font-weight:600;font-size:28px;color:var(--faint);letter-spacing:3px}
+  .rev{opacity:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand rev" id="brand"><img src="mark.png" alt="">RUNNIN</div>
+  <svg id="globe" width="720" height="720"></svg>
+  <div class="kicker rev go" id="k"><span class="chk"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="ktxt">JEG SKAL LØBE</span></div>
+  <div class="titel rev" id="t">Copenhagen Marathon</div>
+  <div class="meta rev" id="m">42,2 km · København 🇩🇰 · maj 2027</div>
+  <div class="stats" id="stats">
+    <div class="stat rev" id="s1"><div class="v" id="s1v">3:42:18</div><div class="l" id="s1l">Tid</div></div>
+    <div class="stat rev" id="s2"><div class="v" id="s2v">5:16</div><div class="l" id="s2l">Tempo /km</div></div>
+    <div class="stat rev" id="s3"><div class="v" id="s3v">Top 12%</div><div class="l" id="s3l">Placering</div></div>
+  </div>
+  <div class="foot"><div class="bruger rev" id="b">Lasse Christensen</div><div class="url rev" id="u">RUNNIN.ORG</div></div>
+</div>
+<script>
+let proj, path, gGrat, gLand, pinG, pRing, pChk, land, grat;
+let LON=12.5679, LAT=55.6761, startRot, slutRot, MODE="go", DUR=4700;
+function reveal(id, start, ms){ const p=Math.max(0,Math.min(1,(ms-start)/800)); const e=1-Math.pow(1-p,3);
+  const el=document.getElementById(id); if(!el)return; el.style.opacity=e; el.style.transform=`translateY(${26*(1-e)}px)`; }
+function T(id,v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+
+window.initStory=function(pJson){
+  const p = typeof pJson==="string" ? JSON.parse(pJson) : pJson;
+  MODE = p.done ? "done" : "go";
+  if(p.theme==="lys") document.body.classList.add("lys");
+  LON = p.lon; LAT = p.lat;
+  slutRot = [-LON, -Math.max(-60, Math.min(60, LAT*0.72))];
+  startRot = [slutRot[0]+150, -20];
+  // tekst
+  T("t", p.title);
+  T("b", p.user || "");
+  T("u", p.url || "RUNNIN.ORG");
+  const k=document.getElementById("k");
+  if(MODE==="done"){
+    k.className="kicker rev done"; T("ktxt", p.kicker || "GENNEMFØRT");
+    document.getElementById("m").style.display="none";
+    document.getElementById("stats").classList.add("on");
+    T("s1v",p.s1v); T("s1l",p.s1l); T("s2v",p.s2v); T("s2l",p.s2l);
+    if(p.s3v){ T("s3v",p.s3v); T("s3l",p.s3l); } else { document.getElementById("s3").style.display="none"; }
+    DUR = 5400;
+  } else {
+    k.className="kicker rev go"; T("ktxt", p.kicker || "JEG SKAL LØBE");
+    T("m", p.meta);
+    DUR = 4700;
+  }
+  window.__durMs = DUR;
+  bygGlobe();
+  window.renderAt(0);
+  window.__klar = true;
+};
+
+function bygGlobe(){
+  const R=360, r=340, ACC = MODE==="done" ? "--ok" : "--accent";
+  const cs=getComputedStyle(document.body), c=n=>cs.getPropertyValue(n).trim();
+  land=topojson.feature(window.__LAND, window.__LAND.objects.land); grat=d3.geoGraticule10();
+  proj=d3.geoOrthographic().scale(r).translate([R,R]).clipAngle(90); path=d3.geoPath(proj);
+  const svg=d3.select("#globe").html(""), defs=svg.append("defs");
+  const sea=defs.append("radialGradient").attr("id","sea").attr("cx","40%").attr("cy","34%").attr("r","74%");
+  sea.append("stop").attr("offset","0%").attr("stop-color",c("--water1"));
+  sea.append("stop").attr("offset","58%").attr("stop-color",c("--water2"));
+  sea.append("stop").attr("offset","100%").attr("stop-color",c("--water3"));
+  const glow=defs.append("radialGradient").attr("id","gl").attr("r","50%");
+  glow.append("stop").attr("offset","0%").attr("stop-color",c(ACC)).attr("stop-opacity",.8);
+  glow.append("stop").attr("offset","100%").attr("stop-color",c(ACC)).attr("stop-opacity",0);
+  svg.append("circle").attr("cx",R).attr("cy",R).attr("r",r).attr("fill","url(#sea)");
+  gGrat=svg.append("path").attr("fill","none").attr("stroke",c("--grid")).attr("stroke-width",1.2);
+  gLand=svg.append("path").attr("fill",c("--land")).attr("stroke",c("--landhi")).attr("stroke-width",.6);
+  svg.append("circle").attr("cx",R).attr("cy",R).attr("r",r).attr("fill","none").attr("stroke",c("--grid")).attr("stroke-width",2);
+  pinG=svg.append("g").style("opacity",0);
+  pinG.append("circle").attr("r",22).attr("fill","url(#gl)");
+  pRing=pinG.append("circle").attr("r",13).attr("fill","none").attr("stroke",c(ACC)).attr("stroke-opacity",.32).attr("stroke-width",1.5);
+  pinG.append("circle").attr("r", MODE==="done"?9:7).attr("fill",c(ACC)).attr("stroke","#fff").attr("stroke-width",2).attr("stroke-opacity",.9);
+  pChk=pinG.append("path").attr("d","M-4 0l3 3 5.5-6").attr("fill","none").attr("stroke","#fff").attr("stroke-width",2.2).attr("stroke-linecap","round").attr("stroke-linejoin","round").style("opacity",0);
+}
+
+window.renderAt=function(ms){
+  if(!proj) return;
+  const rt=Math.max(0,Math.min(1,ms/2200)), e=1-Math.pow(1-rt,3);
+  proj.rotate([startRot[0]+(slutRot[0]-startRot[0])*e, startRot[1]+(slutRot[1]-startRot[1])*e]);
+  gGrat.attr("d",path(grat)); gLand.attr("d",path(land));
+  if(ms>=2150){
+    const p=proj([LON,LAT]);
+    const dt=Math.max(0,Math.min(1,(ms-2150)/650));
+    const n=7.5625, d=2.75; let bt; const x=dt;
+    if(x<1/d)bt=n*x*x; else if(x<2/d){const y=x-1.5/d;bt=n*y*y+.75;} else if(x<2.5/d){const y=x-2.25/d;bt=n*y*y+.9375;} else {const y=x-2.625/d;bt=n*y*y+.984375;}
+    const sc=.4+.6*bt, yo=-40*(1-bt);
+    pinG.attr("transform",`translate(${p[0]},${p[1]+yo}) scale(${sc})`).style("opacity",Math.min(1,dt*2));
+    const fr=((ms-2150)%1600)/1600; pRing.attr("r",7+15*fr).attr("stroke-opacity",.5*(1-fr));
+    if(MODE==="done"){ const ct=Math.max(0,Math.min(1,(ms-2700)/300)), ce=1-Math.pow(1-ct,3);
+      pChk.style("opacity",ce).attr("transform",`scale(${.6+.4*ce})`); }
+  } else if(pinG) pinG.style("opacity",0);
+  reveal("brand",150,ms); reveal("k",2450,ms); reveal("t",2600,ms);
+  if(MODE==="done"){ reveal("s1",2850,ms); reveal("s2",2980,ms); reveal("s3",3110,ms); reveal("b",3300,ms); reveal("u",3420,ms); }
+  else { reveal("m",2800,ms); reveal("b",3100,ms); reveal("u",3250,ms); }
+};
+window.__loaded = true;
+</script>
+</body>
+</html>
