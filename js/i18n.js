@@ -60,6 +60,14 @@ function sætSprog(l) {
     "+ Tilføj dette løb til kortet": "+ Add this race to the map", "+ Mangler dit løb? Tilføj det": "+ Missing your race? Add it",
     "Udfyld mindst løbets navn og by.": "Enter at least the race name and city.",
     "Kunne ikke sende lige nu. Prøv igen om lidt.": "Couldn't submit right now. Try again shortly.",
+    // anmeldelser
+    "Anmeldelser": "Reviews", "Din anmeldelse": "Your review", "Har du løbet det? Anmeld det": "Ran it? Review it",
+    "Send anmeldelse": "Post review", "Opdatér": "Update", "(dig)": "(you)",
+    "Hvordan var ruten, stemningen, arrangementet? (valgfri)": "How was the route, atmosphere, organisation? (optional)",
+    "Ingen anmeldelser endnu. ": "No reviews yet. ", " for at anmelde.": " to review.",
+    "Vælg en bedømmelse (1-5 stjerner).": "Pick a rating (1-5 stars).",
+    "Kunne ikke gemme lige nu. Prøv igen om lidt.": "Couldn't save right now. Try again shortly.",
+    "i går": "yesterday",
     // dashboard
     "Godmorgen": "Good morning", "Formiddag": "Good day", "Goddag": "Good afternoon", "Godaften": "Good evening", "Godnat": "Good night",
     "Dashboard": "Dashboard", "Dit næste løb": "Your next race", "🎟 Dit næste tilmeldte løb": "🎟 Your next registered race",
@@ -109,6 +117,9 @@ function sætSprog(l) {
   }
 
   const REGLER = [
+    [/^(\d+) dage siden$/, "$1 days ago"],
+    [/^(\d+) mdr\. siden$/, "$1 months ago"],
+    [/^(\d+) år siden$/, "$1 years ago"],
     [/^([\d.,]+) løb$/, "$1 races"],
     [/^· ([\d.,]+) løb$/, "· $1 races"],
     [/^Løb i (.+)\.$/, (m, sted) => `Races in ${({"Danmark":"Denmark","Norden":"the Nordics","Europa":"Europe","Hele verden":"the whole world"})[sted] || sted}.`],

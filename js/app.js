@@ -28,6 +28,10 @@ const favs = new Set(
 // Tilmeldinger markeres manuelt (købet sker på arrangørens side) - nøgle = løbets navn
 const entries = new Set(JSON.parse(localStorage.getItem("runnin-entries") || "[]"));
 const saveEntries = () => localStorage.setItem("runnin-entries", JSON.stringify([...entries]));
+// Gennemførte løb (låser anmeldelser op + fodrer statistik/deling). Nøgle = løbets navn.
+const completed = new Set(JSON.parse(localStorage.getItem("runnin-completed") || "[]"));
+const saveCompleted = () => localStorage.setItem("runnin-completed", JSON.stringify([...completed]));
+window.completed = completed; window.saveCompleted = saveCompleted;
 
 /* Dedup: samme løb kommer fra flere kilder (aggregatorer overlapper). Fjern så hvert løb
    kun står ÉN gang. Beholder-regel: kommende > load-rækkefølge (kurateret først) > eksakt
@@ -492,6 +496,7 @@ function openDetail(r, fly) {
   updateSaveBtn();
   if (typeof featuresOnDetail === "function") featuresOnDetail(r);
   visDetailRute(r);
+  if (typeof window.renderAnmeldelser === "function") window.renderAnmeldelser(r);
   history.replaceState(null, "", "#" + slug(r.n));
   hoverCard.hidden = true; // ingen hover-tooltip bag/oven på detalje-modalen
   detail.hidden = false;
@@ -1453,7 +1458,7 @@ document.getElementById("fotoInput").addEventListener("change", e => {
   e.target.value = "";
 });
 
-const RUNNIN_KEYS = ["runnin-user", "runnin-favs", "runnin-entries", "runnin-alarms", "runnin-bibs", "runnin-strava", "runnin-radars", "runnin-tema"];
+const RUNNIN_KEYS = ["runnin-user", "runnin-favs", "runnin-entries", "runnin-alarms", "runnin-bibs", "runnin-completed", "runnin-strava", "runnin-radars", "runnin-tema"];
 function eksportData() {
   // runnin-tema gemmes som rå streng, resten som JSON - tag begge dele med
   const læs = k => { const v = localStorage.getItem(k); try { return JSON.parse(v ?? "null"); } catch (_) { return v; } };

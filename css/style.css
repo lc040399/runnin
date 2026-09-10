@@ -394,6 +394,38 @@ html[data-tema="mørk"] { --scrim-rgb: 25, 17, 8; }
 .d-actions button:hover { border-color: var(--ink); transform: translateY(-1px); }
 .d-actions button.on { background: rgba(192,88,0,.1); border-color: rgba(192,88,0,.4); }
 .d-actions button.on span { color: var(--coral); font-weight: 700; }
+
+/* Anmeldelser på detaljen */
+.d-reviews { margin-top: 16px; border-top: 1px solid var(--hairline); padding-top: 14px; }
+.d-reviews:empty { display: none; }
+.rv-hoved { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.rv-titel { font-size: 13px; font-weight: 700; color: var(--ink); }
+.rv-snit { font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.rv-snit b { color: var(--ink); }
+.stj { color: rgba(126,106,80,.35); font-size: 14px; letter-spacing: -1px; }
+.stj.fyldt { color: #E8A13A; }
+.stj.lille { font-size: 12px; }
+.rv-skriv { margin-top: 12px; background: var(--flade); border: 1px solid var(--hairline); border-radius: 12px; padding: 12px; }
+.rv-label { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+.rv-vaelg .stj { font-size: 26px; cursor: pointer; letter-spacing: 1px; transition: transform .1s; }
+.rv-vaelg .stj:hover { transform: scale(1.15); }
+.rv-tekst { width: 100%; margin-top: 10px; border: 1px solid var(--hairline); border-radius: 9px; padding: 9px 11px;
+  font: inherit; font-size: 13px; color: var(--ink); background: var(--bg, #fff); resize: vertical; min-height: 54px; }
+html[data-tema="mørk"] .rv-tekst { background: rgba(0,0,0,.18); }
+.rv-tekst:focus { outline: none; border-color: var(--coral); }
+.rv-send { margin-top: 10px; padding: 10px 16px; font-size: 13.5px; }
+.rv-fejl { margin-top: 8px; font-size: 12px; color: #B3261E; }
+.rv-tom { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+.rv-login-link, .rv-tom .rv-login-link { background: none; border: none; color: var(--coral); font: inherit; font-weight: 700; cursor: pointer; padding: 0; }
+.rv-liste { margin-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.rv-kort { border-left: 2px solid transparent; padding-left: 10px; }
+.rv-kort.ven { border-left-color: var(--coral); }
+.rv-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.rv-navn { font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.rv-navn em { color: var(--muted); font-weight: 500; font-style: normal; }
+.rv-dato { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.rv-str { margin-top: 2px; }
+.rv-txt { margin-top: 4px; font-size: 13px; line-height: 1.5; color: var(--ink); }
 .search-wrap { position: relative; margin-top: 16px; max-width: 400px; }
 .search {
   width: 100%; font-family: var(--sans); font-size: 13.5px; font-weight: 500; color: var(--ink);

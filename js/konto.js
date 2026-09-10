@@ -31,22 +31,24 @@ function visLoginFejl(tekst, roligt) {
 
 /* ---------- synk ---------- */
 async function skyHent() {
-  const { data, error } = await sb.from("user_races").select("race_n, gemt, tilmeldt, paamind, bib");
+  const { data, error } = await sb.from("user_races").select("race_n, gemt, tilmeldt, paamind, bib, gennemfoert");
   if (error || !data) return;
   const bibs = JSON.parse(localStorage.getItem("runnin-bibs") || "{}");
   for (const r of data) {
     if (r.gemt) favs.add(r.race_n);
     if (r.tilmeldt) entries.add(r.race_n);
     if (r.paamind) alarms.add(r.race_n);
+    if (r.gennemfoert && window.completed) window.completed.add(r.race_n);
     if (r.bib) bibs[r.race_n] = r.bib;
   }
   localStorage.setItem("runnin-favs", JSON.stringify([...favs]));
   localStorage.setItem("runnin-entries", JSON.stringify([...entries]));
   localStorage.setItem("runnin-alarms", JSON.stringify([...alarms]));
   localStorage.setItem("runnin-bibs", JSON.stringify(bibs));
+  if (window.saveCompleted) window.saveCompleted();
   // gæstedata, skyen ikke kender, migreres op
   const skyNavne = new Set(data.map(r => r.race_n));
-  for (const n of new Set([...favs, ...entries, ...alarms, ...Object.keys(bibs)])) {
+  for (const n of new Set([...favs, ...entries, ...alarms, ...(window.completed || []), ...Object.keys(bibs)])) {
     if (!skyNavne.has(n)) skyPush(n);
   }
   updateFavCount();
@@ -84,8 +86,9 @@ async function skyPush(raceN) {
       user_id: bruger.id, race_n: raceN,
       gemt: favs.has(raceN), tilmeldt: entries.has(raceN),
       paamind: alarms.has(raceN), bib: bibs[raceN] || null,
+      gennemfoert: !!(window.completed && window.completed.has(raceN)),
     };
-    if (!række.gemt && !række.tilmeldt && !række.paamind && !række.bib) {
+    if (!række.gemt && !række.tilmeldt && !række.paamind && !række.bib && !række.gennemfoert) {
       await sb.from("user_races").delete().eq("race_n", raceN);
     } else {
       await sb.from("user_races").upsert(række);
