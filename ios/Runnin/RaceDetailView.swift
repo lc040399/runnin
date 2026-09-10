@@ -15,6 +15,8 @@ struct RaceDetailView: View {
     @State private var visBib = false
     @State private var bibUdkast = ""
     @State private var visStory = false
+    @State private var visReviews = false
+    @State private var reviewSnit: (snit: Double, antal: Int) = (0, 0)
 
     private let ink = Color(red: 0.22, green: 0.14, blue: 0.05)
     private let muted = Color(red: 0.49, green: 0.42, blue: 0.31)
@@ -145,6 +147,8 @@ struct RaceDetailView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
 
+            reviewRow.padding(.top, 12)
+
             Spacer(minLength: 20)
 
             HStack(spacing: 10) {
@@ -198,6 +202,37 @@ struct RaceDetailView: View {
                 .presentationDetents([.large])
                 .presentationDragIndicator(.visible)
         }
+        .sheet(isPresented: $visReviews, onDismiss: { Task { await hentReviewSnit() } }) {
+            ReviewsSheet(race: race, auth: auth)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+        .task(id: race.n) { await hentReviewSnit() }
+    }
+
+    private func hentReviewSnit() async {
+        reviewSnit = ReviewService.snit(await ReviewService.hent(race.n, token: auth.token))
+    }
+
+    /// tappbar anmeldelses-opsummering på detaljen (gennemsnit el. "anmeld dette løb")
+    private var reviewRow: some View {
+        Button { visReviews = true } label: {
+            HStack(spacing: 8) {
+                if reviewSnit.antal > 0 {
+                    StarRow(rating: reviewSnit.snit, size: 13)
+                    Text("\(String(format: "%.1f", reviewSnit.snit)) · \(reviewSnit.antal) \(lang.t("anmeldelser", "reviews"))")
+                        .font(.system(size: 13, weight: .medium)).foregroundColor(ink)
+                } else {
+                    Image(systemName: "star").font(.system(size: 13, weight: .semibold)).foregroundColor(coral)
+                    Text(lang.t("Anmeld dette løb", "Review this race")).font(.system(size: 13, weight: .semibold)).foregroundColor(coral)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold)).foregroundColor(muted)
+            }
+            .padding(.vertical, 11).padding(.horizontal, 13)
+            .overlay(RoundedRectangle(cornerRadius: 11).stroke(hairline, lineWidth: 1))
+        }
+        .buttonStyle(PressableStyle())
     }
 
     /// "Anna skal løbe" / "Anna og 2 andre skal løbe"
@@ -215,13 +250,13 @@ struct RaceDetailView: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
-    /// ark-højde: vokser med det der vises (venner / bib / klima)
+    /// ark-højde: vokser med det der vises (venner / bib / klima / anmeldelses-række)
     private var detentHøjde: CGFloat {
-        var h: CGFloat = 400
+        var h: CGFloat = 454   // + anmeldelses-række (altid vist)
         if !venner.isEmpty { h += 30 }
         if saved.erTilmeldt(race.n) { h += 70 }
         if let mi = løbsMåned, let c = klima.celle(la: race.la, lo: race.lo), c.t[mi] != nil { h += 150 }
-        return min(h, 660)
+        return min(h, 720)
     }
 
     /// løbsmåned 0-11 (fra m "YYYY-MM", ellers dt)
