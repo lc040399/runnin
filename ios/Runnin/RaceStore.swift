@@ -83,6 +83,17 @@ final class RaceStore: ObservableObject {
         default:       return true
         }
     }
+
+    // dagens løb (grønne på kortet + live-pill) - memoiseret pr. dag/data, ufiltreret som web
+    private var _liveCache: [Race]?
+    private var _liveSig = ""
+    var iDagLøb: [Race] {
+        let sig = "\(Race.iDagISO)|\(dataVersion)"
+        if let c = _liveCache, _liveSig == sig { return c }
+        let r = all.filter { $0.erLive }.sorted { $0.n < $1.n }
+        _liveCache = r; _liveSig = sig
+        return r
+    }
 }
 
 /// filter-valgmuligheder (matcher web) - labels på appens sprog

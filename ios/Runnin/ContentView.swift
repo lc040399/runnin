@@ -16,6 +16,7 @@ struct ContentView: View {
     @State private var selected: Race?
     @State private var stak: [Race]?
     @State private var showFilters = false
+    @State private var visIDag = false
     @State private var showLogin = false
     @State private var visProfil = false
     @State private var visSprog = false
@@ -133,6 +134,15 @@ struct ContentView: View {
             StakSheet(løb: box.løb) { r in stak = nil; selected = r }
         }
         .sheet(isPresented: $showFilters) { FilterSheet(store: store) }
+        .sheet(isPresented: $visIDag) {
+            StakSheet(løb: store.iDagLøb,
+                      titel: lang.t("I dag", "Today"),
+                      undertitel: lang.t("\(store.iDagLøb.count) løb afholdes i dag",
+                                         "\(store.iDagLøb.count) races happening today")) { r in
+                visIDag = false
+                selected = r
+            }
+        }
         .sheet(isPresented: $showLogin) { LoginView(auth: auth) }
         .onChange(of: auth.user?.id) { id in
             if id != nil, let tok = auth.token, let user = auth.user {
@@ -212,6 +222,7 @@ struct ContentView: View {
                 if !store.search.trimmingCharacters(in: .whitespaces).isEmpty {
                     søgeResultater
                 } else {
+                    if !store.iDagLøb.isEmpty { livePill }
                     Spacer()
                     counter.padding(.bottom, 74)
                 }
@@ -337,6 +348,28 @@ struct ContentView: View {
         }
         .buttonStyle(PressableStyle())
         .accessibilityLabel(lang.t("Find min placering", "Find my location"))
+    }
+
+    /// "X løb i dag" - grøn puls-pill som web; åbner dagens løb i et ark
+    private var livePill: some View {
+        let grøn = Color(red: 0.063, green: 0.725, blue: 0.506)
+        return Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            visIDag = true
+        } label: {
+            HStack(spacing: 8) {
+                Circle().fill(grøn).frame(width: 8, height: 8)
+                (Text("\(store.iDagLøb.count) ").fontWeight(.bold) + Text(lang.t("løb i dag", "races today")))
+                    .font(.system(size: 13)).foregroundColor(ink)
+                Text(lang.t("Se dem →", "See them →"))
+                    .font(.system(size: 13, weight: .semibold)).foregroundColor(grøn)
+            }
+            .padding(.vertical, 9).padding(.horizontal, 14)
+            .background(paper).clipShape(Capsule())
+            .overlay(Capsule().stroke(hairline)).shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityLabel(lang.t("Se dagens løb", "See today's races"))
     }
 
     private var counter: some View {

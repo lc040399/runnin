@@ -75,6 +75,10 @@ struct Race: Decodable, Identifiable {
         return s
     }
 
+    /// afholdes løbet i DAG? (webbens isLive: dt == i dag - vi kender ikke starttider,
+    /// så vi påstår aldrig "i gang lige nu", kun "afholdes i dag")
+    var erLive: Bool { dt == Race.iDagISO }
+
     /// er løbet endnu ikke afholdt? (matcher web's erKommende: skjul kun rene fortids-løb)
     var erKommende: Bool {
         let iDag = Race.iDagISO

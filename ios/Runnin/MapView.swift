@@ -16,6 +16,8 @@ extension UIColor {
 /// webbens supercluster) og præsenteres med samme flydende merge/split-animation:
 /// zoom ud = børnene glider ind i forældre-cirklen, zoom ind = forælderen spalter
 /// ud i børnene (260 ms cubic-out, CADisplayLink).
+/// TO grupper med hver deres kilder: brune (alle løb) og grønne (afholdes i DAG) -
+/// præcis som webbens races-/live-halo-lag, samme flydende fysik for begge.
 /// Lag + kilder oprettes ÉN gang og opdateres via source.shape - det gamle
 /// riv-ned-og-genbyg-mønster pr. 0,5 zoom var årsag til hak under pinch.
 /// Lader SwiftUI-knappen "find mig" styre kortet uden at bryde UIViewRepresentable-mønstret.
@@ -104,18 +106,31 @@ struct MapView: UIViewRepresentable {
         private var lastDataVersion = -1
         private var harCentreretPåBruger = false
         private let ink = UIColor(red: 0.22, green: 0.14, blue: 0.05, alpha: 1)
+        private let grøn = UIColor(hex: "#10B981")
+
+        // haptik: klargjorte generatorer = ingen forsinkelse på første tap
+        private let tapHaptik = UIImpactFeedbackGenerator(style: .light)
+        private let zoomHaptik = UIImpactFeedbackGenerator(style: .soft)
 
         // let feature-repræsentation: MLNPointFeature bygges først ved tegn
         private struct Feat {
             var la: Double, lo: Double
             var attrs: [String: Any]
         }
+        private struct FeatSæt {
+            var dots: [Feat] = []
+            var clusters: [Feat] = []
+            var alle: [Feat] { dots + clusters }
+        }
+        private enum Gruppe { case brun, grøn }
 
-        private var dotsSrc: MLNShapeSource?
-        private var clustersSrc: MLNShapeSource?
+        private var brunDotsSrc: MLNShapeSource?
+        private var brunClustersSrc: MLNShapeSource?
+        private var grønDotsSrc: MLNShapeSource?
+        private var grønClustersSrc: MLNShapeSource?
         private var visteZ = -999                  // heltalszoom for det viste sæt
-        private var visteDots: [Feat] = []
-        private var visteClusters: [Feat] = []
+        private var visteBrun = FeatSæt()
+        private var visteGrøn = FeatSæt()
         private var sidsteCullCenter = CLLocationCoordinate2D(latitude: 0, longitude: 0)
 
         init(_ parent: MapView) {
@@ -175,7 +190,7 @@ struct MapView: UIViewRepresentable {
         }
 
         private func reagérPåRegion(_ mapView: MLNMapView) {
-            guard dotsSrc != nil else { return }
+            guard brunDotsSrc != nil else { return }
             let z = Int(floor(mapView.zoomLevel))
             if z != visteZ {
                 let gammel = visteZ
@@ -200,21 +215,23 @@ struct MapView: UIViewRepresentable {
         private func opretLag(_ style: MLNStyle) {
             stopTween()
             // idempotent v. style-reload: ryd evt. rester før genopbygning
-            for id in ["clusters", "cluster-count", "race-dots", "dot-count"] {
+            for id in ["clusters", "cluster-count", "race-dots", "dot-count",
+                       "live-clusters", "live-cluster-count", "live-dots", "live-dot-count"] {
                 if let l = style.layer(withIdentifier: id) { style.removeLayer(l) }
             }
-            for id in ["dots-src", "clusters-src"] {
+            for id in ["dots-src", "clusters-src", "live-dots-src", "live-clusters-src"] {
                 if let s = style.source(withIdentifier: id) { style.removeSource(s) }
             }
 
             let tomtSæt = MLNShapeCollectionFeature(shapes: [])
-            let dSrc = MLNShapeSource(identifier: "dots-src", shape: tomtSæt, options: nil)
-            let cSrc = MLNShapeSource(identifier: "clusters-src", shape: tomtSæt, options: nil)
-            style.addSource(cSrc)
-            style.addSource(dSrc)
-            dotsSrc = dSrc; clustersSrc = cSrc
+            let bd = MLNShapeSource(identifier: "dots-src", shape: tomtSæt, options: nil)
+            let bc = MLNShapeSource(identifier: "clusters-src", shape: tomtSæt, options: nil)
+            let gd = MLNShapeSource(identifier: "live-dots-src", shape: tomtSæt, options: nil)
+            let gc = MLNShapeSource(identifier: "live-clusters-src", shape: tomtSæt, options: nil)
+            for s in [bc, bd, gc, gd] { style.addSource(s) }
+            brunDotsSrc = bd; brunClustersSrc = bc; grønDotsSrc = gd; grønClustersSrc = gc
 
-            let dotsLayer = MLNCircleStyleLayer(identifier: "race-dots", source: dSrc)
+            let dotsLayer = MLNCircleStyleLayer(identifier: "race-dots", source: bd)
             dotsLayer.circleColor = NSExpression(mglJSONObject: [
                 "match", ["get", "t"],
                 "kort", "#6B7280", "half", "#268C6B",
@@ -227,7 +244,7 @@ struct MapView: UIViewRepresentable {
             style.addLayer(dotsLayer)
 
             // tal på prikker der repræsenterer flere løb på samme punkt
-            let dotCount = MLNSymbolStyleLayer(identifier: "dot-count", source: dSrc)
+            let dotCount = MLNSymbolStyleLayer(identifier: "dot-count", source: bd)
             dotCount.predicate = NSPredicate(format: "antal > 1")
             dotCount.text = NSExpression(format: "CAST(antal, 'NSString')")
             dotCount.textColor = NSExpression(forConstantValue: UIColor.white)
@@ -235,19 +252,49 @@ struct MapView: UIViewRepresentable {
             dotCount.textFontNames = NSExpression(forConstantValue: ["Noto Sans Regular"])
             style.addLayer(dotCount)
 
-            let clustersLayer = MLNCircleStyleLayer(identifier: "clusters", source: cSrc)
+            let clustersLayer = MLNCircleStyleLayer(identifier: "clusters", source: bc)
             clustersLayer.circleColor = NSExpression(forConstantValue: ink)
             clustersLayer.circleRadius = NSExpression(mglJSONObject: ["step", ["get", "antal"], 14, 15, 17, 60, 20, 250, 24])
             clustersLayer.circleStrokeWidth = NSExpression(forConstantValue: 3)
             clustersLayer.circleStrokeColor = NSExpression(forConstantValue: ink.withAlphaComponent(0.15))
             style.addLayer(clustersLayer)
 
-            let count = MLNSymbolStyleLayer(identifier: "cluster-count", source: cSrc)
+            let count = MLNSymbolStyleLayer(identifier: "cluster-count", source: bc)
             count.text = NSExpression(forKeyPath: "label")
             count.textColor = NSExpression(forConstantValue: UIColor.white)
             count.textFontSize = NSExpression(forConstantValue: 12)
             count.textFontNames = NSExpression(forConstantValue: ["Noto Sans Regular"]) // Positron-glyf-sæt
             style.addLayer(count)
+
+            // GRØNNE lag øverst: løb der afholdes i DAG (webbens live-halo)
+            let liveDots = MLNCircleStyleLayer(identifier: "live-dots", source: gd)
+            liveDots.circleColor = NSExpression(forConstantValue: grøn)
+            liveDots.circleRadius = NSExpression(mglJSONObject: ["case", [">", ["get", "antal"], 1], 9, 6])
+            liveDots.circleStrokeWidth = NSExpression(forConstantValue: 1.5)
+            liveDots.circleStrokeColor = NSExpression(forConstantValue: UIColor.white)
+            style.addLayer(liveDots)
+
+            let liveDotCount = MLNSymbolStyleLayer(identifier: "live-dot-count", source: gd)
+            liveDotCount.predicate = NSPredicate(format: "antal > 1")
+            liveDotCount.text = NSExpression(format: "CAST(antal, 'NSString')")
+            liveDotCount.textColor = NSExpression(forConstantValue: UIColor.white)
+            liveDotCount.textFontSize = NSExpression(forConstantValue: 10)
+            liveDotCount.textFontNames = NSExpression(forConstantValue: ["Noto Sans Regular"])
+            style.addLayer(liveDotCount)
+
+            let liveClusters = MLNCircleStyleLayer(identifier: "live-clusters", source: gc)
+            liveClusters.circleColor = NSExpression(forConstantValue: grøn)
+            liveClusters.circleRadius = NSExpression(mglJSONObject: ["step", ["get", "antal"], 14, 15, 17, 60, 20, 250, 24])
+            liveClusters.circleStrokeWidth = NSExpression(forConstantValue: 3)
+            liveClusters.circleStrokeColor = NSExpression(forConstantValue: grøn.withAlphaComponent(0.25))
+            style.addLayer(liveClusters)
+
+            let liveCount = MLNSymbolStyleLayer(identifier: "live-cluster-count", source: gc)
+            liveCount.text = NSExpression(forKeyPath: "label")
+            liveCount.textColor = NSExpression(forConstantValue: UIColor.white)
+            liveCount.textFontSize = NSExpression(forConstantValue: 12)
+            liveCount.textFontNames = NSExpression(forConstantValue: ["Noto Sans Regular"])
+            style.addLayer(liveCount)
         }
 
         private func tilMLN(_ f: Feat) -> MLNPointFeature {
@@ -257,34 +304,37 @@ struct MapView: UIViewRepresentable {
             return p
         }
 
-        private func sætShapes(dots: [Feat], clusters: [Feat]) {
-            dotsSrc?.shape = MLNShapeCollectionFeature(shapes: dots.map(tilMLN))
-            clustersSrc?.shape = MLNShapeCollectionFeature(shapes: clusters.map(tilMLN))
+        private func sætShapes(brun: FeatSæt, grøn: FeatSæt) {
+            brunDotsSrc?.shape = MLNShapeCollectionFeature(shapes: brun.dots.map(tilMLN))
+            brunClustersSrc?.shape = MLNShapeCollectionFeature(shapes: brun.clusters.map(tilMLN))
+            grønDotsSrc?.shape = MLNShapeCollectionFeature(shapes: grøn.dots.map(tilMLN))
+            grønClustersSrc?.shape = MLNShapeCollectionFeature(shapes: grøn.clusters.map(tilMLN))
         }
 
         /// hårdt skift: genberegn ved aktuelt zoom uden animation (filtre, store spring, cull-pan)
         func hårdOpdatering() {
-            guard let mv = mapView, dotsSrc != nil else { return }
+            guard let mv = mapView, brunDotsSrc != nil else { return }
             stopTween()
             genopbygRacesById()
             visteZ = Int(floor(mv.zoomLevel))
-            let (d, c) = buildFeatures(zInt: visteZ)
-            visteDots = d; visteClusters = c
-            sætShapes(dots: d, clusters: c)
+            let (b, g) = byg(zInt: visteZ)
+            visteBrun = b; visteGrøn = g
+            sætShapes(brun: b, grøn: g)
         }
 
-        // MARK: - flydende merge/split (webbens klynger.js portet)
+        // MARK: - flydende merge/split (webbens klynger.js portet, pr. gruppe)
 
         private struct Bane {
             var fraLa, fraLo, tilLa, tilLo: Double
             var attrs: [String: Any]
             var erKlynge: Bool
+            var gruppe: Gruppe
         }
         private final class Tween {
             var link: CADisplayLink?
             var start: CFTimeInterval = 0
             var baner: [Bane] = []
-            var slutDots: [Feat] = [], slutClusters: [Feat] = []
+            var slutBrun = FeatSæt(), slutGrøn = FeatSæt()
         }
         private var tween: Tween?
 
@@ -303,57 +353,61 @@ struct MapView: UIViewRepresentable {
             return gx &* 1_000_003 &+ gy
         }
 
+        /// baner for én gruppe (gamle→mål ved zoom ud, forælder→nye ved zoom ind)
+        private func gruppeBaner(gamle: FeatSæt, nye: FeatSæt, nyZ: Int, gammelZ: Int, gruppe: Gruppe) -> [Bane] {
+            var baner: [Bane] = []
+            if nyZ < gammelZ {
+                // ZOOM UD: hvert gammelt feature glider hen i sit nye mål (klyngen/prikken i dets celle)
+                var målPrCelle: [Int64: (Double, Double)] = [:]
+                for f in nye.alle { målPrCelle[celle(f.la, f.lo, zInt: nyZ)] = (f.la, f.lo) }
+                for (liste, erKlynge) in [(gamle.dots, false), (gamle.clusters, true)] {
+                    for f in liste {
+                        let m = målPrCelle[celle(f.la, f.lo, zInt: nyZ)] ?? (f.la, f.lo)
+                        baner.append(Bane(fraLa: f.la, fraLo: f.lo, tilLa: m.0, tilLo: m.1,
+                                          attrs: f.attrs, erKlynge: erKlynge, gruppe: gruppe))
+                    }
+                }
+            } else {
+                // ZOOM IND: nye features fødes i deres gamle forælders centrum og glider ud på plads
+                var startPrCelle: [Int64: (Double, Double)] = [:]
+                for f in gamle.clusters { startPrCelle[celle(f.la, f.lo, zInt: gammelZ)] = (f.la, f.lo) }
+                for (liste, erKlynge) in [(nye.dots, false), (nye.clusters, true)] {
+                    for f in liste {
+                        let s = startPrCelle[celle(f.la, f.lo, zInt: gammelZ)] ?? (f.la, f.lo)
+                        baner.append(Bane(fraLa: s.0, fraLo: s.1, tilLa: f.la, tilLo: f.lo,
+                                          attrs: f.attrs, erKlynge: erKlynge, gruppe: gruppe))
+                    }
+                }
+            }
+            return baner
+        }
+
         private func animérTil(nyZ: Int, gammelZ: Int) {
             guard mapView != nil else { return }
             stopTween()
             genopbygRacesById()
             visteZ = nyZ
-            let (nyeDots, nyeClusters) = buildFeatures(zInt: nyZ)
-            let gamle = visteDots + visteClusters
-            let nye = nyeDots + nyeClusters
-            if gamle.count + nye.count > ANIM_LOFT {
-                visteDots = nyeDots; visteClusters = nyeClusters
-                sætShapes(dots: nyeDots, clusters: nyeClusters)
+            let (nyBrun, nyGrøn) = byg(zInt: nyZ)
+            let antal = visteBrun.alle.count + visteGrøn.alle.count + nyBrun.alle.count + nyGrøn.alle.count
+            if antal > ANIM_LOFT {
+                visteBrun = nyBrun; visteGrøn = nyGrøn
+                sætShapes(brun: nyBrun, grøn: nyGrøn)
                 return
             }
 
-            var baner: [Bane] = []
-            if nyZ < gammelZ {
-                // ZOOM UD: hvert gammelt feature glider hen i sit nye mål (klyngen/prikken i dets celle)
-                var målPrCelle: [Int64: (Double, Double)] = [:]
-                for f in nye { målPrCelle[celle(f.la, f.lo, zInt: nyZ)] = (f.la, f.lo) }
-                for f in visteDots {
-                    let m = målPrCelle[celle(f.la, f.lo, zInt: nyZ)] ?? (f.la, f.lo)
-                    baner.append(Bane(fraLa: f.la, fraLo: f.lo, tilLa: m.0, tilLo: m.1, attrs: f.attrs, erKlynge: false))
-                }
-                for f in visteClusters {
-                    let m = målPrCelle[celle(f.la, f.lo, zInt: nyZ)] ?? (f.la, f.lo)
-                    baner.append(Bane(fraLa: f.la, fraLo: f.lo, tilLa: m.0, tilLo: m.1, attrs: f.attrs, erKlynge: true))
-                }
-            } else {
-                // ZOOM IND: nye features fødes i deres gamle forælders centrum og glider ud på plads
-                var startPrCelle: [Int64: (Double, Double)] = [:]
-                for f in visteClusters { startPrCelle[celle(f.la, f.lo, zInt: gammelZ)] = (f.la, f.lo) }
-                for f in nyeDots {
-                    let s = startPrCelle[celle(f.la, f.lo, zInt: gammelZ)] ?? (f.la, f.lo)
-                    baner.append(Bane(fraLa: s.0, fraLo: s.1, tilLa: f.la, tilLo: f.lo, attrs: f.attrs, erKlynge: false))
-                }
-                for f in nyeClusters {
-                    let s = startPrCelle[celle(f.la, f.lo, zInt: gammelZ)] ?? (f.la, f.lo)
-                    baner.append(Bane(fraLa: s.0, fraLo: s.1, tilLa: f.la, tilLo: f.lo, attrs: f.attrs, erKlynge: true))
-                }
-            }
+            let baner = gruppeBaner(gamle: visteBrun, nye: nyBrun, nyZ: nyZ, gammelZ: gammelZ, gruppe: .brun)
+                      + gruppeBaner(gamle: visteGrøn, nye: nyGrøn, nyZ: nyZ, gammelZ: gammelZ, gruppe: .grøn)
+            visteBrun = nyBrun; visteGrøn = nyGrøn
 
             let bevæger = baner.contains { $0.fraLa != $0.tilLa || $0.fraLo != $0.tilLo }
-            visteDots = nyeDots; visteClusters = nyeClusters
             if !bevæger {
-                sætShapes(dots: nyeDots, clusters: nyeClusters)
+                sætShapes(brun: nyBrun, grøn: nyGrøn)
                 return
             }
 
             let t = Tween()
             t.baner = baner
-            t.slutDots = nyeDots; t.slutClusters = nyeClusters
+            t.slutBrun = nyBrun; t.slutGrøn = nyGrøn
             t.start = CACurrentMediaTime()
             let link = CADisplayLink(target: self, selector: #selector(tikTween))
             link.add(to: .main, forMode: .common)
@@ -365,34 +419,54 @@ struct MapView: UIViewRepresentable {
             guard let t = tween else { return }
             let p = min((CACurrentMediaTime() - t.start) / ANIM_S, 1)
             let e = 1 - pow(1 - p, 3)   // cubic-out, samme kurve som web
-            var dots: [Feat] = [], clusters: [Feat] = []
-            dots.reserveCapacity(t.baner.count); clusters.reserveCapacity(16)
+            var brun = FeatSæt(), grøn = FeatSæt()
             for b in t.baner {
                 let f = Feat(la: b.fraLa + (b.tilLa - b.fraLa) * e,
                              lo: b.fraLo + (b.tilLo - b.fraLo) * e,
                              attrs: b.attrs)
-                if b.erKlynge { clusters.append(f) } else { dots.append(f) }
+                switch (b.gruppe, b.erKlynge) {
+                case (.brun, false): brun.dots.append(f)
+                case (.brun, true):  brun.clusters.append(f)
+                case (.grøn, false): grøn.dots.append(f)
+                case (.grøn, true):  grøn.clusters.append(f)
+                }
             }
-            sætShapes(dots: dots, clusters: clusters)
+            sætShapes(brun: brun, grøn: grøn)
             if p >= 1 {
-                let slutD = t.slutDots, slutC = t.slutClusters
+                let sb = t.slutBrun, sg = t.slutGrøn
                 stopTween()
-                sætShapes(dots: slutD, clusters: slutC)
+                sætShapes(brun: sb, grøn: sg)
             }
         }
 
         // MARK: - klyngning (grid pr. heltals-zoom, matcher webbens supercluster-semantik)
 
-        private func buildFeatures(zInt: Int) -> (dots: [Feat], clusters: [Feat]) {
+        /// kilde-split: grønne = afholdes i dag, brune = resten (som webbens toGeojson/isLive)
+        private func kilder() -> (brun: [Race], grøn: [Race]) {
+            let alle = parent.store.filtered
+            var brun: [Race] = [], grøn: [Race] = []
+            brun.reserveCapacity(alle.count)
+            for r in alle { if r.erLive { grøn.append(r) } else { brun.append(r) } }
+            return (brun, grøn)
+        }
+
+        private func byg(zInt: Int) -> (FeatSæt, FeatSæt) {
+            let (brunKilde, grønKilde) = kilder()
+            return (klyng(brunKilde, zInt: zInt, medType: true),
+                    klyng(grønKilde, zInt: zInt, medType: false))
+        }
+
+        private func klyng(_ input: [Race], zInt: Int, medType: Bool) -> FeatSæt {
             func nøgle(_ r: Race) -> Int64 {
                 Int64((r.la * 10000).rounded()) &* 4_000_000 &+ Int64((r.lo * 10000).rounded())
             }
             func dot(_ r: Race, antal: Int = 1) -> Feat {
-                Feat(la: r.la, lo: r.lo, attrs: ["id": r.id, "t": r.t, "antal": antal])
+                Feat(la: r.la, lo: r.lo,
+                     attrs: medType ? ["id": r.id, "t": r.t, "antal": antal] : ["id": r.id, "antal": antal])
             }
             // viewport-culling: zoomet ind bygger vi kun features for det synlige
             // udsnit (+1 skærm i margin) - før byggede vi alle ~6.900 løb hver gang
-            var kilde = parent.store.filtered
+            var kilde = input
             if Double(zInt) >= CULL_ZOOM, let mv = mapView {
                 let b = mv.visibleCoordinateBounds
                 let mLa = (b.ne.latitude - b.sw.latitude)
@@ -402,19 +476,19 @@ struct MapView: UIViewRepresentable {
                 kilde = kilde.filter { $0.la >= laMin && $0.la <= laMax && $0.lo >= loMin && $0.lo <= loMax }
                 sidsteCullCenter = mv.centerCoordinate
             }
+            var sæt = FeatSæt()
             if zInt >= STAK_ZOOM {
                 // gruppér løb på præcis samme punkt (ellers ligger de usynligt oven på hinanden)
                 var stakke: [Int64: [Race]] = [:]
                 for r in kilde { stakke[nøgle(r), default: []].append(r) }
-                return (stakke.values.map { dot($0[0], antal: $0.count) }, [])
+                sæt.dots = stakke.values.map { dot($0[0], antal: $0.count) }
+                return sæt
             }
 
             var buckets: [Int64: [Race]] = [:]
             for r in kilde { buckets[celle(r.la, r.lo, zInt: zInt), default: []].append(r) }
-            var dots: [Feat] = []
-            var clusters: [Feat] = []
             for (_, group) in buckets {
-                if group.count == 1 { dots.append(dot(group[0])); continue }
+                if group.count == 1 { sæt.dots.append(dot(group[0])); continue }
                 // placér klyngen ved det løb der er tættest på centroidet - så den altid
                 // sidder på land ved en rigtig løbs-position (ikke midt i Kattegat)
                 let cLat = group.reduce(0.0) { $0 + $1.la } / Double(group.count)
@@ -422,31 +496,55 @@ struct MapView: UIViewRepresentable {
                 let midt = group.min {
                     hypot($0.la - cLat, $0.lo - cLon) < hypot($1.la - cLat, $1.lo - cLon)
                 }!
-                clusters.append(Feat(la: midt.la, lo: midt.lo,
-                                     attrs: ["antal": group.count, "label": String(group.count)]))
+                sæt.clusters.append(Feat(la: midt.la, lo: midt.lo,
+                                         attrs: ["antal": group.count, "label": String(group.count)]))
             }
-            return (dots, clusters)
+            return sæt
         }
 
         // MARK: - tap
+
+        /// zoom præcis dertil hvor klyngen spalter (webbens getClusterExpansionZoom)
+        private func spalteZoom(for coord: CLLocationCoordinate2D, gruppe: Gruppe) -> Double {
+            let (brunKilde, grønKilde) = kilder()
+            let kilde = gruppe == .brun ? brunKilde : grønKilde
+            let cellKey = celle(coord.latitude, coord.longitude, zInt: visteZ)
+            let medlemmer = kilde.filter { celle($0.la, $0.lo, zInt: visteZ) == cellKey }
+            guard medlemmer.count > 1 else { return Double(min(visteZ + 2, STAK_ZOOM)) }
+            var zz = visteZ + 1
+            while zz < STAK_ZOOM {
+                if Set(medlemmer.map { celle($0.la, $0.lo, zInt: zz) }).count > 1 { break }
+                zz += 1
+            }
+            return Double(zz) + 0.4
+        }
 
         @objc func handleTap(_ gr: UITapGestureRecognizer) {
             guard let mv = mapView else { return }
             let p = gr.location(in: mv)
             let rect = CGRect(x: p.x - 22, y: p.y - 22, width: 44, height: 44)
 
-            let dots = mv.visibleFeatures(in: rect, styleLayerIdentifiers: ["race-dots"])
-            if let f = dots.first, let idVal = (f.attribute(forKey: "id") as? NSNumber)?.intValue,
+            // grønne lag ligger øverst og skal derfor tjekkes først
+            let alleDots = mv.visibleFeatures(in: rect, styleLayerIdentifiers: ["live-dots", "race-dots"])
+            if let f = alleDots.first, let idVal = (f.attribute(forKey: "id") as? NSNumber)?.intValue,
                let race = racesById[idVal] {
+                tapHaptik.impactOccurred()
                 // saml alle løb på præcis samme punkt (stak) - ellers kunne kun det øverste nås
                 let key = { (r: Race) in "\(Int((r.la*10000).rounded()))_\(Int((r.lo*10000).rounded()))" }
                 let stak = parent.store.filtered.filter { key($0) == key(race) }
                 if stak.count > 1 { parent.stak = stak } else { parent.selected = race }
                 return
             }
-            let clusters = mv.visibleFeatures(in: rect, styleLayerIdentifiers: ["clusters"])
-            if let cf = clusters.first as? MLNPointFeature {
-                mv.setCenter(cf.coordinate, zoomLevel: min(mv.zoomLevel + 2.4, 14), animated: true)
+            let grønne = mv.visibleFeatures(in: rect, styleLayerIdentifiers: ["live-clusters"])
+            if let cf = grønne.first as? MLNPointFeature {
+                zoomHaptik.impactOccurred()
+                mv.setCenter(cf.coordinate, zoomLevel: spalteZoom(for: cf.coordinate, gruppe: .grøn), animated: true)
+                return
+            }
+            let brune = mv.visibleFeatures(in: rect, styleLayerIdentifiers: ["clusters"])
+            if let cf = brune.first as? MLNPointFeature {
+                zoomHaptik.impactOccurred()
+                mv.setCenter(cf.coordinate, zoomLevel: spalteZoom(for: cf.coordinate, gruppe: .brun), animated: true)
             }
         }
     }

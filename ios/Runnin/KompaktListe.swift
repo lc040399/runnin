@@ -42,6 +42,8 @@ struct KompaktListe: View {
 /// Ark der viser flere løb på samme kort-punkt (fx en by med mange løbsserier).
 struct StakSheet: View {
     let løb: [Race]
+    var titel: String? = nil        // default: byen (samme-punkt-stak)
+    var undertitel: String? = nil
     @ObservedObject private var lang = Lang.shared
     var onVælg: (Race) -> Void
     @Environment(\.dismiss) private var dismiss
@@ -54,8 +56,8 @@ struct StakSheet: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(løb.first?.c ?? "").font(.system(size: 20, weight: .bold)).foregroundColor(ink)
-                    Text("\(løb.count) \(lang.t("løb her", "races here"))").font(.system(size: 13)).foregroundColor(muted)
+                    Text(titel ?? løb.first?.c ?? "").font(.system(size: 20, weight: .bold)).foregroundColor(ink)
+                    Text(undertitel ?? "\(løb.count) \(lang.t("løb her", "races here"))").font(.system(size: 13)).foregroundColor(muted)
                 }
                 Spacer()
                 Button { dismiss() } label: {
