@@ -103,11 +103,8 @@ async function openLive(race) {
   livePanel.hidden = false;
   livePanel.innerHTML = `<div class="live-head"><span class="live-badge"><i></i>I DAG</span><h2>${race.n}</h2></div><div class="feed-tom" style="padding:16px 0">Åbner løbet…</div>`;
 
-  // officiel rute? kun hvis vi faktisk har den liggende
-  try {
-    const r = await fetch(`data/ruter/${slug(race.n)}.json`, { signal: AbortSignal.timeout(4000) });
-    if (r.ok) live.officiel = await r.json();
-  } catch (_) {}
+  // officiel rute? kun hvis vi faktisk har den liggende (manifest-tjek i hentRute = ingen 404-støj)
+  live.officiel = await hentRute(slug(race.n));
   if (live.race !== race) return; // lukket imens
 
   ensureRouteLayer();
@@ -241,19 +238,16 @@ function initLiveUI() {
     };
   } else { pill.hidden = true; lukLiveMenu(); }
 
+  const liveFeatures = liveRaces.map(r => ({ type: "Feature", id: r.id, properties: { id: r.id }, geometry: { type: "Point", coordinates: [r.lo, r.la] } }));
   // idempotent: ved genkald (fx når USA-kataloget lander) opdateres kildedata blot
-  const eksisterende = map.getSource("live-halo");
-  if (eksisterende) {
-    eksisterende.setData({ type: "FeatureCollection", features: liveRaces.map(r => ({ type: "Feature", properties: { id: r.id }, geometry: { type: "Point", coordinates: [r.lo, r.la] } })) });
-    return;
-  }
+  if (window.liveMotor) { liveMotor.setData(liveFeatures); return; }
   if (!liveRaces.length) return; // ingen lag før der er noget at vise
 
-  // live-løb klynger som resten af kortet - grønne klynger på lavt zoom, pulserende prikker tæt på
-  map.addSource("live-halo", {
-    type: "geojson", cluster: true, clusterMaxZoom: 11, clusterRadius: 60,
-    data: { type: "FeatureCollection", features: liveRaces.map(r => ({ type: "Feature", properties: { id: r.id }, geometry: { type: "Point", coordinates: [r.lo, r.la] } })) },
-  });
+  // live-løb klynger som resten af kortet - grønne klynger på lavt zoom, pulserende
+  // prikker tæt på. Clustering ejes af klynger.js: samme flydende merge/split som de brune
+  map.addSource("live-halo", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  window.liveMotor = opretKlyngeMotor(map, "live-halo");
+  liveMotor.setData(liveFeatures);
   map.addLayer({
     id: "live-cluster", type: "circle", source: "live-halo", filter: ["has", "point_count"],
     paint: {
@@ -277,8 +271,8 @@ function initLiveUI() {
   });
   map.on("click", "live-cluster", e => {
     const f = e.features[0];
-    map.getSource("live-halo").getClusterExpansionZoom(f.properties.cluster_id).then(z =>
-      map.easeTo({ center: f.geometry.coordinates, zoom: z + .4, duration: 600 }));
+    hoverCard.hidden = true; // forsmagskortet skal ikke hænge med stale indhold under zoom-flyvningen
+    map.easeTo({ center: f.geometry.coordinates, zoom: liveMotor.expansionZoom(f.properties.cluster_id) + .4, duration: 600 });
   });
   // hover på grøn live-klynge: samme forsmag som de brune klynger.
   // Touch springer over (jf. harHover i app.js): tap fyrer syntetisk mousemove før click
@@ -291,8 +285,7 @@ function initLiveUI() {
     const id = f.properties.cluster_id;
     if (hoverLiveKlynge === id && !hoverCard.hidden) { positionHover(e.point); return; }
     hoverLiveKlynge = id;
-    const leaves = await map.getSource("live-halo").getClusterLeaves(id, 7, 0);
-    if (hoverLiveKlynge !== id) return; // musen er videre
+    const leaves = liveMotor.leaves(id, 7);
     const races = leaves.map(l => RACES[l.properties.id]).filter(Boolean);
     const rest = f.properties.point_count - races.length;
     hoverCard.innerHTML =
@@ -311,6 +304,7 @@ function initLiveUI() {
   });
   map.on("click", "live-halo-core", e => {
     const r = RACES[e.features[0].properties.id];
+    hoverCard.hidden = true;
     openDetail(r, true);
   });
   const hc = document.getElementById("hoverCard");

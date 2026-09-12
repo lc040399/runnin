@@ -408,9 +408,10 @@ const harHover = !(window.matchMedia && matchMedia("(hover: none)").matches);
 
 function wireMapEvents() {
   if (harHover) wireHoverEvents();
-  map.on("click", "race-dots", e => openDetail(RACES[e.features[0].properties.id], true));
+  map.on("click", "race-dots", e => { hoverCard.hidden = true; openDetail(RACES[e.features[0].properties.id], true); });
   map.on("click", "clusters", e => {
     const f = e.features[0];
+    hoverCard.hidden = true; // forsmagskortet skal ikke hænge med stale indhold under zoom-flyvningen
     map.easeTo({ center: f.geometry.coordinates, zoom: klyngeExpansionZoom(f.properties.cluster_id) + .4, duration: 600 });
   });
 }
@@ -1149,16 +1150,25 @@ document.getElementById("nearBtn").addEventListener("click", () => {
 });
 
 /* ---------- officiel rute på detaljen (når vi har den i data/ruter/) ---------- */
+/* manifest over hvilke ruter der FINDES: uden det gav hvert detalje-åbn et 404 i
+   konsollen for de ~22.000 løb uden rutefil. gpx2rute.mjs vedligeholder listen. */
+let ruteManifestP = null;
+const hentRuteManifest = () => ruteManifestP ??=
+  fetch("data/ruter/manifest.json", { signal: AbortSignal.timeout(4000) }).then(r => r.ok ? r.json() : []).catch(() => []);
+async function hentRute(sl) {
+  if (!(await hentRuteManifest()).includes(sl)) return null;
+  try {
+    const res = await fetch(`data/ruter/${sl}.json`, { signal: AbortSignal.timeout(4000) });
+    return res.ok ? await res.json() : null;
+  } catch (_) { return null; }
+}
+window.hentRute = hentRute;
+
 const ruteCache = new Map(); // slug → rute-objekt eller null
 async function visDetailRute(r) {
   fjernDetailRute();
   const sl = slug(r.n);
-  if (!ruteCache.has(sl)) {
-    try {
-      const res = await fetch(`data/ruter/${sl}.json`, { signal: AbortSignal.timeout(4000) });
-      ruteCache.set(sl, res.ok ? await res.json() : null);
-    } catch (_) { ruteCache.set(sl, null); }
-  }
+  if (!ruteCache.has(sl)) ruteCache.set(sl, await hentRute(sl));
   const rute = ruteCache.get(sl);
   if (!rute || currentRace !== r || detail.hidden) return;
   // rute-fakta i detaljen: distance, højdemeter, depoter - det man forbereder sig på

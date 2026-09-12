@@ -98,4 +98,11 @@ for (let i = 1; i < forenklet.length; i++) {
 mkdirSync("data/ruter", { recursive: true });
 const fil = `data/ruter/${slug(navn)}.json`;
 writeFileSync(fil, JSON.stringify({ navn, kilde, km: +km.toFixed(1), punkter: forenklet }));
+
+// manifest.json er appens facitliste over hvilke ruter der findes (undgår 404-opslag) - hold den ajour
+const manifestFil = "data/ruter/manifest.json";
+let manifest = [];
+try { manifest = JSON.parse(readFileSync(manifestFil, "utf8")); } catch (_) {}
+if (!manifest.includes(slug(navn))) writeFileSync(manifestFil, JSON.stringify([...manifest, slug(navn)].sort()) + "\n");
+
 console.log(`OK: ${fil} - ${forenklet.length} punkter, ${km.toFixed(1)} km`);
