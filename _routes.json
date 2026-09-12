@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "description": "Middleware (kanonisk-domæne-redirect) kun på navigationer/API - statiske assets serveres rent fra CDN uden function-invocation",
+  "include": ["/*"],
+  "exclude": ["/js/*", "/css/*", "/data/*", "/assets/*", "/sw.js", "/manifest.webmanifest", "/.well-known/*"]
+}

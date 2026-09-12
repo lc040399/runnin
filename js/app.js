@@ -37,9 +37,17 @@ window.completed = completed; window.saveCompleted = saveCompleted;
    kun står ÉN gang. Beholder-regel: kommende > load-rækkefølge (kurateret først) > eksakt
    dato > tidligst. Samme logik som tools/build-json.mjs (native app). Kaldes ved statisk
    load + efter hver lazy-kilde, så tal/kort/søgning altid er rene. */
+const nrmCache = new Map(); // navn → normaliseret; dedup kører efter hver lazy-kilde, genberegn aldrig samme navn
 function dedupRACES() {
-  const nrm = s => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
-    .replace(/20\d\d/g, "").replace(/[^a-z0-9]/g, "");
+  const nrm = s => {
+    let v = nrmCache.get(s);
+    if (v === undefined) {
+      v = (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+        .replace(/20\d\d/g, "").replace(/[^a-z0-9]/g, "");
+      nrmCache.set(s, v);
+    }
+    return v;
+  };
   const celle = (la, lo) => Math.round(la * 5) / 5 + "," + Math.round(lo * 5) / 5;
   const iDag = iDagISO();
   const komm = r => r.dt && r.dt.length === 10 ? r.dt >= iDag : (r.m && r.m.length === 7 ? r.m + "-31" >= iDag : true);
@@ -89,9 +97,15 @@ const inRegion = r =>
   state.region === "norden" ? NORDICS.includes(r.cc) :
   r.co === state.region;
 
+// memoiseret pr. 30 s: kaldes for HVERT løb ved filter/sort (23k+ Date-allokeringer ellers)
+let iDagCache = "", iDagStemplet = 0;
 const iDagISO = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  if (Date.now() - iDagStemplet > 30000) {
+    const d = new Date();
+    iDagCache = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    iDagStemplet = Date.now();
+  }
+  return iDagCache;
 };
 // afholdte løb arkiveres: væk fra kortet og Kommende løb (men bliver i Mine løb/statistik).
 // Løb der er i gang i DAG skal selvfølgelig stadig vises.
@@ -983,7 +997,17 @@ updateFavCount();
 /* ---------- søgning ---------- */
 const searchInput = document.getElementById("search");
 const searchMenu = document.getElementById("searchMenu");
-const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+// cachet: søgningen normaliserer navn+by for ALLE løb pr. tastetryk - uden cache er det 46k regex-kald pr. anslag
+const normCache = new Map();
+const norm = s => {
+  let v = normCache.get(s);
+  if (v === undefined) {
+    v = s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    if (normCache.size > 80000) normCache.clear(); // løbsnavne er ~23k; loftet rammes aldrig af normal brug
+    normCache.set(s, v);
+  }
+  return v;
+};
 
 /* zero-result-logging: coverage-kompasset. Fanger hvad folk søger men IKKE finder,
    så vi ved hvor dækningshullerne gør ondt. Debounced (kun når teksten er faldet til
@@ -1319,14 +1343,24 @@ map.once("load", () => setTimeout(() => {
     if (window.listeOverlay && !window.listeOverlay.hidden) window.renderListe();
     if (!currentRace) openFromHash();     // deep-link til et lazy-løb kan nu løses
   };
-  (function næste(i) {
-    if (i >= lazyKilder.length) return;
+  // dedup + fuld re-clustering af 23k punkter er den dyre del - filer der lander
+  // tæt på hinanden koalesceres til ÉT pas i stedet for ét pr. fil
+  let refreshTimer = null, hentet = 0;
+  const planlægRefresh = () => {
+    hentet++;
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(refresh, hentet >= lazyKilder.length ? 0 : 350);
+  };
+  // parallel download, men eksekvering i listens rækkefølge (async=false) -
+  // load-rækkefølgen ER dedup-prioriteten, den må ikke afhænge af netværkstilfældigheder
+  for (const url of lazyKilder) {
     const s = document.createElement("script");
-    s.src = lazyKilder[i];
-    s.onload = () => { refresh(); næste(i + 1); };
-    s.onerror = () => næste(i + 1);
+    s.src = url;
+    s.async = false;
+    s.onload = planlægRefresh;
+    s.onerror = planlægRefresh; // tæl fejlede med, så sidste fil stadig udløser straks-refresh
     document.head.appendChild(s);
-  })(0);
+  }
 }, 1200));
 
 /* ---------- demo-login ---------- */

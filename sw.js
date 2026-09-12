@@ -1,6 +1,6 @@
 /* Runnin service worker: HTML altid netværk-først (aldrig forældet side efter deploy),
    versionerede assets stale-while-revalidate, tiles/APIs udenom. */
-const CACHE = "runnin-v3";
+const CACHE = "runnin-v4";
 const TILE_CACHE = "runnin-tiles-v1";
 const MAKS_TILES = 3000; // ~50-80 MB loft - ældste smides ud
 
@@ -10,7 +10,8 @@ self.addEventListener("install", e => {
 });
 
 self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
+  // fred TILE_CACHE: fliserne er dyre at genhente og uafhængige af app-versionen
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE && k !== TILE_CACHE).map(k => caches.delete(k)))));
   self.clients.claim();
 });
 

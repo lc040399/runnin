@@ -1,2 +1,14 @@
 /.well-known/apple-app-site-association
   Content-Type: application/json
+
+# js/css refereres ALTID med ?v=-versionering fra index.html - bump versionen ved ændringer.
+# (data/ er bevidst IKKE her: iOS-appen henter dem uversioneret med ETag-revalidering)
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# billeder/ikoner refereres uversioneret fra SEO-sider og manifest - moderat cache med baggrunds-opfriskning
+/assets/*
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
