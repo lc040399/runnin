@@ -399,7 +399,22 @@ function overlayÅben() {
     !!document.querySelector(".foto-overlay:not([hidden]), .cal-overlay:not([hidden]), .login-overlay:not([hidden])");
 }
 
+// touch: tap fyrer syntetisk mousemove FØR click - hover-forsmagen ville bygges og
+// forkastes ved hvert eneste tap (inkl. async cluster-opslag). Klik åbner direkte.
+const harHover = !(window.matchMedia && matchMedia("(hover: none)").matches);
+
 function wireMapEvents() {
+  if (harHover) wireHoverEvents();
+  map.on("click", "race-dots", e => openDetail(RACES[e.features[0].properties.id], true));
+  map.on("click", "clusters", e => {
+    const f = e.features[0];
+    map.getSource("races").getClusterExpansionZoom(f.properties.cluster_id).then(z =>
+      map.easeTo({ center: f.geometry.coordinates, zoom: z + .4, duration: 600 })
+    );
+  });
+}
+
+function wireHoverEvents() {
   map.on("mousemove", "race-dots", e => {
     if (overlayÅben()) { hoverCard.hidden = true; return; }
     const f = e.features[0];
@@ -422,13 +437,6 @@ function wireMapEvents() {
     hoverId = null;
     hoverCard.hidden = true;
     map.getCanvas().style.cursor = "";
-  });
-  map.on("click", "race-dots", e => openDetail(RACES[e.features[0].properties.id], true));
-  map.on("click", "clusters", e => {
-    const f = e.features[0];
-    map.getSource("races").getClusterExpansionZoom(f.properties.cluster_id).then(z =>
-      map.easeTo({ center: f.geometry.coordinates, zoom: z + .4, duration: 600 })
-    );
   });
   // hover på klynge: forsmag på løbene indeni, før man zoomer
   let hoverClusterId = null;

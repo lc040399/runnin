@@ -280,9 +280,11 @@ function initLiveUI() {
     map.getSource("live-halo").getClusterExpansionZoom(f.properties.cluster_id).then(z =>
       map.easeTo({ center: f.geometry.coordinates, zoom: z + .4, duration: 600 }));
   });
-  // hover på grøn live-klynge: samme forsmag som de brune klynger
+  // hover på grøn live-klynge: samme forsmag som de brune klynger.
+  // Touch springer over (jf. harHover i app.js): tap fyrer syntetisk mousemove før click
+  const kanHover = typeof harHover !== "undefined" ? harHover : !matchMedia("(hover: none)").matches;
   let hoverLiveKlynge = null;
-  map.on("mousemove", "live-cluster", async e => {
+  if (kanHover) map.on("mousemove", "live-cluster", async e => {
     if (typeof overlayÅben === "function" && overlayÅben()) { hoverCard.hidden = true; return; }
     const f = e.features[0];
     map.getCanvas().style.cursor = "pointer";
@@ -312,7 +314,7 @@ function initLiveUI() {
     openDetail(r, true);
   });
   const hc = document.getElementById("hoverCard");
-  map.on("mousemove", "live-halo-core", e => {
+  if (kanHover) map.on("mousemove", "live-halo-core", e => {
     const r = RACES[e.features[0].properties.id];
     map.getCanvas().style.cursor = "pointer";
     hc.innerHTML = `<div class="hc-name">${r.n}</div>

@@ -15,6 +15,7 @@
   --felt: #FBFAF7;
   --glas: rgba(255, 255, 255, .88);
   --glas2: rgba(255, 255, 255, .94);
+  --glas-solid: rgba(255, 255, 255, .97); /* touch-fallback: glas-look uden backdrop-blur */
   --serif: "Inter Tight", -apple-system, sans-serif; /* display */
   --sans: "Inter Tight", -apple-system, sans-serif;
 }
@@ -48,6 +49,7 @@ html[data-tema="mørk"] {
   --felt: #2A1D0C;
   --glas: rgba(30, 21, 10, .86);
   --glas2: rgba(30, 21, 10, .93);
+  --glas-solid: rgba(30, 21, 10, .96);
   --card-shadow: 0 12px 32px rgba(0, 0, 0, .5);
   --soft-shadow: 0 2px 10px rgba(0, 0, 0, .35);
 }
@@ -1299,3 +1301,18 @@ button.brand:hover .brand-mark { transform: rotate(-8deg) scale(1.06); }
 .klima-legend b { color: var(--ink); font-weight: 700; }
 .login-deler { display: flex; align-items: center; gap: 10px; margin: 14px 0 2px; color: var(--muted); font-size: 12px; }
 .login-deler::before, .login-deler::after { content: ""; flex: 1; height: 1px; background: var(--hairline); }
+
+/* ---------- touch-enheder: pinch/pan skal være lige så smooth som desktop ---------- */
+/* backdrop-blur over det animerende kort-canvas koster en re-komposition PR. FRAME
+   under pinch/pan på mobil-GPU'er. Den permanent synlige chrome dropper blur på touch -
+   glas-farverne er næsten opake, så udtrykket holder. Modaler beholder blur (kortet
+   står stille bag dem). */
+@media (pointer: coarse) {
+  .tabs, .login-btn, .user-chip, .live-pill, .legend, .counter {
+    backdrop-filter: none;
+    background: var(--glas-solid);
+  }
+}
+/* dræb dobbelt-tap-zoom + tap-forsinkelse på al chrome (kortets canvas styrer selv
+   sine gestures via MapLibre og røres ikke af denne regel) */
+body, button, a, .tabs, .pill, .legend, .counter, .live-pill { touch-action: manipulation; }
