@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 /// gør [Race] Identifiable så stak-arket kan bruge .sheet(item:)
 private struct StakBox: Identifiable {
@@ -38,8 +39,24 @@ struct ContentView: View {
 
     private var mineKilde: [Race] { store.all.filter { saved.erGemt($0.n) } }
 
-    /// (gen)planlæg lokale påmindelser for de gemte løb
-    private func planlægNotifikationer() { Notifikationer.shared.planlæg(for: mineKilde) }
+    /// (gen)planlæg lokale påmindelser for de gemte løb + opdatér widget-snapshotet
+    private func planlægNotifikationer() {
+        Notifikationer.shared.planlæg(for: mineKilde)
+        opdaterWidget()
+    }
+
+    /// widget viser NÆSTE kommende gemte løb (dt foretrækkes; måned = d. 1.)
+    private func opdaterWidget() {
+        let iDag = Race.iDagISO
+        let næste = mineKilde
+            .compactMap { r -> (Race, String)? in
+                guard let dato = r.dt ?? r.m.map({ $0 + "-01" }), dato >= iDag else { return nil }
+                return (r, dato)
+            }
+            .min { $0.1 < $1.1 }
+        WidgetDeling.gem(næste.map { .init(navn: $0.0.n, by: $0.0.c, flag: $0.0.flag, dato: $0.1) })
+        WidgetCenter.shared.reloadAllTimelines()
+    }
 
     /// runnin.org/#slug (løb), /lob/slug/ (SEO), eller /#ven=<uid> (venne-invite)
     private func håndtérLink(_ url: URL) {
