@@ -334,7 +334,10 @@ map.on("load", () => {
   if (attrib) { attrib.classList.remove("maplibregl-compact-show"); attrib.removeAttribute("open"); }
   warmify();
 
-  map.addSource("races", { type: "geojson", data: toGeojson(filtered()), cluster: true, clusterMaxZoom: 11, clusterRadius: 60 });
+  // clustering ejes af klynger.js (flydende merge/split) - kilden er rå features
+  map.addSource("races", { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+  klyngeInit(map);
+  klyngeSetData(toGeojson(filtered()).features);
 
   map.addLayer({
     id: "clusters", type: "circle", source: "races", filter: ["has", "point_count"],
@@ -408,9 +411,7 @@ function wireMapEvents() {
   map.on("click", "race-dots", e => openDetail(RACES[e.features[0].properties.id], true));
   map.on("click", "clusters", e => {
     const f = e.features[0];
-    map.getSource("races").getClusterExpansionZoom(f.properties.cluster_id).then(z =>
-      map.easeTo({ center: f.geometry.coordinates, zoom: z + .4, duration: 600 })
-    );
+    map.easeTo({ center: f.geometry.coordinates, zoom: klyngeExpansionZoom(f.properties.cluster_id) + .4, duration: 600 });
   });
 }
 
@@ -447,8 +448,7 @@ function wireHoverEvents() {
     const id = f.properties.cluster_id;
     if (hoverClusterId === id && !hoverCard.hidden) { positionHover(e.point); return; }
     hoverClusterId = id;
-    const leaves = await map.getSource("races").getClusterLeaves(id, 7, 0);
-    if (hoverClusterId !== id) return; // musen er videre
+    const leaves = klyngeLeaves(id, 7);
     const races = leaves.map(l => RACES[l.properties.id]).filter(Boolean)
       .sort((a, b) => (a.dt || a.m + "-99").localeCompare(b.dt || b.m + "-99"));
     const rest = f.properties.point_count - races.length;
@@ -686,7 +686,7 @@ function applyFilters() {
   // crossfade: gamle prikker fader ud, ny data lægges ind, nye fader blødt ind
   settLagOpacity(0);
   clearTimeout(fadeTimer);
-  fadeTimer = setTimeout(() => { src.setData(toGeojson(list)); settLagOpacity(1); }, 200);
+  fadeTimer = setTimeout(() => { klyngeSetData(toGeojson(list).features); settLagOpacity(1); }, 200);
 }
 
 /* aktive-filtre-chips: viser hvad du lige satte + ét klik til at fjerne */
@@ -1327,8 +1327,7 @@ setInterval(() => {
   if (typeof initLiveUI === "function" && map.isStyleLoaded()) initLiveUI();
   if (iDagISO() !== sidsteDato) {
     sidsteDato = iDagISO();
-    const src = map.getSource("races");
-    if (src) src.setData(toGeojson(filtered()));
+    if (map.getSource("races")) klyngeSetData(toGeojson(filtered()).features);
     updateCounter();
     if (!panel.hidden) setTab(state.tab);
     if (window.listeOverlay && !window.listeOverlay.hidden) window.renderListe();
@@ -1343,8 +1342,7 @@ map.once("load", () => setTimeout(() => {
   const refresh = () => {
     // hver fil pusher sine løb og gen-id'er hele RACES selv → dedup på tværs af alle kilder
     dedupRACES();
-    const src = map.getSource("races");
-    if (src) src.setData(toGeojson(filtered()));
+    if (map.getSource("races")) klyngeSetData(toGeojson(filtered()).features);
     updateCounter();
     if (typeof initLiveUI === "function") initLiveUI();
     if (!panel.hidden) setTab(state.tab); // genopfrisk åben liste
