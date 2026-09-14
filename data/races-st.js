@@ -1,4 +1,4 @@
-// Autogenereret af tools/build-st.mjs 2026-09-07 - kilde: sportstiming.dk/events (239 events)
+// Autogenereret af tools/build-st.mjs 2026-09-14 - kilde: sportstiming.dk/events (239 events)
 // Priser kendes ikke herfra (p:null) - CTA linker til tilmeldingssiden.
 RACES.push(...[
   {"n":"Skolestafetten 2026","c":"Aalborg SV","cc":"DK","co":"EU","la":57.0126,"lo":9.8636,"t":"kort","d":"Løb","m":"2026-08","dt":"2026-08-28","p":null,"u":"https://www.sportstiming.dk/event/18451"},
@@ -49,7 +49,7 @@ RACES.push(...[
   {"n":"Frederiksværk Stålmand 2026","c":"Frederiksværk","cc":"DK","co":"EU","la":55.9813,"lo":12.0176,"t":"tri","d":"Triatlon","m":"2026-09","dt":"2026-09-06","p":null,"u":"https://www.sportstiming.dk/event/17128"},
   {"n":"Grebbestadsloppet","c":"Grebbestad","cc":"SE","co":"EU","la":58.688,"lo":11.263,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-06","p":null,"u":"https://www.sportstiming.dk/event/17206"},
   {"n":"Ikastløbet 2026","c":"Ikast","cc":"DK","co":"EU","la":56.1222,"lo":9.1499,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-06","p":null,"u":"https://www.sportstiming.dk/event/17895"},
-  {"n":"Lystskovløbet 2026","c":"Slagelse","cc":"DK","co":"EU","la":55.4138,"lo":11.3517,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-06","p":null,"u":"https://www.sportstiming.dk/event/17841"},
+  {"n":"Lystskovløbet 2026","c":"Slagelse","cc":"DK","co":"EU","la":55.4136,"lo":11.3512,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-06","p":null,"u":"https://www.sportstiming.dk/event/17841"},
   {"n":"Reborn Trail - Stensballedagen (Horsens) 2026","c":"Horsens","cc":"DK","co":"EU","la":55.8724,"lo":9.8468,"t":"ultra","d":"Løb","m":"2026-09","dt":"2026-09-06","p":null,"u":"https://www.sportstiming.dk/event/16931"},
   {"n":"Fænøsundløbet 2026 - Middelfart","c":"Middelfart","cc":"DK","co":"EU","la":55.5027,"lo":9.7718,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-07","p":null,"u":"https://www.sportstiming.dk/event/18766"},
   {"n":"Taastrup Løbet Nr. 614","c":"Taastrup","cc":"DK","co":"EU","la":55.6427,"lo":12.2712,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-08","p":null,"u":"https://www.sportstiming.dk/event/18488"},
@@ -57,7 +57,7 @@ RACES.push(...[
   {"n":"3ST - 3 Sjöar Trail 2026","c":"Sövde","cc":"SE","co":"EU","la":55.5812,"lo":13.6543,"t":"ultra","d":"Løb","m":"2026-09","dt":"2026-09-12","p":null,"u":"https://www.sportstiming.dk/event/18200"},
   {"n":"Atlética Horsens Løbet 2026","c":"Horsens","cc":"DK","co":"EU","la":55.8599,"lo":9.8431,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-12","p":null,"u":"https://www.sportstiming.dk/event/17372"},
   {"n":"Ballerupbiatlon - Skiskydning I Løbesko 2026","c":"Ballerup","cc":"DK","co":"EU","la":55.7263,"lo":12.3346,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-12","p":null,"u":"https://www.sportstiming.dk/event/18438"},
-  {"n":"Diversity Run","c":"Karrebæksminde","cc":"DK","co":"EU","la":55.1711,"lo":11.6389,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-12","p":null,"u":"https://www.sportstiming.dk/event/17944"},
+  {"n":"Diversity Run","c":"Karrebæksminde","cc":"DK","co":"EU","la":55.1713,"lo":11.6387,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-12","p":null,"u":"https://www.sportstiming.dk/event/17944"},
   {"n":"Egholm Slotsløb 2026","c":"Kirke Hyllinge","cc":"DK","co":"EU","la":55.6944,"lo":11.8655,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-12","p":null,"u":"https://www.sportstiming.dk/event/17331"},
   {"n":"Halvmaraton Den Genfundne Bro Special 2026 Run","c":"Brædstrup","cc":"DK","co":"EU","la":55.9734,"lo":9.6228,"t":"half","d":"Løb","m":"2026-09","dt":"2026-09-12","p":null,"u":"https://www.sportstiming.dk/event/17181"},
   {"n":"Mud Race 2026 - Odense","c":"Odense SV","cc":"DK","co":"EU","la":55.3484,"lo":10.3546,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-12","p":null,"u":"https://www.sportstiming.dk/event/16801"},
@@ -95,7 +95,7 @@ RACES.push(...[
   {"n":"Dronninglund Løbet 2026","c":"Dronninglund","cc":"DK","co":"EU","la":57.1534,"lo":10.2987,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-27","p":null,"u":"https://www.sportstiming.dk/event/18915"},
   {"n":"HCA Marathon 2026","c":"Odense V","cc":"DK","co":"EU","la":55.4008,"lo":10.3342,"t":"marathon","d":"Løb","m":"2026-09","dt":"2026-09-27","p":null,"u":"https://www.sportstiming.dk/event/16156"},
   {"n":"Hines Tower Run 2026","c":"Nordhavn","cc":"DK","co":"EU","la":55.7155,"lo":12.6035,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-27","p":null,"u":"https://www.sportstiming.dk/event/17077"},
-  {"n":"Løb Mellem Husene Slagelse 2026","c":"Slagelse","cc":"DK","co":"EU","la":55.402,"lo":11.3607,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-27","p":null,"u":"https://www.sportstiming.dk/event/19301"},
+  {"n":"Løb Mellem Husene Slagelse 2026","c":"Slagelse","cc":"DK","co":"EU","la":55.4019,"lo":11.3602,"t":"kort","d":"Løb","m":"2026-09","dt":"2026-09-27","p":null,"u":"https://www.sportstiming.dk/event/19301"},
   {"n":"Løbeshop Moesgaard Trail Run 2026","c":"Højbjerg","cc":"DK","co":"EU","la":56.1079,"lo":10.2084,"t":"ultra","d":"Trail","m":"2026-09","dt":"2026-09-27","p":null,"u":"https://www.aarhusmotion.dk/event/299"},
   {"n":"IKEA Runden Aarhus 2026","c":"Aarhus N","cc":"DK","co":"EU","la":56.1732,"lo":10.1945,"t":"kort","d":"Løb","m":"2026-10","dt":"2026-10-02","p":null,"u":"https://www.sportstiming.dk/event/18971"},
   {"n":"Tønder Fakkelløb 2026","c":"Tønder","cc":"DK","co":"EU","la":54.9445,"lo":8.8642,"t":"kort","d":"Løb","m":"2026-10","dt":"2026-10-02","p":null,"u":"https://www.sportstiming.dk/event/18497"},
@@ -117,7 +117,7 @@ RACES.push(...[
   {"n":"Eventyrsport Tisvilde Trail 2026 - Powered By 66°North","c":"Tisvildeleje","cc":"DK","co":"EU","la":56.0477,"lo":12.1089,"t":"ultra","d":"Trail","m":"2026-10","dt":"2026-10-10","p":null,"u":"https://www.sportstiming.dk/event/17477"},
   {"n":"Lysfald Løbet 10. Oktober I Fårup Sommerland 2026","c":"Blokhus","cc":"DK","co":"EU","la":57.2429,"lo":9.5996,"t":"kort","d":"Løb","m":"2026-10","dt":"2026-10-10","p":null,"u":"https://www.sportstiming.dk/event/17102"},
   {"n":"DGI Nordjysk Trail Cup 2026/2027 LIUF Trail","c":"Hirtshals","cc":"DK","co":"EU","la":57.5646,"lo":9.9686,"t":"ultra","d":"Trail","m":"2026-10","dt":"2026-10-11","p":null,"u":"https://www.sportstiming.dk/event/18788"},
-  {"n":"Spar Nord Sydkystløbet 2026","c":"Greve","cc":"DK","co":"EU","la":55.6112,"lo":12.3113,"t":"kort","d":"Løb","m":"2026-10","dt":"2026-10-11","p":null,"u":"https://www.sportstiming.dk/event/17085"},
+  {"n":"Spar Nord Sydkystløbet 2026","c":"Greve","cc":"DK","co":"EU","la":55.611,"lo":12.3112,"t":"kort","d":"Løb","m":"2026-10","dt":"2026-10-11","p":null,"u":"https://www.sportstiming.dk/event/17085"},
   {"n":"Bagsværd Sø Rundt 2026","c":"Bagsværd","cc":"DK","co":"EU","la":55.7599,"lo":12.4637,"t":"kort","d":"Løb","m":"2026-10","dt":"2026-10-17","p":null,"u":"https://www.sportstiming.dk/event/18504"},
   {"n":"Havstrygerløbet 2026","c":"Hirtshals","cc":"DK","co":"EU","la":57.5746,"lo":9.9579,"t":"kort","d":"Løb","m":"2026-10","dt":"2026-10-17","p":null,"u":"https://www.sportstiming.dk/event/18319"},
   {"n":"Casa Del Renaissance","c":"Gistrup","cc":"DK","co":"EU","la":57.0099,"lo":9.9866,"t":"kort","d":"Løb","m":"2026-10","dt":"2026-10-18","p":null,"u":"https://www.sportstiming.dk/event/19351"},
@@ -192,7 +192,7 @@ RACES.push(...[
   {"n":"Fur Ultra 2027","c":"Fur","cc":"DK","co":"EU","la":56.8148,"lo":9.008,"t":"ultra","d":"Trail","m":"2027-03","dt":"2027-03-20","p":null,"u":"https://www.sportstiming.dk/event/18282"},
   {"n":"DGI Nordjysk Trail Cup 2026/2027 - Forest To The Bay Blokhus","c":"Blokhus","cc":"DK","co":"EU","la":57.2553,"lo":9.595,"t":"ultra","d":"Løb","m":"2027-03","dt":"2027-03-21","p":null,"u":"https://www.sportstiming.dk/event/18813"},
   {"n":"Wayout Backyard Ultra 2027","c":"Silkeborg","cc":"DK","co":"EU","la":56.1737,"lo":9.5407,"t":"ultra","d":"Løb","m":"2027-03","dt":"2027-03-26","p":null,"u":"https://www.sportstiming.dk/event/18288"},
-  {"n":"Dana Cup Run 2027","c":"Hjørring","cc":"DK","co":"EU","la":57.4693,"lo":9.9869,"t":"kort","d":"Løb","m":"2027-03","dt":"2027-03-28","p":null,"u":"https://www.sportstiming.dk/event/18268"},
+  {"n":"Dana Cup Run 2027","c":"Hjørring","cc":"DK","co":"EU","la":57.4691,"lo":9.9864,"t":"kort","d":"Løb","m":"2027-03","dt":"2027-03-28","p":null,"u":"https://www.sportstiming.dk/event/18268"},
   {"n":"Helvede I Nord 2027","c":"Tisvildeleje","cc":"DK","co":"EU","la":56.0669,"lo":12.0813,"t":"kort","d":"Løb","m":"2027-03","dt":"2027-03-29","p":null,"u":"https://www.sportstiming.dk/event/18211"},
   {"n":"Sparkron Egå Engsø Løbet 2027","c":"Risskov","cc":"DK","co":"EU","la":56.1992,"lo":10.2193,"t":"kort","d":"Løb","m":"2027-03","dt":"2027-03-29","p":null,"u":"https://www.sportstiming.dk/event/18126"},
   {"n":"Svinninge Påskedag 2027","c":"Svinninge","cc":"DK","co":"EU","la":55.7182,"lo":11.4482,"t":"kort","d":"Løb","m":"2027-03","dt":"2027-03-29","p":null,"u":"https://www.sportstiming.dk/event/18379"},
